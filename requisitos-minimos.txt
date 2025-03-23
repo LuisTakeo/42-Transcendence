@@ -1,0 +1,73 @@
+# Minimum Requirements
+
+- You are free to develop the site, with or without a backend.
+-- If you choose to include a backend, it must be written in pure PHP without
+frameworks. However, this requirement can be overridden by the Framework
+module.
+-- If your backend or framework uses a database, you must follow the constraints
+of the Database module.
+- The frontend should be developed using Typescript as base code. However, this
+requirement can be modified through the FrontEnd module.
+- Your website must be a single-page application. The user should be able to use the
+Back and Forward buttons of the browser.
+- Your website must be compatible with the latest stable up-to-date version of
+Mozilla Firefox . Of course, it can be compatible with other web browsers!
+- The user should encounter no unhandled errors or warnings when browsing the
+website.
+- You must use Docker to run your website. Everything must be launched with a
+single command line to run an autonomous container.
+
+
+# Game
+
+- Users must be able to participate in a live Pong game against another player directly
+on the website. Both players will use the same keyboard. The Remote players
+module can enhance this functionality with remote players.
+- A player must be able to play against another, and a tournament system should
+also be available. This tournament will consist of multiple players who can take
+turns playing against each other. You have flexibility in how you implement the
+tournament, but it must clearly display who is playing against whom and the order
+of the play.
+- A registration system is required: at the start of a tournament, each player must
+input their alias. The aliases will be reset when a new tournament begins. However, this requirement can be modified using the Standard User Management
+module.
+- There must be a matchmaking system: the tournament system should organize
+the matchmaking of the participants, and announce the next match.
+- All players must adhere to the same rules, including having identical paddle speed.
+This requirement also applies when using AI; the AI must exhibit the same speed
+as a regular player.
+- The game must adhere to the default frontend constraints (as outlined above), or
+you may choose to use the FrontEnd module, or override it with the Graphics
+module. While the visual aesthetics can vary, the game must still capture the
+essence of the original Pong (1972).
+
+### Warnings 
+- The use of libraries or tools that provide an immediate
+and complete solution for an entire feature or module is
+prohibited.
+- Any direct instruction regarding the use (can, must, can’t) of
+a third-party library or tool must be followed.
+- The use of a small library or tool that solves a simple,
+unique task, representing a subcomponent of a larger feature
+or module, is allowed.
+- During the evaluation, the team will justify any use of a
+library or tool that is not explicitly approved by the project
+guidelines and is not in contradiction with the project’s
+constraints.
+- During the evaluation, the evaluator will determine whether the
+use of a specific library or tool is legitimate (and allowed)
+or if it essentially solves an entire feature or module (and is
+therefore prohibited).
+
+# Security
+
+- Any password stored in your database, if applicable, must be hashed.
+- Your website must be protected against SQL injections/XSS attacks.
+- If you have a backend or any other features, it is mandatory to enable an HTTPS
+connection for all aspects (use wss instead of ws for example).
+- You must implement validation mechanisms for forms and any user input, either on
+the base page if no backend is used, or on the server side if a backend is employed.
+- Regardless of whether you choose to implement the JWT Security module with
+2FA, it’s essential to prioritize the security of your website. For instance, if you
+choose to create an API, ensure your routes are protected. Even if you decide not
+to use JWT tokens, securing the site remains critical.
