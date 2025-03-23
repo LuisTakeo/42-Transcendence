@@ -1,0 +1,32 @@
+Modulos de interesse - Transcendence
+
+Web
+- Major module: Use a framework to build the backend. 1.0
+- Minor module: Use a framework or a toolkit to build the frontend. .5
+- Minor module: Use a database for the backend. .5
+
+User Management
+
+- Major module: Standard user management, authentication, users across
+tournaments. 1.0
+- Major module: Implementing a remote authentication. 1.0
+
+Gameplay and User Experience
+- Major module: Remote players
+- Major module: Add another game with user history and matchmaking.
+- Major module: Live chat.
+
+Cybersecurity
+- Major module: Implement Two-Factor Authentication (2FA) and JWT
+
+Devops
+- Major module: Designing the Backend as Microservicees
+
+Graphics
+- Major module: Implementing Advanced 3D Techniques
+
+Server-Side Pong
+- Major module: Replace Basic Pong with Server-Side Pong and Implementing an
+API.
+- Major module: Enabling Pong Gameplay via CLI against Web Users with API
+Integration.
