@@ -1,0 +1,12 @@
+{
+  "name": "frontend",
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "npx concurrently \"npx tsc --watch\" \"npx live-server --port=3000 --entry-file=index.html\""
+  },
+  "devDependencies": {
+    "typescript": "^5.4.0",
+    "live-server": "^1.2.2",
+    "concurrently": "^8.2.0"
+  }
+}
