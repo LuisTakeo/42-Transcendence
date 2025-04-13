@@ -1,12 +1,13 @@
 {
-  "name": "frontend",
+  "name": "transcendence-frontend",
   "version": "1.0.0",
+  "private": true,
   "scripts": {
-    "dev": "npx concurrently \"npx tsc --watch\" \"npx live-server --port=3000 --entry-file=index.html\""
+    "start": "node dist/game.js",
+    "build": "tsc"
   },
+  "dependencies": {},
   "devDependencies": {
-    "typescript": "^5.4.0",
-    "live-server": "^1.2.2",
-    "concurrently": "^8.2.0"
+    "typescript": "^4.0.0"
   }
 }

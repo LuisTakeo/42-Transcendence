@@ -1,19 +1,22 @@
 FROM node:22
 
+# Defina o diretório de trabalho dentro do container
 WORKDIR /app
 
-# Copia os arquivos de dependência
+# Copie os arquivos de dependências
 COPY package*.json ./
 
-# Instala os pacotes locais
+# Instale as dependências
 RUN npm install
 
-# Copia o restante do projeto
+# Copie o restante do código para o container
 COPY . .
 
-RUN npm install -g typescript && npm install
-# Compila uma vez (opcional, pode remover se quiser só no watch)
-RUN npx tsc
+# Compile o TypeScript para JavaScript
+RUN npm run build
 
-# Executa os dois comandos usando npx para acessar os binários locais
-CMD npx concurrently "npx tsc --watch" "npx live-server --port=3000 --entry-file=index.html"
+# Exponha a porta que será usada
+EXPOSE 3000
+
+# Comando para iniciar o servidor
+CMD ["npx", "serve", "-s", "dist", "-l", "3000"]

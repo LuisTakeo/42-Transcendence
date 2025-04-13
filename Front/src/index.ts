@@ -8,6 +8,8 @@ canvas.width = 600;
 canvas.height = 400;
 document.body.appendChild(canvas);
 
+console.log("oi")
+
 const game = new PongGame(canvas);
 const input = new PongInputAdapter(game);
 
@@ -18,4 +20,5 @@ function gameLoop() {
   requestAnimationFrame(gameLoop);
 }
 
+console.log("oi2")
 gameLoop();

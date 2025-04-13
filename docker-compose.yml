@@ -7,10 +7,10 @@ services:
       dockerfile: Dockerfile
     volumes:
       - ./Front:/app
-      # - /app/node_modules
+      - /app/node_modules
     ports:
       - "3000:3000"
-    command: npm run dev
+    command: ["npx", "serve", "-s", "dist", "-l", "3000"]
     depends_on:
       - backend
 
@@ -20,7 +20,7 @@ services:
       dockerfile: Dockerfile
     volumes:
       - ./Back:/app
-      # - /app/node_modules
+      - /app/node_modules
     ports:
       - "3001:3001"
     command: npm run dev
