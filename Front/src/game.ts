@@ -1,6 +1,6 @@
 // main.ts
-import { PongGame } from "./PongGame";
-import { PongInputAdapter } from "./PongInputAdapter";
+import { PongGame } from "./PongGame.js";
+import { PongInputAdapter } from "./PongInputAdapter.js";
 
 const canvas = document.createElement("canvas");
 canvas.id = "gameCanvas";

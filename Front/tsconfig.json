@@ -1,11 +1,17 @@
 {
   "compilerOptions": {
-    "rootDir": "./src",
-    "module": "ESNext",
-    "moduleResolution": "node",
-    "outDir": "./dist",
-    "target": "ES2020"
+    "rootDir": "./src", // Diretório de entrada dos arquivos TypeScript
+    "outDir": "./dist", // Diretório de saída dos arquivos JavaScript
+    "module": "Node16", // Usa módulos ES6
+    "moduleResolution": "node16", // Resolve caminhos e adiciona extensões .js
+    "target": "ES2020", // Define a versão do JavaScript gerado
+    "esModuleInterop": true, // Permite interoperabilidade com CommonJS
+    "allowSyntheticDefaultImports": true, // Facilita importações padrão
+    "resolveJsonModule": true, // Permite importar JSON
+    "strict": true, // Ativa verificações estritas
+    "forceConsistentCasingInFileNames": true, // Garante consistência em nomes de arquivos
+    "skipLibCheck": true // Ignora verificações de tipo em arquivos de declaração
   },
-  "include": ["src"],
-  "exclude": ["node_modules", "dist"]
+  "include": ["src"], // Inclui os arquivos TypeScript na pasta src
+  "exclude": ["node_modules", "dist"] // Exclui node_modules e dist
 }

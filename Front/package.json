@@ -4,9 +4,12 @@
   "private": true,
   "scripts": {
     "start": "node dist/game.js",
-    "build": "tsc"
+    "build": "tsc",
+    "dev": "tsc --watch"
   },
-  "dependencies": {},
+  "dependencies": {
+    "serve": "^14.2.0"
+  },
   "devDependencies": {
     "typescript": "^4.0.0"
   }
