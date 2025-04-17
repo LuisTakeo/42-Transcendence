@@ -1,16 +1,13 @@
-version: '3.8'
-
 services:
   frontend:
     build:
       context: ./Front
       dockerfile: Dockerfile
     volumes:
-      - ./Front:/app
-      - /app/node_modules
+      - ./Front:/frontend
     ports:
       - "3000:3000"
-    command: ["npx", "serve", "-s", "dist", "-l", "3000"]
+    command: ["npm", "start"] # Inicia o servidor de desenvolvimento do Webpack
     depends_on:
       - backend
 
@@ -19,8 +16,8 @@ services:
       context: ./Back
       dockerfile: Dockerfile
     volumes:
-      - ./Back:/app
-      - /app/node_modules
+      - ./Back:/backend
+      - /backend/node_modules
     ports:
       - "3001:3001"
     command: npm run dev

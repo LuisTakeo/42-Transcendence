@@ -12,11 +12,11 @@ RUN npm install
 # Copie o restante do código para o container
 COPY . .
 
-# Compile o TypeScript para JavaScript
+# Compile os arquivos TypeScript e gere o bundle.js
 RUN npm run build
 
 # Exponha a porta que será usada
 EXPOSE 3000
 
 # Comando para iniciar o servidor
-CMD ["npx", "serve", "-s", "dist", "-l", "3000"]
+CMD ["npm", "start"]
