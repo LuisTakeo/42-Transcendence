@@ -3,11 +3,12 @@ services:
     build:
       context: ./Front
       dockerfile: Dockerfile
+    container_name: transcendent_frontend
     volumes:
       - ./Front:/frontend
+      - /frontend/node_modules
     ports:
-      - "3000:3000"
-    command: ["npm", "start"] # Inicia o servidor de desenvolvimento do Webpack
+      - "3000:3000" # Inicia o servidor de desenvolvimento do Webpack
     depends_on:
       - backend
 
