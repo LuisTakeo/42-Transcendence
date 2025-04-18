@@ -1,13 +1,22 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-BR">
 <head>
-	<meta charset="UTF-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>Document</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TypeScript + Tailwind CSS</title>
+  <link rel="stylesheet" href="./src/style.css">
 </head>
-<body>
-	<h1>it works</h1>
+<body class="bg-gray-100 min-h-screen">
+  <div class="container mx-auto p-4">
+    <header class="bg-white shadow rounded-lg p-6 mb-6">
+      <h1 class="text-3xl font-bold text-gray-800">TypeScript + Tailwind CSS</h1>
+      <p class="text-gray-600 mt-2">Um projeto frontend moderno com Docker</p>
+    </header>
 
-	<script type="module" src="/bundle.js"></script>
+    <main class="bg-white shadow rounded-lg p-6">
+      <div id="app" class="space-y-4"></div>
+    </main>
+  </div>
+  <script type="module" src="./src/game.ts"></script>
 </body>
 </html>

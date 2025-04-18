@@ -5,9 +5,10 @@ services:
       dockerfile: Dockerfile
     volumes:
       - ./Front:/frontend
+      - /frontend/node_modules
     ports:
       - "3000:3000"
-    command: ["npm", "start"] # Inicia o servidor de desenvolvimento do Webpack
+    command: npm run dev # Inicia o servidor de desenvolvimento do Webpack
     depends_on:
       - backend
 

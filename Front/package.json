@@ -1,20 +1,19 @@
 {
   "name": "transcendence-frontend",
   "version": "1.0.0",
-  "private": true,
+  "description": "Frontend com TypeScript puro e Tailwind CSS",
+  "main": "index.js",
   "scripts": {
-    "start": "webpack serve --open",
-    "build": "webpack",
-    "dev": "webpack serve"
+    "dev": "npx vite --host 0.0.0.0",
+    "build": "tsc && vite build",
+    "preview": "vite preview"
   },
-  "dependencies": {
-    "serve": "^14.2.0"
-  },
+  "dependencies": {},
   "devDependencies": {
-    "typescript": "^4.0.0",
-    "webpack": "^5.0.0",
-    "webpack-cli": "^5.0.0",
-    "webpack-dev-server": "^4.0.0",
-    "ts-loader": "^9.0.0"
+    "autoprefixer": "^10.4.16",
+    "postcss": "^8.4.32",
+    "tailwindcss": "^3.4.0",
+    "typescript": "^5.3.3",
+    "vite": "^5.0.10"
   }
 }

@@ -3,20 +3,17 @@ FROM node:22
 # Defina o diretório de trabalho dentro do container
 WORKDIR /frontend
 
-# Copie os arquivos de dependências
-COPY package*.json ./
-
-# Instale as dependências
+COPY package.json package-lock.json* ./
 RUN npm install
 
-# Copie o restante do código para o container
+# Instalando o vite globalmente para garantir que esteja disponível
+RUN npm install -g vite
+
+# Cópia dos arquivos do projeto
 COPY . .
 
-# Compile os arquivos TypeScript e gere o bundle.js
-RUN npm run build
-
-# Exponha a porta que será usada
+# Expõe a porta para o servidor de desenvolvimento
 EXPOSE 3000
 
-# Comando para iniciar o servidor
-CMD ["npm", "start"]
+# Comando para iniciar o servidor de desenvolvimento
+CMD ["npm", "run", "dev"]
