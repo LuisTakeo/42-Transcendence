@@ -2,11 +2,12 @@
 import { PongGame } from "./PongGame";
 import { PongInputAdapter } from "./PongInputAdapter";
 
+const app = document.getElementById("app");
 const canvas = document.createElement("canvas");
 canvas.id = "gameCanvas";
 canvas.width = 600;
 canvas.height = 400;
-document.body.appendChild(canvas);
+app?.appendChild(canvas);
 
 console.log("oi")
 
