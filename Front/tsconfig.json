@@ -9,7 +9,8 @@
     "strict": true,
     "noImplicitAny": true,
     "sourceMap": true,
-    "lib": ["DOM", "ES2020"]
+    "lib": ["DOM", "ES2020"],
+    "allowSyntheticDefaultImports": true
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules"]
