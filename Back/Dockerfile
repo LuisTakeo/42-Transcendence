@@ -12,5 +12,8 @@ RUN npm install
 # Copie o restante do código para o container
 COPY . .
 
+# Expose the port your app runs on
+EXPOSE 3001
+
 # Comando para iniciar o servidor
 CMD ["npm", "run", "dev"]
