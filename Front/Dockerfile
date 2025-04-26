@@ -16,4 +16,4 @@ COPY . .
 EXPOSE 3000
 
 # Comando para iniciar o servidor de desenvolvimento
-CMD ["npm", "run", "dev"]
+ENTRYPOINT ["npm", "run"]

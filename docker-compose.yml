@@ -8,7 +8,7 @@ services:
       - /frontend/node_modules
     ports:
       - "3000:3000"
-    command: npm run dev # Inicia o servidor de desenvolvimento do Webpack
+    command: dev
     depends_on:
       - backend
 
@@ -21,4 +21,4 @@ services:
       - /backend/node_modules
     ports:
       - "3001:3001"
-    command: npm run dev
+    command: dev
