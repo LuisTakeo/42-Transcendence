@@ -1,5 +1,5 @@
 // import './counter';
-import { MainGame } from './game';
+import { MainGame } from './pong-game/game';
 
 
 const app = document.getElementById('app');
