@@ -24,7 +24,8 @@ class MainGame {
      */
     constructor(canvasId: string) {
         // Get canvas reference
-        this.canvas = document.getElementById(canvasId) as HTMLCanvasElement;
+        this.canvas = document.getElementById(canvasId) as unknown as HTMLCanvasElement;
+        console.log("teste AAAAAAa");
         if (!this.canvas) throw new Error(`Canvas with ID "${canvasId}" not found`);
 
         // Initialize Babylon engine

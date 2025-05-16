@@ -38,8 +38,8 @@ class Paddle {
     private createPaddle(position: Vector3, tableDepth: number): void {
         // Criar um paddle retangular
         this.mesh = MeshBuilder.CreateBox("paddle_" + this.side, {
-            width: 1,
-            height: 3,
+            width: 2,
+            height: 4,
             depth: 10
         }, this.scene);
 

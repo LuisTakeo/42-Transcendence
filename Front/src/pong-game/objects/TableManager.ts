@@ -8,19 +8,19 @@ import { Paddle } from "./Paddle";
 class TableManager {
     private scene: Scene;
     private table: Mesh;
-    private legs: Mesh[] = [];
-    private centerLine: Mesh;
-    private sideBarA: Mesh;
-    private sideBarB: Mesh;
+    private legs?: Mesh[] = [];
+    private centerLine?: Mesh;
+    private sideBarA?: Mesh;
+    private sideBarB?: Mesh;
 
-	private ball: Ball;
+	private ball?: Ball;
 	private ballSpeed: number = 0.5;
 
-	private paddleLeft: Paddle;
-	private paddleRight: Paddle;
+	private paddleLeft?: Paddle;
+	private paddleRight?: Paddle;
 
-	private tableWidth: number = 50;
-	private tableDepth: number = 50;
+	private tableWidth: number = 100;
+	private tableDepth: number = 80;
 
 
     /**
@@ -59,9 +59,9 @@ class TableManager {
      */
     private createTableTop(): void {
         this.table = MeshBuilder.CreateBox('tableTop', {
-            width: 50,
+            width: this.tableWidth,
             height: 1,
-            depth: 50
+            depth: this.tableDepth
         }, this.scene);
 
         this.table.position.y = 10;
