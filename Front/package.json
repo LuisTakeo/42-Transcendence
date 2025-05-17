@@ -1,0 +1,23 @@
+{
+  "name": "transcendence-frontend",
+  "version": "1.0.0",
+  "description": "Frontend com TypeScript puro e Tailwind CSS",
+  "main": "index.js",
+  "scripts": {
+    "dev": "npx vite --host 0.0.0.0",
+    "build": "tsc && vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@babylonjs/core": "^6.35.0",
+    "@babylonjs/gui": "^6.35.0",
+    "@babylonjs/loaders": "^6.35.0",
+    "@babylonjs/materials": "^6.35.0"
+  },
+  "devDependencies": {
+    "postcss": "^8.4.32",
+    "tailwindcss": "^3.4.0",
+    "typescript": "^5.3.3",
+    "vite": "^5.0.10"
+  }
+}

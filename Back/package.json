@@ -1,0 +1,20 @@
+{
+  "name": "backend",
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "ts-node-dev src/main.ts",
+    "build": "tsc",
+    "start": "node dist/main.js"
+  },
+  "dependencies": {
+    "fastify": "^4.25.0",
+    "sqlite3": "^5.1.7",
+    "dotenv": "^16.3.1"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.3",
+    "ts-node-dev": "^2.0.0",
+    "@types/node": "^20.11.30",
+    "@types/sqlite3": "^3.1.11"
+  }
+}

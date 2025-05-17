@@ -1,0 +1,24 @@
+services:
+  frontend:
+    build:
+      context: ./Front
+      dockerfile: Dockerfile
+    volumes:
+      - ./Front:/frontend
+      - /frontend/node_modules
+    ports:
+      - "3000:3000"
+    command: dev
+    depends_on:
+      - backend
+
+  backend:
+    build:
+      context: ./Back
+      dockerfile: Dockerfile
+    volumes:
+      - ./Back:/backend
+      - /backend/node_modules
+    ports:
+      - "3001:3001"
+    command: dev
