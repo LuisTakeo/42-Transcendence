@@ -10,7 +10,7 @@
       rel="stylesheet"
     />
   </head>
-  <body class="bg-[#383568] text-white min-h-screen flex items-center">
+  <body class="bg-[#383568] text-white min-h-screen ">
 
     <!-- Barra lateral fixa -->
     <div class="fixed left-0 top-0 h-screen w-20 bg-[#1E1B4B] flex flex-col justify-between">
@@ -38,10 +38,69 @@
       </nav>
     </div>
 
-    <div class="ml-20 min-h-screen p-6">
-		<h1 class="text-4xl mb-4">Aqui é o ranking </h1>
-		<p>Outro conteúdo aqui…</p>
-	  </div>
+    <!-- Conteúdo principal -->
+    <main class="ml-24 p-4 md:p-4 lg:p-10 flex justify-center items-center min-h-screen"> 
+
+		<div class=" w-full md:p-2 lg:p-12 bg-[#1E1B4B] rounded-lg p-8">
+  
+		  <!-- Título -->
+		  <h1 class="text-5xl font-bold mb-6 text-center">Ranking</h1>
+  
+		  <div class="w-full max-w-3xl mx-auto mt-10">
+			<table class="w-full text-center text-white rounded-lg overflow-hidden">
+			  <thead class="bg-[#3B3567] text-2xl uppercase">
+				<tr>
+				  <th class="px-6 py-3">Pos</th>
+				  <th class="px-6 py-3 ">User</th>
+				  <th class="px-6 py-3">Matches</th>
+				  <th class="px-6 py-3">Wins</th>
+				  <th class="px-6 py-3">Options</th>
+				</tr>
+			  </thead>
+			  <tbody class="text-2xl">
+				<tr class="bg-[#2D2856] rounded-lg">
+				  <td class="px-6 py-4">1.</td>
+				  <td class="px-6 py-4">bda-mota</td>
+				  <td class="px-6 py-4">10</td>
+				  <td class="px-6 py-4">5</td>
+				  <td class="px-6 py-4">
+					<div class="flex gap-6 justify-center">
+						<button><img src="./assets/add-friend.png" alt="add friend" class="w-8 h-8" /></button>
+						<button><img src="./assets/remove-user.png" alt="remove friend" class="w-8 h-8" /></button>
+						<button><img src="./assets/arrow.png" alt="go to user profile" class="w-8 h-8" /></button>
+					</div>
+				  </td>
+				</tr>
+				<tr class="bg-[#2D2856]">
+				  <td class="px-6 py-4">2.</td>
+				  <td class="px-6 py-4">beatz.mota</td>
+				  <td class="px-6 py-4">10</td>
+				  <td class="px-6 py-4">3</td>
+				  <td class="px-6 py-4">
+					<div class="flex gap-6 justify-center">
+						<button><img src="./assets/add-friend.png" alt="add friend" class="w-8 h-8" /></button>
+						<button><img src="./assets/remove-user.png" alt="remove friend" class="w-8 h-8" /></button>
+						<button><img src="./assets/arrow.png" alt="go to user profile" class="w-8 h-8" /></button>
+					</div>
+				  </td>
+				</tr>
+				<tr class="bg-[#2D2856]">
+				  <td class="px-6 py-4">3.</td>
+				  <td class="px-6 py-4">texugo</td>
+				  <td class="px-6 py-4">8</td>
+				  <td class="px-6 py-4">2</td>
+				  <td class="px-6 py-4">
+					<div class="flex gap-6 justify-center">
+						<button><img src="./assets/add-friend.png" alt="add friend" class="w-8 h-8" /></button>
+						<button><img src="./assets/remove-user.png" alt="remove friend" class="w-8 h-8" /></button>
+						<button><img src="./assets/arrow.png" alt="go to user profile" class="w-8 h-8" /></button>
+					</div>
+				  </td>
+				</tr>
+			  </tbody>
+			</table>
+		  </div>
+	  </main>
     
   </body>
 </html>
