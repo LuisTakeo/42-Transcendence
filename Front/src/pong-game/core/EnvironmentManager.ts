@@ -42,6 +42,11 @@ class EnvironmentManager {
         this.surroundingGround.position.y = -0.1;
         this.surroundingGround.receiveShadows = true;
     }
+
+    public getGround(): Mesh {
+        return this.ground;
+    }
+
 }
 
 export { EnvironmentManager };

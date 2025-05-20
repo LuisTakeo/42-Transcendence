@@ -1,6 +1,7 @@
-import { Color3, Mesh, MeshBuilder, Scene, StandardMaterial, Vector3 } from "@babylonjs/core";
+import { Color3, Mesh, MeshBuilder, Scene, ShadowGenerator, StandardMaterial, Vector3 } from "@babylonjs/core";
 import { Ball } from "./Ball";
 import { Paddle } from "./Paddle";
+import { BleacherSection } from "./BleacherSection";
 
 /**
  * Gerencia a mesa de Pong e seus componentes
@@ -13,22 +14,29 @@ class TableManager {
     private sideBarA?: Mesh;
     private sideBarB?: Mesh;
 
+    private bleachers: BleacherSection[] = [];
+
+    private shadowGenerator?: ShadowGenerator;
+
 	private ball?: Ball;
-	private ballSpeed: number = 0.5;
+	private ballSpeed: number;
 
 	private paddleLeft?: Paddle;
 	private paddleRight?: Paddle;
 
-	private tableWidth: number = 100;
-	private tableDepth: number = 80;
+	private tableWidth: number;
+	private tableDepth: number;
 
 
     /**
      * Construtor do gerenciador da mesa
      * @param scene Cena Babylon.js
      */
-    constructor(scene: Scene) {
+    constructor(scene: Scene, tableWidth: number = 100, tableDepth: number = 80, ballSpeed: number = 0.65) {
+        this.ballSpeed = ballSpeed;
         this.scene = scene;
+        this.tableWidth = tableWidth;
+        this.tableDepth = tableDepth;
     }
 
     /**
@@ -40,6 +48,87 @@ class TableManager {
         this.createCenterLine();
         this.createSideBars();
 		this.createGameElements();
+        this.createBleachers();
+
+        if (this.shadowGenerator)
+            this.configureShadows();
+    }
+
+    private createBleachers(): void {
+        // Buscando as dimensões da mesa para posicionar as arquibancadas corretamente
+        const tableHalfWidth = this.tableWidth / 2;
+        const tableHalfDepth = this.tableDepth / 2;
+
+        // Distância das arquibancadas em relação à mesa
+        const distanceFromTable = 50;
+
+        // Exemplo: Criar uma arquibancada no lado direito
+        const rightBleacher = new BleacherSection(
+            this.scene,
+            new Vector3(tableHalfWidth + distanceFromTable, 0, 0),
+            this.tableDepth, // Largura alinhada com a profundidade da mesa
+            30, // Profundidade da arquibancada
+            6,  // Número de fileiras
+            15, // Assentos por fileira
+            90  // Rotação em graus
+        );
+
+        this.bleachers.push(rightBleacher);
+
+        // Você pode adicionar mais arquibancadas chamando novamente o construtor com posições diferentes
+        // Por exemplo, para colocar nos outros lados:
+
+        // Lado esquerdo (exemplo)
+        // const leftBleacher = new BleacherSection(
+        //     this.scene,
+        //     new Vector3(-(tableHalfWidth + distanceFromTable), 0, 0),
+        //     this.tableDepth,
+        //     20,
+        //     5,
+        //     10,
+        //     -90
+        // );
+        // this.bleachers.push(leftBleacher);
+    }
+
+    public setShadowGenerator(shadowGenerator: ShadowGenerator): void {
+        this.shadowGenerator = shadowGenerator;
+    }
+
+    private configureShadows(): void {
+        if (!this.shadowGenerator) return;
+
+        this.shadowGenerator.addShadowCaster(this.table);
+        // A bola projeta sombra
+        this.shadowGenerator.addShadowCaster(this.ball.getMesh());
+
+        // Os paddles projetam sombras
+        this.shadowGenerator.addShadowCaster(this.paddleLeft.getMesh());
+        this.shadowGenerator.addShadowCaster(this.paddleRight.getMesh());
+
+        // As pernas da mesa projetam sombras
+        this.legs?.forEach(leg => {
+            this.shadowGenerator?.addShadowCaster(leg);
+        });
+
+        // A mesa recebe sombras
+        this.table.receiveShadows = true;
+
+        // As barras laterais projetam e recebem sombras
+        if (this.sideBarA) {
+            this.shadowGenerator.addShadowCaster(this.sideBarA);
+            this.sideBarA.receiveShadows = true;
+        }
+
+        if (this.sideBarB) {
+            this.shadowGenerator.addShadowCaster(this.sideBarB);
+            this.sideBarB.receiveShadows = true;
+        }
+
+
+        this.bleachers.forEach(bleacher => {
+            bleacher.configureShadows(this.shadowGenerator);
+        });
     }
 
 	/**
@@ -47,7 +136,7 @@ class TableManager {
      */
 	private createGameElements(): void {
         // Cria a bola no centro da mesa
-        this.ball = new Ball(this.scene, new Vector3(0, 12, 0));
+        this.ball = new Ball(this.scene, new Vector3(0, 12, 0), this.ballSpeed);
 
         // Cria os paddles em cada extremidade da mesa
         this.paddleLeft = new Paddle(this.scene, 'left', this.tableWidth, this.tableDepth);
@@ -200,8 +289,10 @@ class TableManager {
      */
     public update(): void {
 		// Atualiza a posição da bola
+        console.log("Ball " + this.ball?.getMesh().position);
+        console.log("Table " + this.table.position);
         if (this.ball) {
-            this.ball.update();
+            this.ball.update(this.tableWidth, this.tableDepth);
 
             // Você pode adicionar detecção de colisão com os paddles aqui
             this.checkBallPaddleCollision();
@@ -243,7 +334,7 @@ class TableManager {
         // Você pode substituir por controles reais baseados em inputs do usuário
 
         // Define o limite de movimento com base na mesa
-        const moveLimit = (this.tableDepth / 2) - 7;
+        const moveLimit = (this.tableDepth / 2) - 5;
 
         // Exemplo de movimentação automatizada do paddle esquerdo (IA simples)
         const ballPosition = this.ball.getMesh().position;
