@@ -7,14 +7,15 @@
     "start": "node dist/main.js"
   },
   "dependencies": {
+    "dotenv": "^16.3.1",
     "fastify": "^4.25.0",
-    "sqlite3": "^5.1.7",
-    "dotenv": "^16.3.1"
+    "sqlite": "^5.1.1",
+    "sqlite3": "^5.1.7"
   },
   "devDependencies": {
-    "typescript": "^5.3.3",
-    "ts-node-dev": "^2.0.0",
     "@types/node": "^20.11.30",
-    "@types/sqlite3": "^3.1.11"
+    "@types/sqlite3": "^5.1.0",
+    "ts-node-dev": "^2.0.0",
+    "typescript": "^5.3.3"
   }
 }

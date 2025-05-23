@@ -1,4 +1,5 @@
 import fastify from 'fastify';
+import { runMigrations } from './database/database';
 
 const server = fastify({ logger: true });
 const port = 3001;
@@ -14,6 +15,7 @@ const start = async () =>
 {
 	try
 	{
+    await runMigrations(); // Run migrations before starting the server
 		await server.listen({ port, host });
 		server.log.info(`Server listening on ${host}:${port}`);
 	}

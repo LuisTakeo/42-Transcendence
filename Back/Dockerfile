@@ -16,4 +16,4 @@ COPY . .
 EXPOSE 3001
 
 # Comando para iniciar o servidor
-ENTRYPOINT ["npm", "run"]
+ENTRYPOINT ["npm", "run", "dev"]

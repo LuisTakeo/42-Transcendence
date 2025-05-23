@@ -21,4 +21,4 @@ services:
       - /backend/node_modules
     ports:
       - "3001:3001"
-    command: dev
+    command: npm run dev
