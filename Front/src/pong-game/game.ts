@@ -22,7 +22,7 @@ class MainGame {
      * Constructor for the main class
      * @param canvasId ID of the canvas element in HTML
      */
-    constructor(canvasId: string) {
+    constructor(canvasId: string, tableWidth: number = 100, tableDepth: number = 80) {
         // Get canvas reference
         this.canvas = document.getElementById(canvasId) as unknown as HTMLCanvasElement;
         console.log("teste AAAAAAa");
@@ -38,7 +38,7 @@ class MainGame {
         this.cameraManager = new CameraManager(this.scene, this.canvas);
         this.lightManager = new LightManager(this.scene);
         this.environmentManager = new EnvironmentManager(this.scene);
-        this.tableManager = new TableManager(this.scene);
+        this.tableManager = new TableManager(this.scene, tableWidth, tableDepth);
     }
 
     /**
@@ -52,7 +52,14 @@ class MainGame {
         this.cameraManager.createCamera(new Vector3(10, 80, -100));
         this.lightManager.createLights();
         this.environmentManager.createGround();
+
+        this.tableManager.setShadowGenerator(this.lightManager.getShadowGenerator());
         this.tableManager.createTable();
+
+        const ground = this.environmentManager.getGround();
+        if (ground) {
+            ground.receiveShadows = true;
+        }
     }
 
     /**

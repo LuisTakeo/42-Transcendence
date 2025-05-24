@@ -14,6 +14,6 @@ app?.appendChild(canvas);
 // });
 
 window.addEventListener('DOMContentLoaded', () => {
-	const game = new MainGame('gameCanvas');
+	const game = new MainGame('gameCanvas', 50, 50);
 	game.run();
 });
