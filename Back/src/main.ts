@@ -1,7 +1,7 @@
 import fastify from 'fastify';
 
 const server = fastify({ logger: true });
-const port = 3001;
+const port = 3142;
 const host = '0.0.0.0';
 
 

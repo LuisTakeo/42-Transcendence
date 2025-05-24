@@ -7,7 +7,7 @@ services:
       - ./Front:/frontend
       - /frontend/node_modules
     ports:
-      - "3042:3000"
+      - "3042:3042"
     command: dev
     depends_on:
       - backend
@@ -20,5 +20,5 @@ services:
       - ./Back:/backend
       - /backend/node_modules
     ports:
-      - "3142:3001"
+      - "3142:3142"
     command: dev
