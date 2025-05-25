@@ -1,3 +1,5 @@
+version: '3.8'
+
 services:
   frontend:
     build:
@@ -7,7 +9,7 @@ services:
       - ./Front:/frontend
       - /frontend/node_modules
     ports:
-      - "3042:3042"
+      - "${FRONT_PORT:-3042}:${FRONT_PORT:-3042}"
     command: dev
     depends_on:
       - backend
@@ -20,5 +22,5 @@ services:
       - ./Back:/backend
       - /backend/node_modules
     ports:
-      - "3142:3142"
+      - "${BACK_PORT:-3142}:${BACK_PORT:-3142}"
     command: dev
