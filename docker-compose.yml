@@ -5,6 +5,8 @@ services:
     build:
       context: ./Front
       dockerfile: Dockerfile
+      args:
+        - FRONT_PORT=${FRONT_PORT:-3042}
     volumes:
       - ./Front:/frontend
       - /frontend/node_modules
@@ -18,6 +20,8 @@ services:
     build:
       context: ./Back
       dockerfile: Dockerfile
+      args:
+        - BACK_PORT=${BACK_PORT:-3142}
     volumes:
       - ./Back:/backend
       - /backend/node_modules

@@ -1,5 +1,8 @@
 FROM node:22
 
+# Recebe o argumento de build
+ARG BACK_PORT=3142
+
 # Defina o diretório de trabalho dentro do container
 WORKDIR /backend
 
@@ -13,7 +16,7 @@ RUN npm install
 COPY . .
 
 # Expose the port your app runs on
-EXPOSE ${BACK_PORT:-3142}
+EXPOSE ${BACK_PORT}
 
 # Comando para iniciar o servidor
 ENTRYPOINT ["npm", "run"]
