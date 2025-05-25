@@ -2,6 +2,19 @@
 
 Este projeto utiliza **SQLite** como banco de dados local.
 
+## Variáveis de Ambiente
+
+O projeto utiliza variáveis de ambiente para configurar as portas do frontend e backend. Crie um arquivo `.env` na raiz do projeto com as seguintes variáveis:
+
+```env
+# Frontend port
+FRONT_PORT=3042
+
+# Backend port
+BACK_PORT=3142
+```
+ou qualquer outra porta que queira.
+
 ## Como rodar o servidor
 
 1. Entre na pasta `Back`:
