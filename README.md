@@ -15,6 +15,48 @@ BACK_PORT=3142
 ```
 ou qualquer outra porta que queira.
 
+## Make Commands
+
+The project includes a Makefile with useful commands to manage Docker containers:
+
+```bash
+# Start containers
+make up
+
+# Stop containers
+make down
+
+# Rebuild and start containers
+make build
+
+# Restart containers
+make restart
+
+# View logs
+make logs
+
+# Clean unused containers and images
+make clean
+
+# Start in development mode (ports 3043/3143)
+make dev
+
+# Start in production mode (ports 3042/3142)
+make prod
+
+# View frontend logs
+make frontend-logs
+
+# Restart frontend
+make frontend-restart
+
+# View backend logs
+make backend-logs
+
+# Restart backend
+make backend-restart
+```
+
 ## Como rodar o servidor
 
 1. Entre na pasta `Back`:
@@ -33,6 +75,28 @@ Esse comando irá iniciar o backend e aplicar as migrations automaticamente, cri
 
 ```
 ./src/database/mydatabase.sqlite
+```
+
+## Configuração do Frontend
+
+O frontend utiliza Vite como bundler. Para desenvolvimento:
+
+```bash
+cd Front
+npm run dev
+```
+
+Para build de produção:
+
+```bash
+cd Front
+npm run build
+```
+
+O build será gerado na pasta `dist` e pode ser servido com:
+
+```bash
+npm run preview
 ```
 
 ## Como acessar o banco SQLite
