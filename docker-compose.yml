@@ -6,12 +6,12 @@ services:
       context: ./Front
       dockerfile: Dockerfile
       args:
-        - FRONT_PORT=${FRONT_PORT:-3043}
+        - FRONT_PORT=${FRONT_PORT}
     volumes:
       - ./Front:/frontend
       - /frontend/node_modules
     ports:
-      - "${FRONT_PORT:-3043}:${FRONT_PORT:-3043}"
+      - "${FRONT_PORT}:${FRONT_PORT}"
     command: dev
     depends_on:
       - backend
@@ -21,10 +21,10 @@ services:
       context: ./Back
       dockerfile: Dockerfile
       args:
-        - BACK_PORT=${BACK_PORT:-3143}
+        - BACK_PORT=${BACK_PORT}
     volumes:
       - ./Back:/backend
       - /backend/node_modules
     ports:
-      - "${BACK_PORT:-3143}:${BACK_PORT:-3143}"
+      - "${BACK_PORT}:${BACK_PORT}"
     command: dev

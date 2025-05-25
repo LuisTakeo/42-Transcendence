@@ -1,7 +1,7 @@
 import fastify from 'fastify';
 
 const server = fastify({ logger: true });
-const port = process.env.BACK_PORT || 3143;
+const port = process.env.BACK_PORT;
 const host = '0.0.0.0';
 
 
