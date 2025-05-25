@@ -1,7 +1,7 @@
 FROM node:22
 
 # Recebe o argumento de build
-ARG FRONT_PORT=3042
+ARG FRONT_PORT=3043
 
 # Defina o diretório de trabalho dentro do container
 WORKDIR /frontend

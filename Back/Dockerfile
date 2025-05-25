@@ -1,7 +1,7 @@
 FROM node:22
 
 # Recebe o argumento de build
-ARG BACK_PORT=3142
+ARG BACK_PORT=3143
 
 # Defina o diretório de trabalho dentro do container
 WORKDIR /backend
