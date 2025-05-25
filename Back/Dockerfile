@@ -13,7 +13,7 @@ RUN npm install
 COPY . .
 
 # Expose the port your app runs on
-EXPOSE 3142
+EXPOSE ${BACK_PORT:-3142}
 
 # Comando para iniciar o servidor
 ENTRYPOINT ["npm", "run"]
