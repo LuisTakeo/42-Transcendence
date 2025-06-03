@@ -1,4 +1,5 @@
 // import './counter';
+import { GameType } from './pong-game/game';
 import { MainGame } from './pong-game/game';
 
 
@@ -13,7 +14,9 @@ app?.appendChild(canvas);
 //   new Game('gameCanvas');
 // });
 
+
 window.addEventListener('DOMContentLoaded', () => {
-	const game = new MainGame('gameCanvas', 50, 50);
+	// Cria o jogo com 2 jogadores no mesmo teclado
+	const game = new MainGame('gameCanvas', GameType.LOCAL_VS_AI, 50, 50);
 	game.run();
 });

@@ -41,7 +41,7 @@ class LightManager {
         // Adicionar estas configurações para melhorar a qualidade das sombras
         this.shadowGenerator.bias = 0.00001;
         this.shadowGenerator.normalBias = 0.01;
-        this.shadowGenerator.darkness = 0.6; // Ajuste este valor para sombras mais escuras/claras
+        this.shadowGenerator.darkness = 0.6;
     }
 
     /**

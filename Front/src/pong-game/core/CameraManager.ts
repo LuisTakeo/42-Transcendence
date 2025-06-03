@@ -26,7 +26,7 @@ class CameraManager {
     public createCamera(position: Vector3): FreeCamera {
         this.camera = new FreeCamera('camera1', position, this.scene);
         this.camera.setTarget(Vector3.Zero());
-        this.camera.attachControl(this.canvas, true);
+        // this.camera.attachControl(this.canvas, false);
         return this.camera;
     }
 

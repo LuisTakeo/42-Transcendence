@@ -293,13 +293,11 @@ class TableManager {
         console.log("Table " + this.table.position);
         if (this.ball) {
             this.ball.update(this.tableWidth, this.tableDepth);
-
-            // Você pode adicionar detecção de colisão com os paddles aqui
             this.checkBallPaddleCollision();
         }
 
         // Você pode adicionar controles para os paddles aqui
-        this.updatePaddleControls();
+        // this.updatePaddleControls();
 	}
 
 	private checkBallPaddleCollision(): void {
