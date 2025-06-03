@@ -305,20 +305,61 @@ class TableManager {
         const paddleLeftMesh = this.paddleLeft.getMesh();
         const paddleRightMesh = this.paddleRight.getMesh();
 
-        // Verifica se a bola colidiu com o paddle esquerdo
+        let velocity = this.ball.getVelocity();
+        const ballRadius = 0.75; // Raio da bola
+        const paddleHeight = 10; // Altura aproximada do paddle
+
+        // Colisão com paddle esquerdo
         if (ballMesh.intersectsMesh(paddleLeftMesh, false)) {
-            const velocity = this.ball.getVelocity();
-            if (velocity.x < 0) { // Só inverte se estiver indo para a esquerda
-                velocity.x *= -1;
+            if (velocity.x < 0) { // Se estiver se movendo para a esquerda
+                // Calcular ponto de colisão relativo ao centro do paddle
+                const hitPoint = (ballMesh.position.z - paddleLeftMesh.position.z) / (paddleHeight / 2);
+
+                // Limitar hitPoint entre -1 e 1
+                const clampedHitPoint = Math.max(-1, Math.min(1, hitPoint));
+
+                // Ângulo de rebatimento baseado no ponto de impacto
+                // Varia entre -30° a 30° (convertido para radianos)
+                const bounceAngle = clampedHitPoint * (Math.PI / 6);
+
+                // Calcular nova direção baseada no ângulo
+                const speed = Math.sqrt(velocity.x * velocity.x + velocity.z * velocity.z);
+                const newSpeed = Math.min(speed * 1.05, 1.5); // Aumenta velocidade em 5% até o limite
+
+                // Aplicar nova velocidade com direção calculada
+                velocity.x = Math.cos(bounceAngle) * newSpeed;
+                velocity.z = Math.sin(bounceAngle) * newSpeed;
+
+                // Reproduzir som de colisão (se implementar no futuro)
+                // this.playSound('paddleHit');
+
                 this.ball.setVelocity(velocity);
             }
         }
 
-        // Verifica se a bola colidiu com o paddle direito
-        if (ballMesh.intersectsMesh(paddleRightMesh, false)) {
-            const velocity = this.ball.getVelocity();
-            if (velocity.x > 0) { // Só inverte se estiver indo para a direita
-                velocity.x *= -1;
+        // Colisão com paddle direito (mesma lógica, só invertendo o X)
+        else if (ballMesh.intersectsMesh(paddleRightMesh, false)) {
+            if (velocity.x > 0) { // Se estiver se movendo para a direita
+                // Calcular ponto de colisão relativo ao centro do paddle
+                const hitPoint = (ballMesh.position.z - paddleRightMesh.position.z) / (paddleHeight / 2);
+
+                // Limitar hitPoint entre -1 e 1
+                const clampedHitPoint = Math.max(-1, Math.min(1, hitPoint));
+
+                // Ângulo de rebatimento baseado no ponto de impacto
+                const bounceAngle = clampedHitPoint * (Math.PI / 6);
+
+                // Calcular nova direção baseada no ângulo
+                const speed = Math.sqrt(velocity.x * velocity.x + velocity.z * velocity.z);
+                const newSpeed = Math.min(speed * 1.05, 1.5); // Aumenta velocidade em 5% até o limite
+
+                // Aplicar nova velocidade com direção calculada
+                velocity.x = -Math.cos(bounceAngle) * newSpeed; // Nota o sinal negativo
+                velocity.z = Math.sin(bounceAngle) * newSpeed;
+
+                // Reproduzir som de colisão (se implementar no futuro)
+                // this.playSound('paddleHit');
+
                 this.ball.setVelocity(velocity);
             }
         }
