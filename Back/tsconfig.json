@@ -1,17 +1,17 @@
 {
+	"$schema": "https://json.schemastore.org/tsconfig",
+	"_version": "22.0.0",
+
 	"compilerOptions": {
-	  "target": "ES2020",                // ES6 funciona, mas ES2020 traz suporte melhor para features modernas
-	  "module": "commonjs",             // está ok para Node.js
-	  "outDir": "./dist",
-	  "rootDir": "./src",
-	  "strict": true,                   // ótimo para checagem rigorosa
-	  "esModuleInterop": true,          // mantém para importar CommonJS corretamente
-	  "moduleResolution": "node",       // muito importante para o TS resolver os módulos do node
-	  "resolveJsonModule": true,        // útil caso importe arquivos JSON
-	  "skipLibCheck": true,             // evita erros desnecessários em libs externas
-	  "forceConsistentCasingInFileNames": true,
-	  "noImplicitAny": true,
-	  "typeRoots": ["./node_modules/@types", "./src/@types"]
-	},
-	"include": ["src"]
+	  "lib": [
+		"es2024"
+	],
+	  "module": "nodenext",
+	  "target": "es2022",
+
+	  "strict": true,
+	  "esModuleInterop": true,
+	  "skipLibCheck": true,
+	  "moduleResolution": "node16"
+	}
   }

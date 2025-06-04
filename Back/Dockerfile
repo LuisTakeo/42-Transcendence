@@ -13,4 +13,4 @@ COPY . .
 
 EXPOSE ${BACK_PORT}
 
-ENTRYPOINT ["npm", "run"]
+ENTRYPOINT ["npm", "run", "dev"]
