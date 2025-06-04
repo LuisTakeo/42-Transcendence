@@ -1,53 +1,22 @@
-import fastify from 'fastify';
-import fastifyJwt from 'fastify-jwt';
-import type { FastifyRequest, FastifyReply } from 'fastify';
+import Fastify from 'fastify';
 
-const server = fastify({ logger: true });
-const port = process.env.BACK_PORT;
-const host = '0.0.0.0';
+// 🔧 Cria o servidor Fastify
+const fastify = Fastify({ logger: true });
 
-
-// registra plugin JWT
-
-server.register(fastifyJwt, {
-	secret : process.env.JWT_SECRET || 'supersecret'
+// 🏠 Rota pública simples
+fastify.get('/', async (request, reply) => {
+  return { message: 'Backend rodando perfeitamente! 🚀' };
 });
 
-// cria middleware para verificar o token JWT
-
-server.decorate("authenticate", async (request: FastifyRequest, reply: FastifyReply) => {
+// 🚀 Inicializa o servidor
+const start = async () => {
   try {
-    await request.jwtVerify();
+    await fastify.listen({ port: 3142, host: '0.0.0.0' });
+    console.log('Servidor rodando em http://0.0.0.0:3142');
   } catch (err) {
-    reply.send(err);
+    fastify.log.error(err);
+    process.exit(1);
   }
-});
-
-
-// Define a simple route
-server.get('/', async (request: FastifyRequest, reply: FastifyReply) => {
-	return { hello: 'world' };
-  });
-
-// Exemplo de rota protegida
-
-server.get('/profile', {preValidation: [server.authenticate]}, async (request: FastifyRequest, reply: FastifyReply) => {
-	return { user: request.user };
-});
-
-const start = async () =>
-{
-	try
-	{
-		await server.listen({ port, host });
-		server.log.info(`Server listening on ${host}:${port}`);
-	}
-	catch (err)
-	{
-		server.log.error(err);
-		process.exit(1);
-	}
-
-}
+};
 
 start();
