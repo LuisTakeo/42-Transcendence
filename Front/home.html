@@ -10,7 +10,7 @@
       rel="stylesheet"
     />
   </head>
-  <body class="bg-[#383568] text-white min-h-screen flex items-center">
+  <body class="bg-[#383568] text-white min-h-screen flex ">
 
     <!-- Barra lateral fixa -->
     <div class="fixed left-0 top-0 h-screen w-20 bg-[#1E1B4B] flex flex-col justify-between">
@@ -38,10 +38,45 @@
       </nav>
     </div>
 
-	<div class="ml-20 min-h-screen p-6">
-		<h1 class="text-4xl mb-4">Aqui é a home </h1>
-		<p>Outro conteúdo aqui…</p>
-	  </div>
-    
+	<div class="ml-20 min-h-screen flex-1 p-10">
+    <div class="grid grid-cols-2 grid-rows-2 gap-8 h-full">
+      <!-- Botão 1 -->
+      <button class="relative flex flex-col items-center justify-center
+  bg-[#1E1B4B] hover:bg-[#4A4180] rounded-[5px]
+  transition duration-300 transform hover:scale-105 hover:shadow-lg overflow-hidden
+">
+        <img src="./assets/vector-racket.png" alt="Fast Game" class="bg-[#1E1B4B] absolute inset-0 w-full h-full object-cover opacity-60" />
+        <span class="relative z-10 text-white text-2xl font-bold">Fast Game</span>
+      </button>
+
+      <!-- Botão 2 -->
+      <button class="relative flex flex-col items-center justify-center
+  bg-[#1E1B4B] hover:bg-[#4A4180] rounded-[5px]
+  transition duration-300 transform hover:scale-105 hover:shadow-lg overflow-hidden
+">
+        <img src="./assets/pong-players.png" alt="Classic Game" class="bg-[#1E1B4B] absolute inset-0 w-full h-full object-cover opacity-60" />
+        <span class="relative z-10 text-white text-2xl font-bold">Classic Game</span>
+      </button>
+
+      <!-- Botão 3 -->
+      <button class="relative flex flex-col items-center justify-center
+  bg-[#1E1B4B] hover:bg-[#4A4180] rounded-[5px]
+  transition duration-300 transform hover:scale-105 hover:shadow-lg overflow-hidden
+">
+        <img src="./assets/pong-racket.png" alt="One Computer Game" class="bg-[#1E1B4B] absolute inset-0 w-full h-full object-cover opacity-60" />
+        <span class="relative z-10 text-white text-2xl font-bold">One Computer Game </span>
+      </button>
+
+      <!-- Botão 4 -->
+      <button class="relative flex flex-col items-center justify-center
+  bg-[#1E1B4B] hover:bg-[#4A4180] rounded-[5px]
+  transition duration-300 transform hover:scale-105 hover:shadow-lg overflow-hidden
+">
+        <img src="./assets/joquempo.png" alt="Another Game" class="bg-[#1E1B4B] absolute inset-0 w-full h-full object-cover opacity-60" />
+        <span class="relative z-10 text-white text-2xl font-bold">Another Game</span>
+      </button>
+    </div>
+  </div>
+
   </body>
 </html>
