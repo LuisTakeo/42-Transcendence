@@ -6,13 +6,13 @@ CREATE TABLE IF NOT EXISTS users (
     email TEXT UNIQUE NOT NULL,
     password_hash TEXT NOT NULL,
     avatar_url TEXT,
-    is_online INTEGER DEFAULT 0, -- 0 = false, 1 = true
+    is_online INTEGER DEFAULT 0,
     last_seen_at DATETIME,
     created_at DATETIME DEFAULT (datetime('now'))
 );
 
--- chats
-CREATE TABLE IF NOT EXISTS chats (
+-- conversations
+CREATE TABLE IF NOT EXISTS conversations (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     user1_id INTEGER NOT NULL,
     user2_id INTEGER NOT NULL,
@@ -51,7 +51,7 @@ CREATE TABLE IF NOT EXISTS matches (
     player2_id INTEGER NOT NULL,
     player1_alias TEXT NOT NULL,
     player2_alias TEXT NOT NULL,
-    winner_id INTEGER, -- pode ser NULL para empate
+    winner_id INTEGER,
     player1_score INTEGER NOT NULL,
     player2_score INTEGER NOT NULL,
     played_at DATETIME DEFAULT (datetime('now')),

@@ -11,14 +11,14 @@ INSERT INTO users (name, username, email, password_hash, avatar_url, is_online, 
 SELECT 'Carol Lima', 'carol', 'carol@example.com', 'hashedpassword3', NULL, 0, datetime('now', '-2 hours')
 WHERE NOT EXISTS (SELECT 1 FROM users WHERE email = 'carol@example.com');
 
--- Inserindo conversas (chats)
-INSERT INTO chats (user1_id, user2_id)
+-- Inserindo conversas (conversations)
+INSERT INTO conversations (user1_id, user2_id)
 SELECT 1, 2
-WHERE NOT EXISTS (SELECT 1 FROM chats WHERE user1_id = 1 AND user2_id = 2);
+WHERE NOT EXISTS (SELECT 1 FROM conversations WHERE user1_id = 1 AND user2_id = 2);
 
-INSERT INTO chats (user1_id, user2_id)
+INSERT INTO conversations (user1_id, user2_id)
 SELECT 1, 3
-WHERE NOT EXISTS (SELECT 1 FROM chats WHERE user1_id = 1 AND user2_id = 3);
+WHERE NOT EXISTS (SELECT 1 FROM conversations WHERE user1_id = 1 AND user2_id = 3);
 
 -- Inserindo mensagens
 INSERT INTO messages (conversation_id, sender_id, content)

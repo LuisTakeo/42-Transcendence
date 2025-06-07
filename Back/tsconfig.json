@@ -7,5 +7,5 @@
 	  "strict": true,
 	  "esModuleInterop": true
 	},
-	"include": ["src", "src/database"]
+	"include": ["src", "src/database", "src/main.ts"]
   }
