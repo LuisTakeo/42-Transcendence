@@ -2,7 +2,7 @@ import fastify from 'fastify';
 import { runMigrations, openDb } from './database/database';
 
 const server = fastify({ logger: true });
-const port = 3142;
+const port = process.env.BACK_PORT;
 const host = '0.0.0.0';
 
 
