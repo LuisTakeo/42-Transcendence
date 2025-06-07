@@ -1,8 +1,8 @@
 import fastify from 'fastify';
-import { runMigrations } from './database/database';
+import { runMigrations, openDb } from './database/database';
 
 const server = fastify({ logger: true });
-const port = 3001;
+const port = 3142;
 const host = '0.0.0.0';
 
 
@@ -11,11 +11,18 @@ server.get('/', async (request, reply) => {
 	return { hello: 'world' };
   });
 
+// ✅ Route to get all users
+server.get('/users', async (request, reply) => {
+	const db = await openDb();
+	const users = await db.all('SELECT * FROM users');
+	return users;
+});
+
 const start = async () =>
 {
 	try
 	{
-    await runMigrations(); // Run migrations before starting the server
+    	await runMigrations(); // Run migrations before starting the server
 		await server.listen({ port, host });
 		server.log.info(`Server listening on ${host}:${port}`);
 	}

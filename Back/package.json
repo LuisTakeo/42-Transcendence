@@ -9,12 +9,11 @@
   "dependencies": {
     "dotenv": "^16.3.1",
     "fastify": "^4.25.0",
-    "sqlite": "^5.1.1",
     "sqlite3": "^5.1.7"
   },
   "devDependencies": {
-    "@types/node": "^20.11.30",
-    "@types/sqlite3": "^5.1.0",
+    "@types/node": "^20.17.50",
+    "@types/sqlite3": "^3.1.11",
     "ts-node-dev": "^2.0.0",
     "typescript": "^5.3.3"
   }
