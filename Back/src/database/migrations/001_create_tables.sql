@@ -30,7 +30,7 @@ CREATE TABLE IF NOT EXISTS messages (
     sender_id INTEGER NOT NULL,
     content TEXT NOT NULL,
     sent_at DATETIME DEFAULT (datetime('now')),
-    FOREIGN KEY (conversation_id) REFERENCES conversations(id) ON DELETE CASCADE,
+    FOREIGN KEY (conversation_id) REFERENCES chats(id) ON DELETE CASCADE,
     FOREIGN KEY (sender_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
