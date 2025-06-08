@@ -1,7 +1,9 @@
 import Fastify from 'fastify';
-import fastifyJwt from 'fastify-jwt';
+import fastifyJwt from '@fastify/jwt';
 
 import { createUser } from './routes/create-user';
+import { loginUser } from './routes/login-user';
+import { profile } from './routes/profile';
 
 // 🔧 Cria o servidor Fastify
 const app = Fastify({ logger: true });
@@ -9,6 +11,9 @@ const app = Fastify({ logger: true });
 
 // registrando rotas utilizadas
 app.register(createUser);
+app.register(loginUser);
+app.register(profile);
+
 app.register(fastifyJwt, {
   secret: 'my-secret-key', // Substitua pela sua chave secreta
 });

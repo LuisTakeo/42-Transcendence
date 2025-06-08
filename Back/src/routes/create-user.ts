@@ -2,7 +2,6 @@ import { FastifyInstance } from 'fastify';
 import { hashPassword } from '../utils/hash';
 import { z } from 'zod';
 
-
 export async function createUser(app: FastifyInstance) {
 
     const createUser = z.object({
@@ -28,9 +27,3 @@ export async function createUser(app: FastifyInstance) {
         return reply.status(201).send(user);
     });
 }
-
-
-//     username: string, password: string): { username: string; password: string } {
-//     // Aqui você pode adicionar lógica para criar um usuário, como salvar em um banco de dados
-//     return { username, password };
-// }
