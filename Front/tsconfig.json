@@ -17,5 +17,5 @@
     "esModuleInterop": true, // Added this
     "allowSyntheticDefaultImports": true // Added this
   },
-  "include": ["src"]
+  "include": ["src", "src/pages"]
 }

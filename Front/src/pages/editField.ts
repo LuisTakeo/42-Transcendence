@@ -21,7 +21,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Adiciona o ícone do lápis de volta
         const img = document.createElement('img');
-        img.src = './assets/lapis.png';
+        img.src = '../../assets/lapis.png';
         img.alt = 'Editar';
         img.className = 'w-6 h-6';
         btn.appendChild(img);
@@ -34,7 +34,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Inicializa o botão com o ícone do lápis
     btn.textContent = '';
     const img = document.createElement('img');
-    img.src = './assets/lapis.png';
+    img.src = '../../assets/lapis.png';
     img.alt = 'Editar';
     img.className = 'w-6 h-6';
     btn.appendChild(img);
