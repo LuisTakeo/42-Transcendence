@@ -9,9 +9,11 @@
   },
   "dependencies": {
     "@fastify/jwt": "^6.0.1",
-    "fastify": "^4.29.1",
     "bcryptjs": "^3.0.2",
     "dotenv": "^16.3.1",
+    "fastify": "^4.29.1",
+    "qrcode": "^1.5.4",
+    "speakeasy": "^2.0.0",
     "sqlite3": "^5.1.7",
     "tsx": "^4.19.4",
     "zod": "^3.25.55"

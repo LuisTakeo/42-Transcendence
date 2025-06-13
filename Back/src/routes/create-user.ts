@@ -8,6 +8,8 @@ export async function createUser(app: FastifyInstance) {
         name: z.string().min(1, 'Name is required'),
         email: z.string().email('Invalid email format'),
         password: z.string().min(6, 'Password must be at least 6 characters long'),
+        twoFactorEnabled: z.boolean().default(false),       // 2FA desligado inicialmente
+        twoFactorSecret: z.string().nullable().default(null),
     });
 
     app.post('/create-user', async (request, reply) => {
@@ -22,6 +24,8 @@ export async function createUser(app: FastifyInstance) {
                 name,
                 email,
                 password:hashedPassword,
+                twoFactorEnabled: false,
+                twoFactorSecret: null,
             }
         }
         return reply.status(201).send(user);
