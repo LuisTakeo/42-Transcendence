@@ -7,6 +7,7 @@ import { profile } from './routes/profile';
 import { enableTwoFactor } from './routes/enable-2fa';
 import { verifyTwoFactor } from './routes/verify-2fa';
 import { debugTwoFactor } from './routes/debug-2fa';
+import { loginWithGoogle } from './routes/login-google';
 
 // 🔧 Cria o servidor Fastify
 const app = Fastify({ logger: true });
@@ -18,6 +19,7 @@ app.register(profile);
 app.register(enableTwoFactor);
 app.register(verifyTwoFactor);
 app.register(debugTwoFactor);
+app.register(loginWithGoogle);
 
 app.register(fastifyJwt, {
   secret: 'my-secret-key', // Substitua pela sua chave secreta
