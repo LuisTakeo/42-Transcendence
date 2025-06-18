@@ -1,31 +1,19 @@
 import Fastify from 'fastify';
 import fastifyJwt from '@fastify/jwt';
+import dotenv from 'dotenv';
 
-import { createUser } from './routes/create-user';
-import { loginUser } from './routes/login-user';
-import { profile } from './routes/profile';
-import { enableTwoFactor } from './routes/enable-2fa';
-import { verifyTwoFactor } from './routes/verify-2fa';
-import { debugTwoFactor } from './routes/debug-2fa';
-import { loginWithGoogle } from './routes/login-google';
+import { registerRoutes } from './routes/routes-controller'
 
-// 🔧 Cria o servidor Fastify
+dotenv.config();
+
 const app = Fastify({ logger: true });
 
-// registrando rotas utilizadas
-app.register(createUser);
-app.register(loginUser);
-app.register(profile);
-app.register(enableTwoFactor);
-app.register(verifyTwoFactor);
-app.register(debugTwoFactor);
-app.register(loginWithGoogle);
-
 app.register(fastifyJwt, {
-  secret: 'my-secret-key', // Substitua pela sua chave secreta
+  secret: 'my-secret-key',
 });
 
-// 🔧 Define uma rota de teste
+app.register(registerRoutes);
+
 app.get('/', async (request, reply) => {
   return { message: 'Hello World!' };
 });

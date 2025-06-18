@@ -5,7 +5,6 @@ import speakeasy from 'speakeasy';
 
 import { verifyGoogleToken } from '../utils/google';
 import { findOrCreateUser, getSecret, saveSecret } from '../utils/temp';
-import { enableTwoFactor } from './enable-2fa';
 
 export async function loginWithGoogle(app: FastifyInstance) {
     app.post('/login-google', async (request, reply) => {
