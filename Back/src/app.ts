@@ -1,6 +1,7 @@
 // app.ts
 import fastify from 'fastify';
 import cors from '@fastify/cors';
+import websocket from '@fastify/websocket';
 import { runMigrations } from './database/database';
 import usersRoutes from './users/users.routes';
 // import outros módulos aqui futuramente
@@ -14,6 +15,8 @@ export const startServer = async () => {
 	await app.register(cors, {
 		origin: 'http://localhost:5173', // URL do seu frontend
 	});
+
+	await app.register(websocket);
 
 	// Run migrations
 	await runMigrations();
