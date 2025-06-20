@@ -9,7 +9,7 @@ dotenv.config();
 const app = Fastify({ logger: true });
 
 app.register(fastifyJwt, {
-  secret: 'my-secret-key',
+  secret: process.env.FASTIFY_SECRET,
 });
 
 app.register(registerRoutes);
@@ -18,5 +18,7 @@ app.get('/', async (request, reply) => {
   return { message: 'Hello World!' };
 });
 
-app.listen({ port : 3142, host : '0.0.0.0'}).then(() =>
-console.log('Servidor rodando na porta 3142'));
+
+app.listen({ port: 3142, host: '0.0.0.0' }, () => {
+  console.log(`Server is running at http://localhost:3142`);
+});

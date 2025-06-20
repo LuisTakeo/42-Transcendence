@@ -1,7 +1,7 @@
 import { FastifyInstance } from 'fastify';
 import speakeasy from 'speakeasy';
 
-import { getSecret } from '../utils/temp';
+import { getSecret } from '../../utils/temp';
 
 export async function debugTwoFactor(app: FastifyInstance) {
 
