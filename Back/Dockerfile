@@ -7,10 +7,14 @@ WORKDIR /backend
 
 COPY package*.json ./
 
-RUN npm install
+RUN npm install && \
+    apt-get update && \
+    apt-get install -y httpie && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
 COPY . .
 
 EXPOSE ${BACK_PORT}
 
-ENTRYPOINT ["npm", "run"]
+ENTRYPOINT ["npm", "run", "dev"]
