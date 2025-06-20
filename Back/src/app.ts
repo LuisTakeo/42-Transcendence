@@ -4,6 +4,7 @@ import cors from '@fastify/cors';
 import websocket from '@fastify/websocket';
 import { runMigrations } from './database/database';
 import usersRoutes from './users/users.routes';
+import websocketRoutes from './websockets/websocket.routes';
 // import outros módulos aqui futuramente
 
 export const startServer = async () => {
@@ -23,6 +24,7 @@ export const startServer = async () => {
 
 	// Register routes
 	app.register(usersRoutes, { prefix: '/users' });
+	app.register(websocketRoutes, { prefix: '/api' });
 
 	app.get('/', async () => ({ hello: 'world' }));
 
