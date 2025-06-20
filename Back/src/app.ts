@@ -2,12 +2,11 @@
 import fastify from 'fastify';
 import fastifyJwt from '@fastify/jwt';
 import cors from '@fastify/cors';
-import { runMigrations } from './database/database';
-import usersRoutes from './users/users.routes';
 import dotenv from 'dotenv';
 // import outros módulos aqui futuramente
 
 import { registerRoutes } from './routes/routes-controller'
+import { runMigrations } from './database/database';
 
 dotenv.config();
 
@@ -29,9 +28,6 @@ export const startServer = async () => {
 
 	// Run migrations
 	await runMigrations();
-
-	// Register routes
-	app.register(usersRoutes, { prefix: '/users' });
 
 	app.get('/', async () => ({ hello: 'world' }));
 

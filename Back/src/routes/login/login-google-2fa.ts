@@ -3,7 +3,7 @@ import { z } from 'zod';
 import speakeasy from 'speakeasy';
 
 import { verifyGoogleToken } from '../../utils/google';
-import { findOrCreateUser, getSecret, enableTwoFactor } from  '../../utils/temp';
+import { findOrCreateUserDb, getSecret, enableTwoFactor } from  '../../utils/temp';
 
 export function loginWithGoogle2FA(app: FastifyInstance) {
   app.post('/login-google/2fa', async (request, reply) => {
@@ -22,7 +22,7 @@ export function loginWithGoogle2FA(app: FastifyInstance) {
     }
 
     const { email, name } = payload;
-    const user = findOrCreateUser(email, name);
+    const user = findOrCreateUserDb(email, name);
     const secret = getSecret(user.email);
 
     if (!secret) {

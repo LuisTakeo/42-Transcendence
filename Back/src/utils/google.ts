@@ -20,7 +20,7 @@ export async function verifyGoogleToken(idToken: string) {
     if (idToken === 'mock-valid-token') {
       return {
         email: 'mockuser@example.com',
-        name: 'Mock User',
+        username: 'MockUser',
         picture: 'https://example.com/mockuser.jpg',
       };
     }
