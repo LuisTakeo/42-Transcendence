@@ -1,14 +1,26 @@
 // app.ts
 import fastify from 'fastify';
+import fastifyJwt from '@fastify/jwt';
 import cors from '@fastify/cors';
 import { runMigrations } from './database/database';
 import usersRoutes from './users/users.routes';
+import dotenv from 'dotenv';
 // import outros módulos aqui futuramente
+
+import { registerRoutes } from './routes/routes-controller'
+
+dotenv.config();
 
 export const startServer = async () => {
 	const app = fastify({ logger: true });
 	const port = Number(process.env.BACK_PORT);
 	const host = '0.0.0.0';
+
+	app.register(fastifyJwt, {
+	  secret: process.env.FASTIFY_SECRET,
+	});
+
+	app.register(registerRoutes);
 
 	// Habilitar CORS para seu frontend
 	await app.register(cors, {

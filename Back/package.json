@@ -2,8 +2,8 @@
   "name": "backend",
   "version": "1.0.0",
   "scripts": {
-    "dev": "tsx watch src/server.ts",
-    "dev1": "ts-node-dev src/server.ts",
+    "dev": "tsx watch src/main.ts",
+    "dev1": "ts-node-dev src/main.ts",
     "build": "tsc",
     "start": "node dist/main.js"
   },
@@ -16,6 +16,7 @@
     "google-auth-library": "^10.1.0",
     "qrcode": "^1.5.4",
     "speakeasy": "^2.0.0",
+    "sqlite": "^5.1.1",
     "sqlite3": "^5.1.7",
     "tsx": "^4.19.4",
     "zod": "^3.25.55"
