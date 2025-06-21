@@ -14,7 +14,10 @@ export const startServer = async () => {
 
 	// Habilitar CORS para seu frontend
 	await app.register(cors, {
-		origin: 'http://localhost:5173', // URL do seu frontend
+		origin:[
+			'http://localhost:5173',
+		"https://pong.fazai.dev/",
+		"https://devpong.fazai.dev/"], // URL do seu frontend
 	});
 
 	await app.register(websocket);

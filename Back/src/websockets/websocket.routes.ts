@@ -1,8 +1,10 @@
 import { FastifyInstance } from "fastify";
 
 export default async function websocketRoutes(fastify: FastifyInstance) {
-    fastify.get('/ws', { websocket: true }, (connection, req) => {
+    fastify.get('/ws/game', { websocket: true }, (connection, req) => {
         let i = 0;
+        console.log('New WebSocket connection established');
+
         connection.on('message', (message: string) => {
             i++;
             console.log(`Received message: ${message}. Count: ${i}`);
