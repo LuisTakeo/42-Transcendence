@@ -1,20 +1,8 @@
 import { FastifyInstance } from "fastify";
+import { handleGameConnection } from "../pong-game/game.controller";
 
 export default async function websocketRoutes(fastify: FastifyInstance) {
-    fastify.get('/ws/game', { websocket: true }, (connection, req) => {
-        let i = 0;
-        console.log('New WebSocket connection established');
-
-        connection.on('message', (message: string) => {
-            i++;
-            console.log(`Received message: ${message}. Count: ${i}`);
-            connection.send(`Echo: ${message}, Count: ${i}`);
-        });
-
-        connection.on('close', () => {
-            console.log('Connection closed');
-        });
-    });
+    fastify.get('/ws/game', { websocket: true }, handleGameConnection);
 
     fastify.get('/ws/chat', { websocket: true }, (connection, req) => {
         connection.on('message', (message: string) => {
