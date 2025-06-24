@@ -7,14 +7,16 @@
     "start": "node dist/main.js"
   },
   "dependencies": {
-    "fastify": "^4.25.0",
-    "sqlite3": "^5.1.7",
-    "dotenv": "^16.3.1"
+    "@fastify/cors": "^11.0.1",
+    "dotenv": "^16.3.1",
+    "fastify": "^5.3.3",
+    "sqlite": "^5.1.1",
+    "sqlite3": "^5.1.7"
   },
   "devDependencies": {
-    "typescript": "^5.3.3",
+    "@types/node": "^20.17.50",
+    "@types/sqlite3": "^3.1.11",
     "ts-node-dev": "^2.0.0",
-    "@types/node": "^20.11.30",
-    "@types/sqlite3": "^3.1.11"
+    "typescript": "^5.3.3"
   }
 }

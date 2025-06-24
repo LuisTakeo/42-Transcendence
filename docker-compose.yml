@@ -1,13 +1,17 @@
+version: '3.8'
+
 services:
   frontend:
     build:
       context: ./Front
       dockerfile: Dockerfile
+      args:
+        - FRONT_PORT=${FRONT_PORT}
     volumes:
       - ./Front:/frontend
       - /frontend/node_modules
     ports:
-      - "3000:3000"
+      - "${FRONT_PORT}:${FRONT_PORT}"
     command: dev
     depends_on:
       - backend
@@ -16,9 +20,11 @@ services:
     build:
       context: ./Back
       dockerfile: Dockerfile
+      args:
+        - BACK_PORT=${BACK_PORT}
     volumes:
       - ./Back:/backend
       - /backend/node_modules
     ports:
-      - "3001:3001"
+      - "${BACK_PORT}:${BACK_PORT}"
     command: dev
