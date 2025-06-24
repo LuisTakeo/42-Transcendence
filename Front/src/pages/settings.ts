@@ -1,8 +1,11 @@
-import "./editField.ts";
-import "./twoFactor.ts";
+import { initializeEditField } from "./editField.ts";
+import { initializeTwoFactor } from "./twoFactor.ts";
 
-export default function SettingsPage(): string {
-	return `
+export default function SettingsPage(): void {
+	const app = document.getElementById("app");
+	if (!app) return;
+
+	app.innerHTML = `
 	<main class="flex min-h-screen p-10">
 	  <div class="flex w-full gap-8">
 
@@ -99,4 +102,10 @@ export default function SettingsPage(): string {
 	  </div>
 	</main>
 	`;
-  }
+
+	// Inicializa as funcionalidades após renderizar o HTML
+	setTimeout(() => {
+		initializeEditField();
+		initializeTwoFactor();
+	}, 0);
+}

@@ -1,4 +1,4 @@
-import "./button.ts";
+import { initializeSearchButton } from "./button.ts";
 
 export default function UsersPage(): void {
   const app = document.getElementById("app");
@@ -47,6 +47,9 @@ export default function UsersPage(): void {
   `;
 
   app.appendChild(main);
+
+  // Inicializa os event listeners após o HTML ser renderizado
+  initializeSearchButton();
 
   const input = document.getElementById("searchUsers") as HTMLInputElement;
   const button = document.getElementById("searchUsersButton") as HTMLButtonElement;

@@ -24,6 +24,8 @@ const routesWithSidebar = [
 
 // Função que renderiza a página correta e controla a sidebar
 function renderRoute(path: string) {
+  console.log('Rendering route:', path); // Debug
+
   if (path === '/login') {
     sidebar.style.display = 'none';
     app.style.marginLeft = '0';
@@ -40,7 +42,7 @@ function renderRoute(path: string) {
         app.innerHTML = ProfilePage();
         break;
       case '/settings':
-        app.innerHTML = SettingsPage();
+        SettingsPage();
         break;
       case '/ranking':
         app.innerHTML = RankingPage();
@@ -49,9 +51,11 @@ function renderRoute(path: string) {
         UsersPage();
         break;
       default:
+        console.log('Route not found in switch:', path); // Debug
         app.innerHTML = '<h1>Page Not Found</h1>';
     }
   } else {
+    console.log('Route not in sidebar routes:', path); // Debug
     sidebar.style.display = 'none';
     app.style.marginLeft = '0';
     app.innerHTML = '<h1>Page Not Found</h1>';
@@ -61,6 +65,15 @@ function renderRoute(path: string) {
 // Controla a navegação sem reload
 function onRouteChange() {
   const path = window.location.pathname;
+  console.log('Current path:', path); // Debug
+
+  // Se estiver na raiz, redireciona para /home
+  if (path === '/' || path === '') {
+    window.history.replaceState(null, '', '/home');
+    renderRoute('/home');
+    return;
+  }
+
   renderRoute(path);
 }
 
