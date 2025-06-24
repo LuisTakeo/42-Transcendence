@@ -13,13 +13,14 @@
 // //     email: payload.email,
 // //     name: payload.name,
 // //     picture: payload.picture,
+// //     googleId: payload.sub,
 // //   };
 // // }
 
 export async function verifyGoogleToken(idToken: string) {
     if (idToken === 'mock-valid-token') {
       return {
-        email: 'mockuser@example.com',
+        email: 'mockuser1@example.com',
         username: 'MockUser',
         picture: 'https://example.com/mockuser.jpg',
       };

@@ -3,7 +3,7 @@ import { z } from 'zod';
 import speakeasy from 'speakeasy';
 
 import { verifyGoogleToken } from '../../utils/google';
-import { findOrCreateUserDb, getSecret, enableTwoFactor } from  '../../utils/temp';
+import { findOrCreateUserDb, getSecret, saveSecret } from '../users/user.repository';
 
 export function loginWithGoogle2FA(app: FastifyInstance) {
   app.post('/login-google/2fa', async (request, reply) => {
@@ -22,8 +22,12 @@ export function loginWithGoogle2FA(app: FastifyInstance) {
     }
 
     const { email, name } = payload;
-    const user = findOrCreateUserDb(email, name);
-    const secret = getSecret(user.email);
+    const user = await findOrCreateUserDb(email, name);
+    if (!user) {
+      return reply.status(404).send({ error: 'User not found.' });
+    }
+
+    const secret = await getSecret(user.email);
 
     if (!secret) {
       return reply.status(400).send({ error: 'No 2FA secret found for this user.' });

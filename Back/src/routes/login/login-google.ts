@@ -4,9 +4,7 @@ import qrcode from 'qrcode';
 import speakeasy from 'speakeasy';
 
 import { verifyGoogleToken } from '../../utils/google';
-import { findOrCreateUserDb } from '../users/user.repository';
-import { getSecret } from '../../utils/temp';
-import { saveSecret } from '../../utils/temp';
+import { findOrCreateUserDb, getSecret, saveSecret } from '../users/user.repository';
 
 export function loginWithGoogle(app: FastifyInstance) {
   app.post('/login-google', async (request, reply) => {
@@ -24,37 +22,31 @@ export function loginWithGoogle(app: FastifyInstance) {
     }
 
     const { email, username } = payload;
-    console.log("Payload retornado do Google:", payload);
 
     const user = await findOrCreateUserDb(email, username);
-    console.log("usuário criado: ", user);
-    // const secret = getSecret(user.email);
 
-    // if (!user.twoFactorEnabled) {
-    //   if (!secret) {
-    //     const newSecret = speakeasy.generateSecret({
-    //       name: '⭐ Transcendence ⭐',
-    //     });
+    const secret = await getSecret(user.email);
 
-    //     saveSecret(user.email, newSecret.base32);
-    //     const qrCode = await qrcode.toDataURL(newSecret.otpauth_url || '');
+    if (!user.twoFactorEnabled) {
+      if (!secret) {
+        const newSecret = speakeasy.generateSecret({
+          name: '⭐ Transcendence ⭐',
+        });
 
-    //     return reply.status(403).send({
-    //       message: '2FA setup required. Please scan the QR code and confirm with your code.',
-    //       qrCode,
-    //       secret: newSecret.base32,
-    //       needTwoFactorSetup: true,
-    //     });
-    //   }
+        await saveSecret(user.email, newSecret.base32);
+        const qrCode = await qrcode.toDataURL(newSecret.otpauth_url || '');
 
-    //   return reply.status(401).send({
-    //     message: 'Two-factor authentication code required',
-    //     needTwoFactorSetup: false,
-    //   });
-    // }
+        return reply.status(202).send({
+          message: '2FA setup required. Please scan the QR code and confirm with your code.',
+          qrCode,
+          secret: newSecret.base32,
+          needTwoFactorSetup: true,
+        });
+      }
+    }
 
-    // return reply.status(401).send({
-    //   message: 'Two-factor authentication code required',
-    // });
+    return reply.status(401).send({
+      message: 'Two-factor authentication code required',
+    });
   });
 }
