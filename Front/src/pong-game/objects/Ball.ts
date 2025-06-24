@@ -8,6 +8,8 @@ class Ball {
     private mesh: Mesh;
     private velocity: Vector3;
     private speed: number;
+    private initialSpeed: number;
+    private initialPosition: Vector3;
 
     /**
      * Construtor da bola
@@ -16,8 +18,10 @@ class Ball {
      */
     constructor(scene: Scene, position: Vector3, speed: number = 0.65) {
         this.speed = speed;
+        this.initialSpeed = speed;
         this.scene = scene;
         this.velocity = new Vector3(this.speed, 0, this.speed);
+        this.initialPosition = position.clone();
         this.createBall(position);
     }
 
@@ -54,13 +58,19 @@ class Ball {
         // Estes valores precisarão ser ajustados com base no tamanho real da mesa
         if (this.mesh.position.x > halfTableWidth || this.mesh.position.x < -(halfTableWidth)) {
             // TODO: Adicionar lógica de pontuação e bolinha caindo
-            this.velocity.x *= -1;
+            this.mesh.position = this.initialPosition.clone(); // Reseta a posição da bola
+            this.velocity = new Vector3(this.initialSpeed, 0, this.initialSpeed); // Reseta a velocidade
+            this.initialSpeed *= -1; // Inverte a direção da velocidade
         }
 
         if (this.mesh.position.z > halfTableDepth || this.mesh.position.z < -(halfTableDepth)) {
             this.velocity.z *= -1;
         }
+
+        console.log(`Bola atualizada: posição = ${this.mesh.position}, velocidade = ${this.velocity}`); // Log para depuração
     }
+
+
 
     /**
      * Obtém a malha da bola
@@ -82,6 +92,24 @@ class Ball {
     public getVelocity(): Vector3 {
         return this.velocity;
     }
+
+    public dispose(): void {
+        if (this.mesh) {
+            this.mesh.dispose();
+        }
+        this.scene = null as any; // Limpa a referência à cena
+        this.mesh = null as any; // Limpa a referência à malha
+        this.velocity = null as any; // Limpa a referência à velocidade
+        this.initialPosition = null as any; // Limpa a referência à posição inicial
+        this.initialSpeed = 0; // Reseta a velocidade inicial
+    }
+
+    // funções para remoto:
+
+    public updatePosition(position: Vector3): void {
+        this.mesh.position = position;
+    }
+
 }
 
 export { Ball };

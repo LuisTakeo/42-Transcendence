@@ -212,10 +212,7 @@ class MainGame {
         window.addEventListener('resize', () => {
             this.engine.resize();
         });
-    }    /**
-     * Update method called every frame
-     * Here you can add logic that should be executed on each frame
-     */
+    }
     public update(): void {
         // Calcular delta time para movimentos suaves
         const deltaTime = this.engine.getDeltaTime() / 1000;
@@ -227,16 +224,12 @@ class MainGame {
         this.tableManager.update();
     }
 
-    /**
-     * Retorna o tipo de jogo atual
-     */
+
     public getGameType(): GameType {
         return this.gameType;
     }
 
-    /**
-     * Limpa recursos quando o jogo é encerrado
-     */
+
     public dispose(): void {
         this.inputManager.dispose();
         this.scene.dispose();
