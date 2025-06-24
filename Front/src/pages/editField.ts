@@ -1,4 +1,5 @@
-document.addEventListener('DOMContentLoaded', () => {
+export function initializeEditField() {
+  // Inicializa botões de edição de campos
   const buttons = document.querySelectorAll<HTMLButtonElement>('.edit-btn');
 
   buttons.forEach((btn) => {
@@ -39,13 +40,16 @@ document.addEventListener('DOMContentLoaded', () => {
     img.className = 'w-6 h-6';
     btn.appendChild(img);
   });
-});
 
-
-document.addEventListener('DOMContentLoaded', () => {
+  // Inicializa upload de foto de perfil
   const fileInput = document.getElementById('file-input') as HTMLInputElement;
   const changePicBtn = document.getElementById('change-pic-btn') as HTMLButtonElement;
   const profilePic = document.getElementById('profile-pic') as HTMLImageElement;
+
+  if (!fileInput || !changePicBtn || !profilePic) {
+    console.warn('Elementos de edição de perfil não encontrados');
+    return;
+  }
 
   changePicBtn.addEventListener('click', () => {
     fileInput.click();
@@ -64,4 +68,4 @@ document.addEventListener('DOMContentLoaded', () => {
     };
     reader.readAsDataURL(file);
   });
-});
+}
