@@ -1,7 +1,7 @@
 export default function HomePage(): string {
 	return `
 <div class="min-h-screen flex-1">
-	  <div class="grid grid-cols-2 grid-rows-2 gap-[1cm] h-screen p-[1cm]">
+	  <div class="grid grid-cols-2 grid-rows-2 gap-[50px] h-screen p-[50px]">
 		<!-- Botão 1 -->
 		<button class="h-full relative flex flex-col items-center justify-center
 		  bg-[#1E1B4B] hover:bg-[#4A4180] rounded-[5px]
