@@ -2,4 +2,22 @@
 @tailwind components;
 @tailwind utilities;
 
+body {
+	@apply font-spartan;
+  }
+  
+.custom-scrollbar::-webkit-scrollbar {
+width: 8px;              /* largura da barra */
+background: transparent; /* fundo transparente (sem fundo) */
+}
 
+.custom-scrollbar::-webkit-scrollbar-thumb {
+background-color: #888;  /* cor da barrinha (pode mudar) */
+border-radius: 4px;      /* bordas arredondadas da barrinha */
+}
+
+/* Para Firefox */
+.custom-scrollbar {
+scrollbar-width: thin;        /* barra fina */
+scrollbar-color: #888 transparent; /* cor da barrinha e do fundo */
+}
