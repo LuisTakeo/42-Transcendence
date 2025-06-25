@@ -17,6 +17,6 @@ app?.appendChild(canvas);
 
 window.addEventListener('DOMContentLoaded', () => {
 	// Cria o jogo com 2 jogadores no mesmo teclado
-	const game = new MainGame('gameCanvas', GameType.LOCAL_TWO_PLAYERS, 80, 60);
+	const game = new MainGame('gameCanvas', GameType.LOCAL_VS_AI, 80, 60);
 	game.run();
 });

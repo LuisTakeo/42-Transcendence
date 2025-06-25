@@ -34,7 +34,7 @@ const mapRooms: Map<number, Room> = new Map<number, Room>();
 
 function handleGameConnection(connection: WebSocket, req: FastifyRequest){
     let i = 0;
-
+    console.log("New WebSocket connection established");
     connection.on('open', () => {
         console.log('WebSocket connection opened');
         connection.send('Welcome to the Pong Game Server!');

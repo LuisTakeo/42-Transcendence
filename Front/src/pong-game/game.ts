@@ -137,7 +137,7 @@ class MainGame {
                     "ai_controller",
                     this.scene,
                     ball,            // Passa a bola para a IA seguir
-                    0.5             // Dificuldade média
+                    0.8             // Dificuldade média
                 );
 
                 this.inputManager.registerController(playerController);
