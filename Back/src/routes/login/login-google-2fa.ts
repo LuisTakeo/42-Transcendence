@@ -3,7 +3,7 @@ import { z } from 'zod';
 import speakeasy from 'speakeasy';
 
 import { verifyGoogleToken } from '../../utils/google';
-import { findOrCreateUserDb, getSecret, saveSecret } from '../users/user.repository';
+import { findOrCreateUserDb, getSecret, enableTwoFactor } from '../users/user.repository';
 
 export function loginWithGoogle2FA(app: FastifyInstance) {
   app.post('/login-google/2fa', async (request, reply) => {
@@ -45,7 +45,7 @@ export function loginWithGoogle2FA(app: FastifyInstance) {
     }
 
     if (!user.twoFactorEnabled) {
-      enableTwoFactor(email);
+      await enableTwoFactor(email);
     }
 
     const token = app.jwt.sign({

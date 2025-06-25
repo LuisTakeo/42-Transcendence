@@ -2,7 +2,7 @@
 CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT,
-    username TEXT UNIQUE NOT NULL,
+    username TEXT NOT NULL,
     email TEXT UNIQUE NOT NULL,
     avatar_url TEXT,
     last_seen_at DATETIME,

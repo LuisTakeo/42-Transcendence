@@ -17,8 +17,8 @@ export function loginWithGoogle(app: FastifyInstance) {
     let payload;
     try {
       payload = await verifyGoogleToken(idToken);
-    } catch {
-      return reply.status(401).send({ error: 'Invalid Google token' });
+    } catch (err){
+      return reply.status(401).send({ error: err });
     }
 
     const { email, username } = payload;
