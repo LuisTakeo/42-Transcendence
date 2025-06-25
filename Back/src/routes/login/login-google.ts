@@ -21,13 +21,13 @@ export function loginWithGoogle(app: FastifyInstance) {
       return reply.status(401).send({ error: err });
     }
 
-    const { email, username } = payload;
+    const { email, name, googleId } = payload;
 
-    const user = await findOrCreateUserDb(email, username);
+    const user = await findOrCreateUserDb(email, name, googleId);
 
     const secret = await getSecret(user.email);
 
-    if (!user.twoFactorEnabled) {
+    if (!user.two_factor_enabled) {
       if (!secret) {
         const newSecret = speakeasy.generateSecret({
           name: '⭐ Transcendence ⭐',

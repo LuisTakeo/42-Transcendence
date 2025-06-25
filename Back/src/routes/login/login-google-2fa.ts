@@ -21,8 +21,8 @@ export function loginWithGoogle2FA(app: FastifyInstance) {
       return reply.status(401).send({ error: 'Invalid Google token' });
     }
 
-    const { email, name } = payload;
-    const user = await findOrCreateUserDb(email, name);
+    const { email, name, googleId } = payload;
+    const user = await findOrCreateUserDb(email, name, googleId);
     if (!user) {
       return reply.status(404).send({ error: 'User not found.' });
     }
@@ -44,14 +44,19 @@ export function loginWithGoogle2FA(app: FastifyInstance) {
       return reply.status(401).send({ error: 'Invalid 2FA code' });
     }
 
-    if (!user.twoFactorEnabled) {
+    if (!user.two_factor_enabled) {
       await enableTwoFactor(email);
     }
 
-    const token = app.jwt.sign({
-      id: user.id,
-      email: user.email,
-    });
+    const token = app.jwt.sign(
+      {
+        id: user.id,
+        email: user.email,
+      },
+      {
+        expiresIn: '1h'
+      }
+  );
 
     return reply.status(200).send({
       message: 'Login with Google successful',
