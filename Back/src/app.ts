@@ -5,6 +5,7 @@ import { runMigrations } from './database/database';
 import usersRoutes from './users/users.routes';
 import matchesRoutes from './matches/matches.routes';
 import friendsRoutes from './friends/friends.routes';
+import conversationsRoutes from './conversations/conversations.routes';
 // import outros módulos aqui futuramente
 
 export const startServer = async () => {
@@ -24,6 +25,7 @@ export const startServer = async () => {
 	app.register(usersRoutes, { prefix: '/users' });
 	app.register(matchesRoutes, { prefix: '/matches' });
 	app.register(friendsRoutes, { prefix: '/friends' });
+	app.register(conversationsRoutes, { prefix: '/conversations' });
 
 	app.get('/', async () => ({ hello: 'world' }));
 
