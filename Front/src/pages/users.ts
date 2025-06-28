@@ -18,7 +18,7 @@ export default function UsersPage(): void {
   // `;
 
   const main = document.createElement("main");
-  main.className = "ml-24 p-[2cm] flex justify-center items-center min-h-screen";
+  main.className = "ml-24 p-[50px] flex justify-center items-center min-h-screen";
   main.innerHTML = `
     <div class="w-full max-w-6xl bg-[#1E1B4B] rounded-lg p-8">
       <h1 class="text-5xl font-bold mb-6 text-center">Looking for users?</h1>
