@@ -8,7 +8,7 @@ import matchesRoutes from './matches/matches.routes';
 
 export const startServer = async () => {
 	const app = fastify({ logger: true });
-	const port = process.env.BACK_PORT ? Number(process.env.BACK_PORT) : 3143;
+	const port = Number(process.env.BACK_PORT);
 	const host = '0.0.0.0';
 
 	// Habilitar CORS para seu frontend

@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "scripts": {
     "dev": "ts-node-dev src/main.ts",
-    "build": "tsc && cp -r src/database/migrations dist/database/",
+    "build": "tsc",
     "start": "node dist/main.js"
   },
   "dependencies": {
