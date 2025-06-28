@@ -74,6 +74,7 @@ INSERT INTO tournament_players (tournament_id, user_id, status, eliminated_in_ro
 SELECT 3, 4, 'eliminated', 1
 WHERE NOT EXISTS (SELECT 1 FROM tournament_players WHERE tournament_id = 3 AND user_id = 4);
 
+
 -- Inserindo rounds dos torneios (tournament_rounds)
 INSERT INTO tournament_rounds (tournament_id, round_number)
 SELECT 2, 1

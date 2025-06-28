@@ -10,6 +10,7 @@ CREATE TABLE IF NOT EXISTS tournaments (
     FOREIGN KEY (owner_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
+
 -- tournament_players table
 CREATE TABLE IF NOT EXISTS tournament_players (
     tournament_id INTEGER NOT NULL,
