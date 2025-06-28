@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pong</title>
+  <link rel="stylesheet" href="./src/style.css">
+  <link href="https://fonts.googleapis.com/css2?family=League+Spartan:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body class="bg-[#1E1B4B] min-h-screen">
+
+  <!-- Container principal com flexbox -->
+  <div class="flex items-center justify-between h-screen">
+
+    <!-- Lado esquerdo (Texto e Botões) -->
+    <div class="w-1/2 p-8 flex flex-col justify-center items-center">
+      <div class="text-center mb-6">
+        <h1 class="text-3xl text-white font-bold font-spartan mb-4">Can you hang the pong?</h1>
+        <p class="text-xl text-white font-spartan mb-8">Let's have some fun</p>
+      </div>
+
+      <!-- Botões -->
+      <button class="w-[300px] flex items-center justify-center gap-2 px-6 py-3 bg-[#383568] text-xl text-white font-regular border-2 border-transparent rounded-[5px] shadow-md transform transition duration-200 ease-in-out hover:scale-105 hover:border-white mb-4">
+        Sign In with Google
+        <img src="./assets/google-logo.png" alt="Google icon" class="w-5 h-5" />
+      </button>
+
+      <button class="w-[300px] flex items-center justify-center gap-2 px-6 py-3 bg-[#383568] text-xl text-white font-regular border-2 border-transparent rounded-[5px] shadow-md transform transition duration-200 ease-in-out hover:scale-105 hover:border-white">
+        Sign In with Intra
+        <img src="./assets/42.png" alt="42 icon" class="w-7 h-5" />
+      </button>
+    </div>
+
+    <!-- Lado direito (Imagem) -->
+    <div class="w-1/2 h-full">
+		<img src="./assets/player-female.png" alt="Descrição da imagem" class="w-full h-full object-cover">
+	  </div>
+    </div>
+  </div>
+
+  <script type="module" src="./src/main.ts"></script>
+</body>
+</html>
