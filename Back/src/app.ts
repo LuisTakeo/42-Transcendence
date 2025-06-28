@@ -3,7 +3,6 @@ import fastify from 'fastify';
 import cors from '@fastify/cors';
 import { runMigrations } from './database/database';
 import usersRoutes from './users/users.routes';
-import matchesRoutes from './matches/matches.routes';
 // import outros módulos aqui futuramente
 
 export const startServer = async () => {
@@ -21,7 +20,6 @@ export const startServer = async () => {
 
 	// Register routes
 	app.register(usersRoutes, { prefix: '/users' });
-	app.register(matchesRoutes, { prefix: '/matches' });
 
 	app.get('/', async () => ({ hello: 'world' }));
 
