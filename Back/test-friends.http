@@ -1,0 +1,86 @@
+# Test file for Friends CRUD operations
+# You can use this with VS Code REST Client extension or any HTTP client
+
+### Get all friendships (default pagination)
+GET http://localhost:3143/friends
+
+### Get friendships with pagination (page 1, limit 5)
+GET http://localhost:3143/friends?page=1&limit=5
+
+### Search friendships by user names
+GET http://localhost:3143/friends?search=alice
+
+### Get all friendships without pagination (simple list)
+GET http://localhost:3143/friends/all
+
+### Get friends by user ID (Alice's friends)
+GET http://localhost:3143/friends/user/1
+
+### Get friends by user ID (Bob's friends)
+GET http://localhost:3143/friends/user/2
+
+### Get user's friend count
+GET http://localhost:3143/friends/user/1/count
+
+### Check if two users are friends
+GET http://localhost:3143/friends/check/1/2
+
+### Check if two users are NOT friends
+GET http://localhost:3143/friends/check/1/5
+
+### Get mutual friends between two users
+GET http://localhost:3143/friends/mutual/1/2
+
+### Create a new friendship (Alice and Carol)
+POST http://localhost:3143/friends
+Content-Type: application/json
+
+{
+  "user1_id": 1,
+  "user2_id": 5
+}
+
+### Create another friendship (Bob and John)
+POST http://localhost:3143/friends
+Content-Type: application/json
+
+{
+  "user1_id": 2,
+  "user2_id": 4
+}
+
+### Delete a friendship
+DELETE http://localhost:3143/friends/1/5
+
+### Test validation - Create friendship with same user
+POST http://localhost:3143/friends
+Content-Type: application/json
+
+{
+  "user1_id": 1,
+  "user2_id": 1
+}
+
+### Test validation - Create friendship with non-existent user
+POST http://localhost:3143/friends
+Content-Type: application/json
+
+{
+  "user1_id": 1,
+  "user2_id": 999
+}
+
+### Test validation - Create duplicate friendship
+POST http://localhost:3143/friends
+Content-Type: application/json
+
+{
+  "user1_id": 1,
+  "user2_id": 2
+}
+
+### Test validation - Delete non-existent friendship
+DELETE http://localhost:3143/friends/1/999
+
+### Test validation - Check friendship with same user
+GET http://localhost:3143/friends/check/1/1
