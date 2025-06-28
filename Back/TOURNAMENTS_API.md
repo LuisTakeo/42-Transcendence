@@ -205,7 +205,7 @@ Returns all tournaments where the user is either owner or participant.
 ## Tournament Status Flow
 
 1. **pending** - Tournament created, accepting players
-2. **ongoing** - Tournament started, matches in progress  
+2. **ongoing** - Tournament started, matches in progress
 3. **finished** - Tournament completed, winner determined
 
 ## Player Status

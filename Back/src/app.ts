@@ -17,7 +17,7 @@ export const startServer = async () => {
 
 	// Habilitar CORS para seu frontend
 	await app.register(cors, {
-		origin: 'http://localhost:5173', // URL do seu frontend
+		origin: 'http://localhost:3042', // URL do seu frontend
 	});
 
 	// Run migrations

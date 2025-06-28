@@ -37,7 +37,7 @@ export class TournamentRepository {
     async getAll(): Promise<Tournament[]> {
         const db = await openDb();
         const query = `
-            SELECT t.*, u.username as owner_username 
+            SELECT t.*, u.username as owner_username
             FROM tournaments t
             JOIN users u ON t.owner_id = u.id
             ORDER BY t.created_at DESC
@@ -49,7 +49,7 @@ export class TournamentRepository {
     async getById(id: number): Promise<Tournament | null> {
         const db = await openDb();
         const query = `
-            SELECT t.*, u.username as owner_username 
+            SELECT t.*, u.username as owner_username
             FROM tournaments t
             JOIN users u ON t.owner_id = u.id
             WHERE t.id = ?
@@ -113,7 +113,7 @@ export class TournamentRepository {
     async getTournamentMatches(tournamentId: number): Promise<TournamentMatch[]> {
         const db = await openDb();
         const query = `
-            SELECT m.*, 
+            SELECT m.*,
                    u1.username as player1_username, u1.name as player1_name,
                    u2.username as player2_username, u2.name as player2_name,
                    w.username as winner_username
@@ -153,7 +153,7 @@ export class TournamentRepository {
     async getActive(): Promise<Tournament[]> {
         const db = await openDb();
         const query = `
-            SELECT t.*, u.username as owner_username 
+            SELECT t.*, u.username as owner_username
             FROM tournaments t
             JOIN users u ON t.owner_id = u.id
             WHERE t.status IN ('pending', 'ongoing')
@@ -201,20 +201,20 @@ export class TournamentRepository {
 
         // Shuffle players for random matchmaking
         const shuffledPlayers = [...players].sort(() => Math.random() - 0.5);
-        
+
         // Generate matches (pair players)
         for (let i = 0; i < shuffledPlayers.length - 1; i += 2) {
             if (i + 1 < shuffledPlayers.length) {
                 const player1 = shuffledPlayers[i];
                 const player2 = shuffledPlayers[i + 1];
-                
+
                 await db.run(`
                     INSERT INTO matches (
                         player1_id, player2_id, player1_alias, player2_alias,
                         player1_score, player2_score, tournament_id, round_number, match_position
                     ) VALUES (?, ?, ?, ?, 0, 0, ?, 1, ?)
                 `, [
-                    player1.user_id, player2.user_id, 
+                    player1.user_id, player2.user_id,
                     player1.username, player2.username,
                     tournamentId, Math.floor(i / 2) + 1
                 ]);
@@ -250,7 +250,7 @@ export class TournamentRepository {
                     SET status = 'winner'
                     WHERE tournament_id = ? AND user_id = ?
                 `, [tournamentId, winners[0].winner_id]);
-                
+
                 await this.updateStatus(tournamentId, 'finished');
             }
             return;
@@ -268,7 +268,7 @@ export class TournamentRepository {
             if (i + 1 < winners.length) {
                 const player1 = winners[i];
                 const player2 = winners[i + 1];
-                
+
                 await db.run(`
                     INSERT INTO matches (
                         player1_id, player2_id, player1_alias, player2_alias,

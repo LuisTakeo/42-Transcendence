@@ -95,7 +95,7 @@ CREATE TABLE IF NOT EXISTS matches (
 
 -- Helpful views for tournament queries
 CREATE VIEW IF NOT EXISTS active_tournament_players AS
-SELECT 
+SELECT
     tp.tournament_id,
     tp.user_id,
     u.username,
@@ -108,7 +108,7 @@ JOIN tournaments t ON tp.tournament_id = t.id
 WHERE tp.status = 'active' AND t.status IN ('pending', 'ongoing');
 
 CREATE VIEW IF NOT EXISTS ongoing_matches AS
-SELECT 
+SELECT
     m.*,
     u1.username as player1_username,
     u2.username as player2_username,
@@ -120,7 +120,7 @@ LEFT JOIN tournaments t ON m.tournament_id = t.id
 WHERE m.winner_id IS NULL;
 
 CREATE VIEW IF NOT EXISTS tournament_standings AS
-SELECT 
+SELECT
     tp.tournament_id,
     t.name as tournament_name,
     t.status as tournament_status,
@@ -129,7 +129,7 @@ SELECT
     u.name,
     tp.status as player_status,
     tp.eliminated_in_round,
-    CASE 
+    CASE
         WHEN tp.status = 'winner' THEN 1
         WHEN tp.status = 'active' THEN 2
         ELSE 3 + COALESCE(tp.eliminated_in_round, 0)

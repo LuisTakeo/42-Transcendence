@@ -49,14 +49,14 @@ export class TournamentsController {
             const matches = await this.tournamentRepository.getTournamentMatches(id);
             const standings = await this.tournamentRepository.getTournamentStandings(id);
 
-            reply.code(200).send({ 
-                success: true, 
-                data: { 
+            reply.code(200).send({
+                success: true,
+                data: {
                     ...tournament,
                     players,
                     matches,
                     standings
-                } 
+                }
             });
         } catch (error) {
             console.error('Error getting tournament:', error);
@@ -68,11 +68,11 @@ export class TournamentsController {
     async createTournament(request: FastifyRequest<{ Body: CreateTournamentBody }>, reply: FastifyReply) {
         try {
             const { name, owner_id } = request.body;
-            
+
             if (!name || !owner_id) {
-                return reply.code(400).send({ 
-                    success: false, 
-                    error: 'Name and owner_id are required' 
+                return reply.code(400).send({
+                    success: false,
+                    error: 'Name and owner_id are required'
                 });
             }
 
@@ -91,9 +91,9 @@ export class TournamentsController {
             const { user_id } = request.body;
 
             if (isNaN(tournamentId) || !user_id) {
-                return reply.code(400).send({ 
-                    success: false, 
-                    error: 'Valid tournament ID and user_id are required' 
+                return reply.code(400).send({
+                    success: false,
+                    error: 'Valid tournament ID and user_id are required'
                 });
             }
 
@@ -104,18 +104,18 @@ export class TournamentsController {
             }
 
             if (tournament.status !== 'pending') {
-                return reply.code(400).send({ 
-                    success: false, 
-                    error: 'Can only join pending tournaments' 
+                return reply.code(400).send({
+                    success: false,
+                    error: 'Can only join pending tournaments'
                 });
             }
 
             // Check if user is already in tournament
             const existingPlayer = await this.tournamentRepository.getTournamentPlayer(tournamentId, user_id);
             if (existingPlayer) {
-                return reply.code(400).send({ 
-                    success: false, 
-                    error: 'User is already in this tournament' 
+                return reply.code(400).send({
+                    success: false,
+                    error: 'User is already in this tournament'
                 });
             }
 
@@ -141,17 +141,17 @@ export class TournamentsController {
             }
 
             if (tournament.status !== 'pending') {
-                return reply.code(400).send({ 
-                    success: false, 
-                    error: 'Can only start pending tournaments' 
+                return reply.code(400).send({
+                    success: false,
+                    error: 'Can only start pending tournaments'
                 });
             }
 
             const players = await this.tournamentRepository.getTournamentPlayers(tournamentId);
             if (players.length < 2) {
-                return reply.code(400).send({ 
-                    success: false, 
-                    error: 'Need at least 2 players to start tournament' 
+                return reply.code(400).send({
+                    success: false,
+                    error: 'Need at least 2 players to start tournament'
                 });
             }
 

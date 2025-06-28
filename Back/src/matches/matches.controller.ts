@@ -386,7 +386,7 @@ export async function updateMatch(request: FastifyRequest, reply: FastifyReply) 
 		if (updatedMatch.tournament_id && cleanedData.winner_id !== undefined && cleanedData.winner_id !== null) {
 			try {
 				const tournamentRepo = new TournamentRepository();
-				
+
 				// Get the match details to determine loser
 				const player1_id = updatedMatch.player1_id;
 				const player2_id = updatedMatch.player2_id;
