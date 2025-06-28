@@ -11,14 +11,6 @@ INSERT INTO users (name, username, email, password_hash, avatar_url, is_online, 
 SELECT 'Carol Lima', 'carol', 'carol@example.com', 'hashedpassword3', NULL, 0, datetime('now', '-2 hours')
 WHERE NOT EXISTS (SELECT 1 FROM users WHERE email = 'carol@example.com');
 
-INSERT INTO users (name, username, email, password_hash, avatar_url, is_online, last_seen_at)
-SELECT 'John Doe', 'johndoe', 'john@example.com', 'hashedpassword4', 'https://example.com/avatar.jpg', 1, datetime('now')
-WHERE NOT EXISTS (SELECT 1 FROM users WHERE email = 'john@example.com');
-
-INSERT INTO users (name, username, email, password_hash, avatar_url, is_online, last_seen_at)
-SELECT 'Maria Silva', 'maria', 'maria@example.com', 'hashedpassword5', NULL, 0, datetime('now', '-30 minutes')
-WHERE NOT EXISTS (SELECT 1 FROM users WHERE email = 'maria@example.com');
-
 -- Inserindo conversas (conversations)
 INSERT INTO conversations (user1_id, user2_id)
 SELECT 1, 2
