@@ -48,7 +48,7 @@ INSERT INTO friends (user1_id, user2_id)
 SELECT 1, 3
 WHERE NOT EXISTS (SELECT 1 FROM friends WHERE user1_id = 1 AND user2_id = 3);
 
--- Inserindo partidas (matches) - only regular matches, no tournaments yet
+-- Inserindo partidas (matches)
 INSERT INTO matches (player1_id, player2_id, player1_alias, player2_alias, winner_id, player1_score, player2_score)
 SELECT 1, 2, 'alice', 'bob', 1, 3, 1
 WHERE NOT EXISTS (
