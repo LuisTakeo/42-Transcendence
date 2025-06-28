@@ -7,6 +7,7 @@ import matchesRoutes from './matches/matches.routes';
 import friendsRoutes from './friends/friends.routes';
 import conversationsRoutes from './conversations/conversations.routes';
 import messagesRoutes from './messages/messages.routes';
+import { tournamentRoutes } from './tournaments/tournaments.routes';
 // import outros módulos aqui futuramente
 
 export const startServer = async () => {
@@ -28,6 +29,7 @@ export const startServer = async () => {
 	app.register(friendsRoutes, { prefix: '/friends' });
 	app.register(conversationsRoutes, { prefix: '/conversations' });
 	app.register(messagesRoutes, { prefix: '/messages' });
+	app.register(tournamentRoutes, { prefix: '/tournaments' });
 
 	app.get('/', async () => ({ hello: 'world' }));
 

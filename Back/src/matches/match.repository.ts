@@ -11,6 +11,9 @@ export interface Match {
 	winner_id?: number | null;
 	player1_score: number;
 	player2_score: number;
+	tournament_id?: number | null;
+	round_number?: number | null;
+	match_position?: number | null;
 	played_at?: string;
 }
 
@@ -22,6 +25,9 @@ export interface CreateMatchData {
 	winner_id?: number | null;
 	player1_score: number;
 	player2_score: number;
+	tournament_id?: number | null;
+	round_number?: number | null;
+	match_position?: number | null;
 }
 
 export interface UpdateMatchData {
@@ -44,11 +50,13 @@ export async function getMatchesFromDb(limit?: number, offset?: number, search?:
 			p2.name as player2_name,
 			p2.username as player2_username,
 			w.name as winner_name,
-			w.username as winner_username
+			w.username as winner_username,
+			t.name as tournament_name
 		FROM matches m
 		JOIN users p1 ON m.player1_id = p1.id
 		JOIN users p2 ON m.player2_id = p2.id
 		LEFT JOIN users w ON m.winner_id = w.id
+		LEFT JOIN tournaments t ON m.tournament_id = t.id
 	`;
 	const params: any[] = [];
 
@@ -89,11 +97,13 @@ export async function getAllMatchesFromDb(): Promise<Match[]> {
 			p2.name as player2_name,
 			p2.username as player2_username,
 			w.name as winner_name,
-			w.username as winner_username
+			w.username as winner_username,
+			t.name as tournament_name
 		FROM matches m
 		JOIN users p1 ON m.player1_id = p1.id
 		JOIN users p2 ON m.player2_id = p2.id
 		LEFT JOIN users w ON m.winner_id = w.id
+		LEFT JOIN tournaments t ON m.tournament_id = t.id
 		ORDER BY m.played_at DESC
 	`);
 }
@@ -135,11 +145,13 @@ export async function getMatchById(id: number): Promise<Match | null> {
 			p2.name as player2_name,
 			p2.username as player2_username,
 			w.name as winner_name,
-			w.username as winner_username
+			w.username as winner_username,
+			t.name as tournament_name
 		FROM matches m
 		JOIN users p1 ON m.player1_id = p1.id
 		JOIN users p2 ON m.player2_id = p2.id
 		LEFT JOIN users w ON m.winner_id = w.id
+		LEFT JOIN tournaments t ON m.tournament_id = t.id
 		WHERE m.id = ?
 	`, [id]);
 	return match || null;
@@ -156,11 +168,13 @@ export async function getMatchesByPlayerId(playerId: number): Promise<Match[]> {
 			p2.name as player2_name,
 			p2.username as player2_username,
 			w.name as winner_name,
-			w.username as winner_username
+			w.username as winner_username,
+			t.name as tournament_name
 		FROM matches m
 		JOIN users p1 ON m.player1_id = p1.id
 		JOIN users p2 ON m.player2_id = p2.id
 		LEFT JOIN users w ON m.winner_id = w.id
+		LEFT JOIN tournaments t ON m.tournament_id = t.id
 		WHERE m.player1_id = ? OR m.player2_id = ?
 		ORDER BY m.played_at DESC
 	`, [playerId, playerId]);
@@ -170,8 +184,8 @@ export async function getMatchesByPlayerId(playerId: number): Promise<Match[]> {
 export async function createMatch(matchData: CreateMatchData): Promise<Match> {
 	const db = await openDb();
 	const result = await db.run(
-		`INSERT INTO matches (player1_id, player2_id, player1_alias, player2_alias, winner_id, player1_score, player2_score, played_at)
-		 VALUES (?, ?, ?, ?, ?, ?, ?, datetime('now'))`,
+		`INSERT INTO matches (player1_id, player2_id, player1_alias, player2_alias, winner_id, player1_score, player2_score, tournament_id, round_number, match_position, played_at)
+		 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))`,
 		[
 			matchData.player1_id,
 			matchData.player2_id,
@@ -179,7 +193,10 @@ export async function createMatch(matchData: CreateMatchData): Promise<Match> {
 			matchData.player2_alias,
 			matchData.winner_id || null,
 			matchData.player1_score,
-			matchData.player2_score
+			matchData.player2_score,
+			matchData.tournament_id || null,
+			matchData.round_number || null,
+			matchData.match_position || null
 		]
 	);
 
