@@ -12,15 +12,15 @@ const isValidUserId = (id: number): boolean => {
 export async function getAllFriends(request: FastifyRequest, reply: FastifyReply) {
 	try {
 		// Extract pagination parameters from query string
-		const { page = '1', limit = '10', search } = request.query as { 
-			page?: string; 
-			limit?: string; 
+		const { page = '1', limit = '10', search } = request.query as {
+			page?: string;
+			limit?: string;
 			search?: string;
 		};
-		
+
 		const pageNum = parseInt(page, 10);
 		const limitNum = parseInt(limit, 10);
-		
+
 		// Validation
 		if (isNaN(pageNum) || pageNum < 1) {
 			return reply.status(400).send({
@@ -28,27 +28,27 @@ export async function getAllFriends(request: FastifyRequest, reply: FastifyReply
 				error: 'Page must be a positive integer'
 			});
 		}
-		
+
 		if (isNaN(limitNum) || limitNum < 1 || limitNum > 100) {
 			return reply.status(400).send({
 				success: false,
 				error: 'Limit must be between 1 and 100'
 			});
 		}
-		
+
 		const offset = (pageNum - 1) * limitNum;
-		
+
 		// Get friendships and total count
 		const [friendships, totalCount] = await Promise.all([
 			repository.getFriendsFromDb(limitNum, offset, search),
 			repository.getFriendsCount(search)
 		]);
-		
+
 		// Calculate pagination metadata
 		const totalPages = Math.ceil(totalCount / limitNum);
 		const hasNextPage = pageNum < totalPages;
 		const hasPrevPage = pageNum > 1;
-		
+
 		reply.send({
 			success: true,
 			data: friendships,
@@ -76,7 +76,7 @@ export async function getAllFriends(request: FastifyRequest, reply: FastifyReply
 export async function getAllFriendsSimple(request: FastifyRequest, reply: FastifyReply) {
 	try {
 		const friendships = await repository.getAllFriendsFromDb();
-		
+
 		reply.send({
 			success: true,
 			data: friendships,
@@ -96,16 +96,16 @@ export async function getFriendsByUser(request: FastifyRequest, reply: FastifyRe
 	try {
 		const { userId } = request.params as { userId: string };
 		const userIdNum = parseInt(userId, 10);
-		
+
 		if (isNaN(userIdNum)) {
 			return reply.status(400).send({
 				success: false,
 				error: 'Invalid user ID'
 			});
 		}
-		
+
 		const friends = await repository.getFriendsByUserId(userIdNum);
-		
+
 		reply.send({
 			success: true,
 			data: friends,
@@ -126,23 +126,23 @@ export async function checkFriendship(request: FastifyRequest, reply: FastifyRep
 		const { userId1, userId2 } = request.params as { userId1: string; userId2: string };
 		const userId1Num = parseInt(userId1, 10);
 		const userId2Num = parseInt(userId2, 10);
-		
+
 		if (isNaN(userId1Num) || isNaN(userId2Num)) {
 			return reply.status(400).send({
 				success: false,
 				error: 'Invalid user IDs'
 			});
 		}
-		
+
 		if (userId1Num === userId2Num) {
 			return reply.status(400).send({
 				success: false,
 				error: 'Cannot check friendship with yourself'
 			});
 		}
-		
+
 		const areFriends = await repository.areFriends(userId1Num, userId2Num);
-		
+
 		reply.send({
 			success: true,
 			data: {
@@ -166,23 +166,23 @@ export async function getMutualFriends(request: FastifyRequest, reply: FastifyRe
 		const { userId1, userId2 } = request.params as { userId1: string; userId2: string };
 		const userId1Num = parseInt(userId1, 10);
 		const userId2Num = parseInt(userId2, 10);
-		
+
 		if (isNaN(userId1Num) || isNaN(userId2Num)) {
 			return reply.status(400).send({
 				success: false,
 				error: 'Invalid user IDs'
 			});
 		}
-		
+
 		if (userId1Num === userId2Num) {
 			return reply.status(400).send({
 				success: false,
 				error: 'Cannot get mutual friends with yourself'
 			});
 		}
-		
+
 		const mutualFriends = await repository.getMutualFriends(userId1Num, userId2Num);
-		
+
 		reply.send({
 			success: true,
 			data: mutualFriends,
@@ -202,16 +202,16 @@ export async function getUserFriendCount(request: FastifyRequest, reply: Fastify
 	try {
 		const { userId } = request.params as { userId: string };
 		const userIdNum = parseInt(userId, 10);
-		
+
 		if (isNaN(userIdNum)) {
 			return reply.status(400).send({
 				success: false,
 				error: 'Invalid user ID'
 			});
 		}
-		
+
 		const count = await repository.getUserFriendCount(userIdNum);
-		
+
 		reply.send({
 			success: true,
 			data: {
@@ -232,7 +232,7 @@ export async function getUserFriendCount(request: FastifyRequest, reply: Fastify
 export async function createFriendship(request: FastifyRequest, reply: FastifyReply) {
 	try {
 		const { user1_id, user2_id } = request.body as CreateFriendData;
-		
+
 		// Validation
 		if (!user1_id || !user2_id) {
 			return reply.status(400).send({
@@ -241,28 +241,28 @@ export async function createFriendship(request: FastifyRequest, reply: FastifyRe
 				required: ['user1_id', 'user2_id']
 			});
 		}
-		
+
 		if (!isValidUserId(user1_id)) {
 			return reply.status(400).send({
 				success: false,
 				error: 'Invalid user1_id'
 			});
 		}
-		
+
 		if (!isValidUserId(user2_id)) {
 			return reply.status(400).send({
 				success: false,
 				error: 'Invalid user2_id'
 			});
 		}
-		
+
 		if (user1_id === user2_id) {
 			return reply.status(400).send({
 				success: false,
 				error: 'Users cannot be friends with themselves'
 			});
 		}
-		
+
 		// Check if friendship already exists
 		const alreadyFriends = await repository.areFriends(user1_id, user2_id);
 		if (alreadyFriends) {
@@ -271,12 +271,12 @@ export async function createFriendship(request: FastifyRequest, reply: FastifyRe
 				error: 'Friendship already exists'
 			});
 		}
-		
+
 		const newFriendship = await repository.createFriendship({
 			user1_id,
 			user2_id
 		});
-		
+
 		reply.status(201).send({
 			success: true,
 			data: newFriendship,
@@ -290,14 +290,14 @@ export async function createFriendship(request: FastifyRequest, reply: FastifyRe
 				error: 'One or both users do not exist'
 			});
 		}
-		
+
 		if (error instanceof Error && error.message.includes('UNIQUE')) {
 			return reply.status(409).send({
 				success: false,
 				error: 'Friendship already exists'
 			});
 		}
-		
+
 		reply.status(500).send({
 			success: false,
 			error: 'Failed to create friendship',
@@ -312,21 +312,21 @@ export async function deleteFriendship(request: FastifyRequest, reply: FastifyRe
 		const { userId1, userId2 } = request.params as { userId1: string; userId2: string };
 		const userId1Num = parseInt(userId1, 10);
 		const userId2Num = parseInt(userId2, 10);
-		
+
 		if (isNaN(userId1Num) || isNaN(userId2Num)) {
 			return reply.status(400).send({
 				success: false,
 				error: 'Invalid user IDs'
 			});
 		}
-		
+
 		if (userId1Num === userId2Num) {
 			return reply.status(400).send({
 				success: false,
 				error: 'Cannot delete friendship with yourself'
 			});
 		}
-		
+
 		// Check if friendship exists
 		const friendshipExists = await repository.areFriends(userId1Num, userId2Num);
 		if (!friendshipExists) {
@@ -335,16 +335,16 @@ export async function deleteFriendship(request: FastifyRequest, reply: FastifyRe
 				error: 'Friendship not found'
 			});
 		}
-		
+
 		const deleted = await repository.deleteFriendship(userId1Num, userId2Num);
-		
+
 		if (!deleted) {
 			return reply.status(500).send({
 				success: false,
 				error: 'Failed to delete friendship'
 			});
 		}
-		
+
 		reply.send({
 			success: true,
 			message: 'Friendship deleted successfully'

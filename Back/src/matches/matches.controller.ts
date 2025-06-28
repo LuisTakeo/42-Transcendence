@@ -16,15 +16,15 @@ const isValidPlayerId = (id: number): boolean => {
 export async function getAllMatches(request: FastifyRequest, reply: FastifyReply) {
 	try {
 		// Extract pagination parameters from query string
-		const { page = '1', limit = '10', search } = request.query as { 
-			page?: string; 
-			limit?: string; 
+		const { page = '1', limit = '10', search } = request.query as {
+			page?: string;
+			limit?: string;
 			search?: string;
 		};
-		
+
 		const pageNum = parseInt(page, 10);
 		const limitNum = parseInt(limit, 10);
-		
+
 		// Validation
 		if (isNaN(pageNum) || pageNum < 1) {
 			return reply.status(400).send({
@@ -32,27 +32,27 @@ export async function getAllMatches(request: FastifyRequest, reply: FastifyReply
 				error: 'Page must be a positive integer'
 			});
 		}
-		
+
 		if (isNaN(limitNum) || limitNum < 1 || limitNum > 100) {
 			return reply.status(400).send({
 				success: false,
 				error: 'Limit must be between 1 and 100'
 			});
 		}
-		
+
 		const offset = (pageNum - 1) * limitNum;
-		
+
 		// Get matches and total count
 		const [matches, totalCount] = await Promise.all([
 			repository.getMatchesFromDb(limitNum, offset, search),
 			repository.getMatchesCount(search)
 		]);
-		
+
 		// Calculate pagination metadata
 		const totalPages = Math.ceil(totalCount / limitNum);
 		const hasNextPage = pageNum < totalPages;
 		const hasPrevPage = pageNum > 1;
-		
+
 		reply.send({
 			success: true,
 			data: matches,
@@ -80,7 +80,7 @@ export async function getAllMatches(request: FastifyRequest, reply: FastifyReply
 export async function getAllMatchesSimple(request: FastifyRequest, reply: FastifyReply) {
 	try {
 		const matches = await repository.getAllMatchesFromDb();
-		
+
 		reply.send({
 			success: true,
 			data: matches,
@@ -100,23 +100,23 @@ export async function getMatchById(request: FastifyRequest, reply: FastifyReply)
 	try {
 		const { id } = request.params as { id: string };
 		const matchId = parseInt(id, 10);
-		
+
 		if (isNaN(matchId)) {
 			return reply.status(400).send({
 				success: false,
 				error: 'Invalid match ID'
 			});
 		}
-		
+
 		const match = await repository.getMatchById(matchId);
-		
+
 		if (!match) {
 			return reply.status(404).send({
 				success: false,
 				error: 'Match not found'
 			});
 		}
-		
+
 		reply.send({
 			success: true,
 			data: match
@@ -135,16 +135,16 @@ export async function getMatchesByPlayer(request: FastifyRequest, reply: Fastify
 	try {
 		const { playerId } = request.params as { playerId: string };
 		const playerIdNum = parseInt(playerId, 10);
-		
+
 		if (isNaN(playerIdNum)) {
 			return reply.status(400).send({
 				success: false,
 				error: 'Invalid player ID'
 			});
 		}
-		
+
 		const matches = await repository.getMatchesByPlayerId(playerIdNum);
-		
+
 		reply.send({
 			success: true,
 			data: matches,
@@ -164,16 +164,16 @@ export async function getPlayerStats(request: FastifyRequest, reply: FastifyRepl
 	try {
 		const { playerId } = request.params as { playerId: string };
 		const playerIdNum = parseInt(playerId, 10);
-		
+
 		if (isNaN(playerIdNum)) {
 			return reply.status(400).send({
 				success: false,
 				error: 'Invalid player ID'
 			});
 		}
-		
+
 		const stats = await repository.getUserStats(playerIdNum);
-		
+
 		reply.send({
 			success: true,
 			data: stats
@@ -190,18 +190,18 @@ export async function getPlayerStats(request: FastifyRequest, reply: FastifyRepl
 // Create new match
 export async function createMatch(request: FastifyRequest, reply: FastifyReply) {
 	try {
-		const { 
-			player1_id, 
-			player2_id, 
-			player1_alias, 
-			player2_alias, 
-			winner_id, 
-			player1_score, 
-			player2_score 
+		const {
+			player1_id,
+			player2_id,
+			player1_alias,
+			player2_alias,
+			winner_id,
+			player1_score,
+			player2_score
 		} = request.body as CreateMatchData;
-		
+
 		// Validation
-		if (!player1_id || !player2_id || !player1_alias || !player2_alias || 
+		if (!player1_id || !player2_id || !player1_alias || !player2_alias ||
 			player1_score === undefined || player2_score === undefined) {
 			return reply.status(400).send({
 				success: false,
@@ -209,56 +209,56 @@ export async function createMatch(request: FastifyRequest, reply: FastifyReply) 
 				required: ['player1_id', 'player2_id', 'player1_alias', 'player2_alias', 'player1_score', 'player2_score']
 			});
 		}
-		
+
 		if (!isValidPlayerId(player1_id)) {
 			return reply.status(400).send({
 				success: false,
 				error: 'Invalid player1_id'
 			});
 		}
-		
+
 		if (!isValidPlayerId(player2_id)) {
 			return reply.status(400).send({
 				success: false,
 				error: 'Invalid player2_id'
 			});
 		}
-		
+
 		if (player1_id === player2_id) {
 			return reply.status(400).send({
 				success: false,
 				error: 'Player cannot play against themselves'
 			});
 		}
-		
+
 		if (!isValidScore(player1_score)) {
 			return reply.status(400).send({
 				success: false,
 				error: 'Player1 score must be a non-negative integer'
 			});
 		}
-		
+
 		if (!isValidScore(player2_score)) {
 			return reply.status(400).send({
 				success: false,
 				error: 'Player2 score must be a non-negative integer'
 			});
 		}
-		
+
 		if (player1_alias.trim().length < 1 || player1_alias.trim().length > 50) {
 			return reply.status(400).send({
 				success: false,
 				error: 'Player1 alias must be between 1 and 50 characters'
 			});
 		}
-		
+
 		if (player2_alias.trim().length < 1 || player2_alias.trim().length > 50) {
 			return reply.status(400).send({
 				success: false,
 				error: 'Player2 alias must be between 1 and 50 characters'
 			});
 		}
-		
+
 		// Validate winner_id if provided
 		if (winner_id !== undefined && winner_id !== null) {
 			if (!isValidPlayerId(winner_id)) {
@@ -267,7 +267,7 @@ export async function createMatch(request: FastifyRequest, reply: FastifyReply) 
 					error: 'Invalid winner_id'
 				});
 			}
-			
+
 			if (winner_id !== player1_id && winner_id !== player2_id) {
 				return reply.status(400).send({
 					success: false,
@@ -275,7 +275,7 @@ export async function createMatch(request: FastifyRequest, reply: FastifyReply) 
 				});
 			}
 		}
-		
+
 		const newMatch = await repository.createMatch({
 			player1_id,
 			player2_id,
@@ -285,7 +285,7 @@ export async function createMatch(request: FastifyRequest, reply: FastifyReply) 
 			player1_score,
 			player2_score
 		});
-		
+
 		reply.status(201).send({
 			success: true,
 			data: newMatch,
@@ -305,16 +305,16 @@ export async function updateMatch(request: FastifyRequest, reply: FastifyReply) 
 	try {
 		const { id } = request.params as { id: string };
 		const matchId = parseInt(id, 10);
-		
+
 		if (isNaN(matchId)) {
 			return reply.status(400).send({
 				success: false,
 				error: 'Invalid match ID'
 			});
 		}
-		
+
 		const updateData = request.body as UpdateMatchData;
-		
+
 		// Validation for fields being updated
 		if (updateData.player1_score !== undefined && !isValidScore(updateData.player1_score)) {
 			return reply.status(400).send({
@@ -322,28 +322,28 @@ export async function updateMatch(request: FastifyRequest, reply: FastifyReply) 
 				error: 'Player1 score must be a non-negative integer'
 			});
 		}
-		
+
 		if (updateData.player2_score !== undefined && !isValidScore(updateData.player2_score)) {
 			return reply.status(400).send({
 				success: false,
 				error: 'Player2 score must be a non-negative integer'
 			});
 		}
-		
+
 		if (updateData.player1_alias && (updateData.player1_alias.trim().length < 1 || updateData.player1_alias.trim().length > 50)) {
 			return reply.status(400).send({
 				success: false,
 				error: 'Player1 alias must be between 1 and 50 characters'
 			});
 		}
-		
+
 		if (updateData.player2_alias && (updateData.player2_alias.trim().length < 1 || updateData.player2_alias.trim().length > 50)) {
 			return reply.status(400).send({
 				success: false,
 				error: 'Player2 alias must be between 1 and 50 characters'
 			});
 		}
-		
+
 		// Get the current match to validate winner_id
 		if (updateData.winner_id !== undefined) {
 			const currentMatch = await repository.getMatchById(matchId);
@@ -353,9 +353,9 @@ export async function updateMatch(request: FastifyRequest, reply: FastifyReply) 
 					error: 'Match not found'
 				});
 			}
-			
-			if (updateData.winner_id !== null && 
-				updateData.winner_id !== currentMatch.player1_id && 
+
+			if (updateData.winner_id !== null &&
+				updateData.winner_id !== currentMatch.player1_id &&
 				updateData.winner_id !== currentMatch.player2_id) {
 				return reply.status(400).send({
 					success: false,
@@ -363,7 +363,7 @@ export async function updateMatch(request: FastifyRequest, reply: FastifyReply) 
 				});
 			}
 		}
-		
+
 		// Clean data
 		const cleanedData: UpdateMatchData = {};
 		if (updateData.player1_alias) cleanedData.player1_alias = updateData.player1_alias.trim();
@@ -371,16 +371,16 @@ export async function updateMatch(request: FastifyRequest, reply: FastifyReply) 
 		if (updateData.winner_id !== undefined) cleanedData.winner_id = updateData.winner_id;
 		if (updateData.player1_score !== undefined) cleanedData.player1_score = updateData.player1_score;
 		if (updateData.player2_score !== undefined) cleanedData.player2_score = updateData.player2_score;
-		
+
 		const updatedMatch = await repository.updateMatch(matchId, cleanedData);
-		
+
 		if (!updatedMatch) {
 			return reply.status(404).send({
 				success: false,
 				error: 'Match not found'
 			});
 		}
-		
+
 		reply.send({
 			success: true,
 			data: updatedMatch,

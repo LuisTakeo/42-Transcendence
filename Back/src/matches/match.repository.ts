@@ -35,9 +35,9 @@ export interface UpdateMatchData {
 // Get all matches with pagination and optional search
 export async function getMatchesFromDb(limit?: number, offset?: number, search?: string): Promise<Match[]> {
 	const db = await openDb();
-	
+
 	let query = `
-		SELECT 
+		SELECT
 			m.*,
 			p1.name as player1_name,
 			p1.username as player1_username,
@@ -51,7 +51,7 @@ export async function getMatchesFromDb(limit?: number, offset?: number, search?:
 		LEFT JOIN users w ON m.winner_id = w.id
 	`;
 	const params: any[] = [];
-	
+
 	// Add search condition if provided
 	if (search) {
 		query += ` WHERE (
@@ -62,19 +62,19 @@ export async function getMatchesFromDb(limit?: number, offset?: number, search?:
 		const searchTerm = `%${search}%`;
 		params.push(searchTerm, searchTerm, searchTerm, searchTerm, searchTerm, searchTerm);
 	}
-	
+
 	query += ' ORDER BY m.played_at DESC';
-	
+
 	if (limit !== undefined) {
 		query += ' LIMIT ?';
 		params.push(limit);
-		
+
 		if (offset !== undefined) {
 			query += ' OFFSET ?';
 			params.push(offset);
 		}
 	}
-	
+
 	return db.all(query, params);
 }
 
@@ -82,7 +82,7 @@ export async function getMatchesFromDb(limit?: number, offset?: number, search?:
 export async function getAllMatchesFromDb(): Promise<Match[]> {
 	const db = await openDb();
 	return db.all(`
-		SELECT 
+		SELECT
 			m.*,
 			p1.name as player1_name,
 			p1.username as player1_username,
@@ -101,15 +101,15 @@ export async function getAllMatchesFromDb(): Promise<Match[]> {
 // Get total count of matches with optional search
 export async function getMatchesCount(search?: string): Promise<number> {
 	const db = await openDb();
-	
+
 	let query = `
-		SELECT COUNT(*) as count 
+		SELECT COUNT(*) as count
 		FROM matches m
 		JOIN users p1 ON m.player1_id = p1.id
 		JOIN users p2 ON m.player2_id = p2.id
 	`;
 	const params: any[] = [];
-	
+
 	if (search) {
 		query += ` WHERE (
 			p1.name LIKE ? OR p1.username LIKE ? OR
@@ -119,7 +119,7 @@ export async function getMatchesCount(search?: string): Promise<number> {
 		const searchTerm = `%${search}%`;
 		params.push(searchTerm, searchTerm, searchTerm, searchTerm, searchTerm, searchTerm);
 	}
-	
+
 	const result = await db.get(query, params);
 	return result.count;
 }
@@ -128,7 +128,7 @@ export async function getMatchesCount(search?: string): Promise<number> {
 export async function getMatchById(id: number): Promise<Match | null> {
 	const db = await openDb();
 	const match = await db.get(`
-		SELECT 
+		SELECT
 			m.*,
 			p1.name as player1_name,
 			p1.username as player1_username,
@@ -149,7 +149,7 @@ export async function getMatchById(id: number): Promise<Match | null> {
 export async function getMatchesByPlayerId(playerId: number): Promise<Match[]> {
 	const db = await openDb();
 	return db.all(`
-		SELECT 
+		SELECT
 			m.*,
 			p1.name as player1_name,
 			p1.username as player1_username,
@@ -170,7 +170,7 @@ export async function getMatchesByPlayerId(playerId: number): Promise<Match[]> {
 export async function createMatch(matchData: CreateMatchData): Promise<Match> {
 	const db = await openDb();
 	const result = await db.run(
-		`INSERT INTO matches (player1_id, player2_id, player1_alias, player2_alias, winner_id, player1_score, player2_score, played_at) 
+		`INSERT INTO matches (player1_id, player2_id, player1_alias, player2_alias, winner_id, player1_score, player2_score, played_at)
 		 VALUES (?, ?, ?, ?, ?, ?, ?, datetime('now'))`,
 		[
 			matchData.player1_id,
@@ -182,7 +182,7 @@ export async function createMatch(matchData: CreateMatchData): Promise<Match> {
 			matchData.player2_score
 		]
 	);
-	
+
 	const newMatch = await getMatchById(result.lastID!);
 	if (!newMatch) {
 		throw new Error('Failed to create match');
@@ -193,11 +193,11 @@ export async function createMatch(matchData: CreateMatchData): Promise<Match> {
 // Update match
 export async function updateMatch(id: number, matchData: UpdateMatchData): Promise<Match | null> {
 	const db = await openDb();
-	
+
 	// Build dynamic update query
 	const updateFields: string[] = [];
 	const values: any[] = [];
-	
+
 	if (matchData.player1_alias !== undefined) {
 		updateFields.push('player1_alias = ?');
 		values.push(matchData.player1_alias);
@@ -218,20 +218,20 @@ export async function updateMatch(id: number, matchData: UpdateMatchData): Promi
 		updateFields.push('player2_score = ?');
 		values.push(matchData.player2_score);
 	}
-	
+
 	if (updateFields.length === 0) {
 		return getMatchById(id); // No fields to update, return current match
 	}
-	
+
 	values.push(id); // Add ID for WHERE clause
-	
+
 	const query = `UPDATE matches SET ${updateFields.join(', ')} WHERE id = ?`;
 	const result = await db.run(query, values);
-	
+
 	if (result.changes === 0) {
 		return null; // Match not found
 	}
-	
+
 	return getMatchById(id);
 }
 
@@ -243,22 +243,22 @@ export async function getUserStats(userId: number): Promise<{
 	winRate: number;
 }> {
 	const db = await openDb();
-	
+
 	const totalMatches = await db.get(
 		'SELECT COUNT(*) as count FROM matches WHERE player1_id = ? OR player2_id = ?',
 		[userId, userId]
 	);
-	
+
 	const wins = await db.get(
 		'SELECT COUNT(*) as count FROM matches WHERE winner_id = ?',
 		[userId]
 	);
-	
+
 	const total = totalMatches.count;
 	const winCount = wins.count;
 	const losses = total - winCount;
 	const winRate = total > 0 ? (winCount / total) * 100 : 0;
-	
+
 	return {
 		totalMatches: total,
 		wins: winCount,
