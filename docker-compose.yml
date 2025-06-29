@@ -12,7 +12,7 @@ services:
       - /frontend/node_modules
     ports:
       - "${FRONT_PORT}:${FRONT_PORT}"
-    command: dev
+    command: npm run dev
     depends_on:
       - backend
 
