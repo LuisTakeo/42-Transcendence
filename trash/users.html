@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Users</title>
+    <link rel="stylesheet" href="./src/style.css" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=League+Spartan:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+	<script src="https://cdn.tailwindcss.com"></script>  <!--SE EU REMOVO ESSA LINHA O TAILWIND N FUNCIONA-->
+	<script src="button.ts"></script> <!--IMPORTANTO SCRIPT PARA CAPTURAR O QUE É DIGITADO-->
+
+  </head>
+  <body class="bg-[#383568] text-white min-h-screen">
+
+    <!-- Barra lateral fixa -->
+    <div class="fixed left-0 top-0 h-screen w-20 bg-[#1E1B4B] flex flex-col justify-between">
+      <nav class="flex flex-col items-center space-y-7 pt-6">
+        <a href="/home.html" class="relative hover:bg-[#383568] px-3 py-3 hover:bg-opacity-40 ease-in-out rounded-[5px] hover:scale-110 transition">
+          <img src="./assets/home-white.png" alt="home" />
+        </a>
+        <a href="/profile.html" class="relative hover:bg-[#383568] px-3 py-3 hover:bg-opacity-40 ease-in-out rounded-[5px] hover:scale-110 transition">
+          <img src="./assets/perfil-white.png" alt="profile" />
+        </a>
+        <a href="/settings.html" class="relative hover:bg-[#383568] px-3 py-3 hover:bg-opacity-40 ease-in-out rounded-[5px] hover:scale-110 transition">
+          <img src="./assets/settings.png" alt="settings" />
+        </a>
+        <a href="/users.html" class="relative hover:bg-[#383568] px-3 py-3 hover:bg-opacity-40 ease-in-out rounded-[5px] hover:scale-110 transition">
+          <img src="./assets/people.png" alt="people" />
+        </a>
+        <a href="/ranking.html" class="relative hover:bg-[#383568] px-3 py-3 hover:bg-opacity-40 ease-in-out rounded-[5px] hover:scale-110 transition">
+          <img src="./assets/ranking.png" alt="ranking" />
+        </a>
+        <div class="flex-grow py-12"></div>
+        <a href="/logout.html" class="relative hover:bg-[#383568] px-3 py-3 hover:bg-opacity-40 ease-in-out rounded-[5px] hover:scale-110 transition">
+          <img src="./assets/sair-white.png" alt="log out" />
+        </a>
+      </nav>
+    </div>
+
+    <!-- Conteúdo principal -->
+    <main class="ml-24 p-[2cm] flex justify-center items-center min-h-screen"> 
+
+      <div class="w-full max-w-6xl bg-[#1E1B4B] rounded-lg p-8">
+
+        <!-- Título -->
+        <h1 class="text-5xl font-bold mb-6 text-center">Looking for users?</h1>
+
+		<span class="block h-4"></span> 
+
+        <!-- Campo de pesquisa -->
+        <div class="flex justify-center mb-8">
+			<input 
+			type="text" 
+			id="searchUsers"
+			placeholder="Search..." 
+			class="w-80 px-6 py-3 rounded-l-[5px] border border-[#383568] bg-[#1E1B4B] text-white placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-purple-500 focus:border-transparent text-2xl"
+		 	 />
+			<button class="px-6 py-3 bg-[#383568] text-white font-semibold rounded-r-[5px] hover:bg-[#4E4A72] transition duration-200 ease-in-out"
+			id="searchUsersButton"
+			>
+				<img src="./assets/find.png" alt="log out">
+			</button>
+        </div>
+		<span class="block h-4"></span> 
+
+        <!-- Resultados da pesquisa -->
+        <div class="grid grid-cols-1 gap-6">
+          <div class="p-4 bg-[#383568] rounded-lg text-white shadow-lg hover:shadow-xl transition">
+            <h3 class="text-2xl font-semibold mb-2">Resultado 1</h3>
+            <p>Descrição do primeiro resultado de pesquisa...</p>
+          </div>
+          <div class="p-4 bg-[#383568] rounded-lg text-white shadow-lg hover:shadow-2xl transition">
+            <h3 class="text-2xl font-semibold mb-2">Resultado 2</h3>
+            <p>Descrição do segundo resultado de pesquisa...</p>
+          </div>
+          <div class="p-4 bg-[#383568] rounded-lg text-white shadow-lg hover:shadow-2xl transition">
+            <h3 class="text-2xl font-semibold mb-2">Resultado 3</h3>
+            <p>Descrição do terceiro resultado de pesquisa...</p>
+          </div>
+        </div>
+
+      </div>
+
+    </main>
+
+  </body>
+</html>
