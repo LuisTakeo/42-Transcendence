@@ -9,10 +9,10 @@ services:
         - FRONT_PORT=${FRONT_PORT}
     volumes:
       - ./Front:/frontend
-      - ./Front/node_modules:/frontend/node_modules
+      - /frontend/node_modules
     ports:
       - "${FRONT_PORT}:${FRONT_PORT}"
-    command: npm run dev
+    command: dev
     depends_on:
       - backend
 
@@ -24,7 +24,7 @@ services:
         - BACK_PORT=${BACK_PORT}
     volumes:
       - ./Back:/backend
-      - ./Back/node_modules:/backend/node_modules
+      - /backend/node_modules
     ports:
       - "${BACK_PORT}:${BACK_PORT}"
-    command: npm run dev
+    command: dev
