@@ -4,7 +4,7 @@
   "scripts": {
     "dev": "tsx watch src/main.ts",
     "dev1": "ts-node-dev src/main.ts",
-    "build": "tsc",
+    "build": "tsc && cp -r src/database/migrations dist/database/",
     "start": "node dist/main.js"
   },
   "dependencies": {
