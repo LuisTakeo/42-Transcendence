@@ -152,11 +152,15 @@ export default function UsersPage(): void {
         <div class="text-center text-white text-xl py-8">
           <p class="text-red-400 mb-2">Error loading users</p>
           <p class="text-gray-400 text-sm">Please try again later.</p>
-          <button onclick="location.reload()" class="mt-4 px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 transition">
+          <button id="retry-button" class="mt-4 px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 transition">
             Retry
           </button>
         </div>
       `;
+      const retryButton = document.getElementById("retry-button");
+      retryButton?.addEventListener("click", () => {
+        location.reload();
+      });
     }
   }
 
