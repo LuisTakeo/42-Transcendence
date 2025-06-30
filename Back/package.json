@@ -5,7 +5,7 @@
     "dev": "tsx watch src/main.ts",
     "dev1": "ts-node-dev src/main.ts",
     "build": "tsc && cp -r src/database/migrations dist/database/",
-    "start": "node dist/main.js"
+    "start": "tsx src/main.ts"
   },
   "dependencies": {
     "@fastify/cors": "^11.0.1",

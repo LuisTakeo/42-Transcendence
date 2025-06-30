@@ -31,6 +31,7 @@ CREATE TABLE IF NOT EXISTS tournament_rounds (
 );
 
 -- Add tournament-related columns to matches table
+-- Note: SQLite doesn't support IF NOT EXISTS for ALTER TABLE, so we'll handle this in the application
 ALTER TABLE matches ADD COLUMN tournament_id INTEGER REFERENCES tournaments(id) ON DELETE CASCADE;
 ALTER TABLE matches ADD COLUMN round_number INTEGER;
 ALTER TABLE matches ADD COLUMN match_position INTEGER;
