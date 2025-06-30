@@ -9,6 +9,7 @@ import friendsRoutes from './friends/friends.routes';
 import conversationsRoutes from './conversations/conversations.routes';
 import messagesRoutes from './messages/messages.routes';
 import { tournamentRoutes } from './tournaments/tournaments.routes';
+import usersRoutes from './routes/users/users.routes';
 // import outros módulos aqui futuramente
 
 import { registerRoutes } from './routes/routes-controller'
@@ -30,7 +31,10 @@ export const startServer = async () => {
 
 	// Habilitar CORS para seu frontend
 	await app.register(cors, {
-		origin: 'http://localhost:3042', // URL do seu frontend
+		origin: ['http://localhost:5173', 'http://localhost:3042'], // URLs do frontend
+		credentials: true,
+		methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+		allowedHeaders: ['Content-Type', 'Authorization']
 	});
 
 	// Run migrations
@@ -40,8 +44,9 @@ export const startServer = async () => {
 	app.register(conversationsRoutes, { prefix: '/conversations' });
 	app.register(messagesRoutes, { prefix: '/messages' });
 	app.register(tournamentRoutes, { prefix: '/tournaments' });
+	app.register(usersRoutes, { prefix: '/users' });
 
-	app.get('/', async () => ({ hello: 'world' }));
+	// app.get('/', async () => ({ hello: 'world' }));
 
 	await app.listen({ port, host });
 	app.log.info(`Server running at http://${host}:${port}`);
