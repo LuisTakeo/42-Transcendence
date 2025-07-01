@@ -5,7 +5,7 @@ export default function ProfilePage(userId?: number): void {
   const app = document.getElementById("app");
   if (!app) return;
 
-  app.innerHTML = ""; // Limpa o conteúdo
+  app.innerHTML = ""; // Clear existing content
 
   const main = document.createElement("main");
   main.className = "p-4 box-border min-h-screen flex flex-col gap-2";
