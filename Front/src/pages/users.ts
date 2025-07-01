@@ -218,22 +218,18 @@ export default function UsersPage(): void {
     }
   });
 
-  // Add event listeners for View Profile buttons
-  function addViewProfileListeners(): void {
-    const viewProfileButtons = document.querySelectorAll('.view-profile-btn');
-    viewProfileButtons.forEach(button => {
-      button.addEventListener('click', (e) => {
-        const userId = (e.target as HTMLButtonElement).getAttribute('data-user-id');
-        if (userId) {
-          usersService.navigateToProfile(parseInt(userId));
-        }
-      });
-    });
-  }
+  // Add event delegation for View Profile buttons
+  const mainContainer = document.querySelector('.ml-24');
+  mainContainer?.addEventListener('click', (e) => {
+    const target = e.target as HTMLElement;
+    if (target.classList.contains('view-profile-btn')) {
+      const userId = target.getAttribute('data-user-id');
+      if (userId) {
+        usersService.navigateToProfile(parseInt(userId));
+      }
+    }
+  });
 
   // Load initial users
   loadUsers();
-
-  // Add event listeners after initial load
-  setTimeout(addViewProfileListeners, 100);
 }
