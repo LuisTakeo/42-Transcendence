@@ -109,7 +109,6 @@ window.addEventListener('popstate', onRouteChange);
 window.addEventListener('routeChange', (event: Event) => {
   const customEvent = event as CustomEvent;
   const path = customEvent.detail.path;
-  window.history.pushState(null, '', path);
   onRouteChange();
 });
 
