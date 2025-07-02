@@ -1,17 +1,10 @@
-import { FastifyInstance } from "fastify";
-import { handleGameConnection } from "../pong-game/game.controller";
+import { WebSocket } from "@fastify/websocket";
+import { FastifyInstance, FastifyRequest } from "fastify";
+import { handleWebSocketConn } from "./websocket.controller";
+
+
 
 export default async function websocketRoutes(fastify: FastifyInstance) {
-    fastify.get('/ws/game', { websocket: true }, handleGameConnection);
-
-    fastify.get('/ws/chat', { websocket: true }, (connection, req) => {
-        connection.on('message', (message: string) => {
-            console.log(`Chat message received: ${message}`);
-            connection.send(`Chat Echo: ${message}`);
-        });
-
-        connection.on('close', () => {
-            console.log('Chat connection closed');
-        });
-    });
+    // Rota única para chat E game
+    fastify.get('/ws', { websocket: true }, handleWebSocketConn);
 }

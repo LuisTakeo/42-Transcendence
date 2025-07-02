@@ -2,214 +2,300 @@ import { Game, Room, Player, GameStatus } from "./game";
 import { FastifyRequest } from "fastify";
 import { WebSocket } from '@fastify/websocket';
 
-interface ClientIncomingMessage {
-	type: string;
-	playerId: number;
-	roomId?: number;
-	key?: string;
+
+interface GameRoom {
+    id: string;
+    players: Map<string, any>; // userId -> connection
+    gameState: {
+        ball: { x: number, y: number, vx: number, vy: number };
+        player1: { y: number };
+        player2: { y: number };
+        score: { player1: number, player2: number };
+    };
+    gameLoop?: NodeJS.Timeout;
+    status: 'waiting' | 'playing' | 'finished';
 }
 
-interface ClientOutgoingMessage {
-	type: string;
-	message?: string;
-	room?: {
-		roomId: number;
-		players: { id: number; name: string }[];
-		playerCount: number;
-		maxPlayers: number;
-	};
-	gameUpdate?: {
-		message: string;
-		playerCount: number;
-		ballPosition?: { x: number; y: number };
-		ballVelocity?: number;
-		score?: { player1: number; player2: number };
-		paddleLeft?: number;
-		paddleRight?: number;
-	};
-}
+// Maps principais
+const gameRooms: Map<string, GameRoom> = new Map();
+const userToRoom: Map<string, string> = new Map(); // userId -> roomId
 
 
-const mapRooms: Map<number, Room> = new Map<number, Room>();
 
-function handleGameConnection(connection: WebSocket, req: FastifyRequest){
-    let i = 0;
-    console.log("New WebSocket connection established");
-    connection.on('open', () => {
-        console.log('WebSocket connection opened');
-        connection.send('Welcome to the Pong Game Server!');
-    });
+// interface GameRoom {
+//     id: string;
+//     players: Map<string, any>; // userId -> connection
+//     gameState: {
+//         ball: { x: number, y: number, vx: number, vy: number };
+//         player1: { y: number };
+//         player2: { y: number };
+//         score: { player1: number, player2: number };
+//     };
+//     gameLoop?: NodeJS.Timer;
+//     status: 'waiting' | 'playing' | 'finished';
+// }
 
-    connection.on('message', (message: string) => {
-        try {
-            const data = JSON.parse(message.toString());
-
-            if (data.type && data.type === 'joinRoom') {
-                const roomId = data.roomId;
-                const idPlayer = data.playerId;
-                const playerName = data.playerName || `Player${idPlayer}`;
-
-                const player: Player = {
-                    id: idPlayer,
-                    name: playerName,
-                    socket: connection,
-                    paddlePosition: 0
-                };
-
-                // ✅ Usar nova lógica
-                const joinResult = joinRoom(roomId, player);
-
-                if (joinResult.success) {
-                    const room = joinResult.room!;
-
-                    broadcastToRoom(room, {
-                        type: 'playerJoined',
-                        room: {
-                            roomId: room.roomId,
-                            players: room.players.map(p => ({
-                                id: p.id,
-                                name: p.name
-                            })),
-                            playerCount: room.players.length,
-                            maxPlayers: 2
-                        }
-                    });
-
-                    console.log(`✅ Player ${player.id} joined room ${roomId}. Total players: ${room.players.length}`);
-                } else {
-                    // Enviar erro para o cliente
-                    connection.send(JSON.stringify({
-                        type: 'error',
-                        message: joinResult.error
-                    }));
-                    console.log(`❌ ${joinResult.error}`);
-                }
-            }
-
-        } catch (error) {
-            console.error("Error: " + error);
-            connection.send(JSON.stringify({
-                type: 'error',
-                message: 'Invalid message format'
-            }));
-        }
-    });
-
-    connection.on('close', () => {
-        console.log('Connection closed');
-        cleanupPlayer(connection);
-    });
-}
-
-// ✅ Nova função para entrar na room
-function joinRoom(roomId: number, player: Player): {
-    success: boolean;
-    room?: Room;
-    error?: string
-} {
-    // Verificar se o jogador já está na room
-    if (mapRooms.has(roomId)) {
-        const existingRoom = mapRooms.get(roomId)!;
-
-        // Verificar se jogador já está na room
-        if (existingRoom.players.find(p => p.id === player.id)) {
-            return {
-                success: false,
-                error: `Player ${player.id} already in room ${roomId}`
-            };
-        }
-
-        // Verificar se a room está cheia
-        if (existingRoom.players.length >= 2) {
-            return {
-                success: false,
-                error: `Room ${roomId} is full (${existingRoom.players.length}/2)`
-            };
-        }
-
-        // Adicionar jogador à room existente
-        existingRoom.players.push(player);
-        return {
-            success: true,
-            room: existingRoom
-        };
-    } else {
-        // Criar nova room
-        const newRoom: Room = {
-            roomId: roomId,
-            players: [player], // ✅ Já adicionar o jogador
-            status: GameStatus.WAITING,
-            score: { player1: 0, player2: 0 },
-            ballPosition: { x: 0, y: 0 },
-            ballVelocity: 0,
-        };
-
-        mapRooms.set(roomId, newRoom);
-        console.log(`🏠 Room ${roomId} created with player ${player.id}`);
-
-        return {
-            success: true,
-            room: newRoom
-        };
-    }
-}
-
-// ✅ Função para limpar jogador desconectado
-function cleanupPlayer(connection: WebSocket) {
-    mapRooms.forEach((room, roomId) => {
-        const initialCount = room.players.length;
-
-        // Remover jogador da room
-        room.players = room.players.filter(player => player.socket !== connection);
-
-        if (room.players.length !== initialCount) {
-            console.log(`🚪 Player disconnected from room ${roomId}. Remaining: ${room.players.length}`);
-
-            // Notificar jogadores restantes
-            if (room.players.length > 0) {
-                broadcastToRoom(room, {
-                    type: 'playerLeft',
-                    room: {
-                        roomId: room.roomId,
-                        playerCount: room.players.length,
-                        maxPlayers: 2
-                    }
-                });
-            } else {
-                // Deletar room se vazia
-                mapRooms.delete(roomId);
-                console.log(`🗑️ Room ${roomId} deleted (empty)`);
-            }
-        }
-    });
-}
+// const mapRooms: Map<number, Room> = new Map<number, Room>();
 
 
-function loopGame(room: Room, connection: WebSocket) {
-    if (connection.readyState !== WebSocket.OPEN) {
-        console.log(`Connection is not open for room ${room.roomId}`);
+
+// Função para processar movimento dos jogadores
+function handlePlayerMove(userId: string, data: any) {
+    const roomId = userToRoom.get(userId);
+    if (!roomId) {
+        console.log(`User ${userId} não está em nenhuma sala`);
         return;
     }
-    console.log(`Game loop for room ${room.roomId} is running`);
-    room.players.forEach(player => {
-        if (player.socket && player.socket.readyState === WebSocket.OPEN) {
-            player.socket.send(JSON.stringify({
-                type: 'gameUpdate',
-                message: 'Game is running',
-                playerCount: room.players.length
-            }));
+    
+    const room = gameRooms.get(roomId);
+    if (!room || room.status !== 'playing') {
+        console.log(`Sala ${roomId} não está jogando`);
+        return;
+    }
+    
+    // Determinar qual jogador (baseado na ordem de entrada)
+    const playerIds = Array.from(room.players.keys());
+    const isPlayer1 = playerIds[0] === userId;
+    
+    console.log(`Movimento recebido: ${userId} (${isPlayer1 ? 'Player1' : 'Player2'}) - ${data.direction}`);
+    
+    // Atualizar posição do jogador no backend
+    if (isPlayer1) {
+        // Limitar movimento dentro da mesa
+        if (data.direction === 'up') {
+            room.gameState.player1.y = Math.max(-15, room.gameState.player1.y - 2);
+        } else if (data.direction === 'down') {
+            room.gameState.player1.y = Math.min(15, room.gameState.player1.y + 2);
+        }
+    } else {
+        if (data.direction === 'up') {
+            room.gameState.player2.y = Math.max(-15, room.gameState.player2.y - 2);
+        } else if (data.direction === 'down') {
+            room.gameState.player2.y = Math.min(15, room.gameState.player2.y + 2);
+        }
+    }
+    
+    // Broadcast movimento para todos na sala
+    broadcastToRoom(roomId, {
+        type: 'player_moved',
+        player: isPlayer1 ? 'player1' : 'player2',
+        y: isPlayer1 ? room.gameState.player1.y : room.gameState.player2.y,
+        userId: userId
+    });
+}
+
+function broadcastToRoom(roomId: string, data: any) {
+    const room = gameRooms.get(roomId);
+    if (!room) return;
+    
+    const message = JSON.stringify(data);
+    room.players.forEach(connection => {
+        try {
+            connection.send(message);
+        } catch (error) {
+            console.log('Erro ao enviar mensagem para jogador');
         }
     });
 }
 
-function broadcastToRoom(room: Room, message: any) {
-    const messageStr = JSON.stringify(message);
-
-    room.players.forEach(player => {
-        if (player.socket && player.socket.readyState === WebSocket.OPEN) {
-            player.socket.send(messageStr);
-        }
-    });
+function updateGameLogic(room: GameRoom) {
+    const { ball, player1, player2 } = room.gameState;
+    const tableWidth = 100; // Ajuste conforme sua mesa
+    const tableDepth = 100;
+    const paddleWidth = 2;
+    const paddleHeight = 6;
+    
+    // Atualizar posição da bola
+    ball.x += ball.vx;
+    ball.y += ball.vy;
+    
+    // Colisão com bordas superior e inferior
+    const halfTableDepth = (tableDepth / 2) - 3;
+    if (ball.y > halfTableDepth || ball.y < -halfTableDepth) {
+        ball.vy *= -1; // Inverte velocidade Y
+    }
+    
+    // Colisão com raquetes (jogadores)
+    checkPaddleCollision(room);
+    
+    // Verificar pontuação (bola saiu pelos lados)
+    const halfTableWidth = tableWidth / 2;
+    if (ball.x > halfTableWidth) {
+        // Player 1 marcou ponto
+        room.gameState.score.player1++;
+        resetBall(room);
+        
+        broadcastToRoom(room.id, {
+            type: 'goal',
+            scorer: 'player1',
+            score: room.gameState.score
+        });
+    } else if (ball.x < -halfTableWidth) {
+        // Player 2 marcou ponto
+        room.gameState.score.player2++;
+        resetBall(room);
+        
+        broadcastToRoom(room.id, {
+            type: 'goal',
+            scorer: 'player2',
+            score: room.gameState.score
+        });
+    }
 }
 
-export { handleGameConnection };
+function checkPaddleCollision(room: GameRoom) {
+    const { ball, player1, player2 } = room.gameState;
+    const paddleWidth = 2;
+    const paddleHeight = 6;
+    const ballRadius = 0.75; // Raio da bola
+    
+    // Posições das raquetes (ajuste conforme sua implementação)
+    const player1X = -18; // Lado esquerdo
+    const player2X = 18;  // Lado direito
+    
+    // Colisão com raquete do Player 1 (lado esquerdo)
+    if (ball.x - ballRadius <= player1X + paddleWidth && 
+        ball.vx < 0 && // Bola indo para a esquerda
+        ball.y >= player1.y - paddleHeight/2 && 
+        ball.y <= player1.y + paddleHeight/2) {
+        
+        ball.vx *= -1; // Inverte velocidade X
+        
+        // Adicionar efeito baseado na posição de contato
+        const contactPoint = (ball.y - player1.y) / (paddleHeight/2);
+        ball.vy += contactPoint * 2; // Efeito na velocidade Y
+        
+        // Garantir que a bola não grude na raquete
+        ball.x = player1X + paddleWidth + ballRadius;
+    }
+    
+    // Colisão com raquete do Player 2 (lado direito)
+    if (ball.x + ballRadius >= player2X - paddleWidth && 
+        ball.vx > 0 && // Bola indo para a direita
+        ball.y >= player2.y - paddleHeight/2 && 
+        ball.y <= player2.y + paddleHeight/2) {
+        
+        ball.vx *= -1; // Inverte velocidade X
+        
+        // Adicionar efeito baseado na posição de contato
+        const contactPoint = (ball.y - player2.y) / (paddleHeight/2);
+        ball.vy += contactPoint * 2; // Efeito na velocidade Y
+        
+        // Garantir que a bola não grude na raquete
+        ball.x = player2X - paddleWidth - ballRadius;
+    }
+}
+
+function resetBall(room: GameRoom) {
+    room.gameState.ball = {
+        x: 0,
+        y: 0,
+        vx: Math.random() > 0.5 ? 0.5 : -0.5, // Direção aleatória
+        vy: (Math.random() - 0.5) * 0.5
+    };
+}
+
+function createGameRoom(userId: string, connection: any): string {
+    const roomId = `room_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    
+    const newRoom: GameRoom = {
+        id: roomId,
+        players: new Map([[userId, connection]]),
+        gameState: {
+            ball: { x: 400, y: 300, vx: 5, vy: 3 },
+            player1: { y: 250 },
+            player2: { y: 250 },
+            score: { player1: 0, player2: 0 }
+        },
+        status: 'waiting'
+    };
+    
+    gameRooms.set(roomId, newRoom);
+    userToRoom.set(userId, roomId);
+    
+    connection.send(JSON.stringify({
+        type: 'room_created',
+        roomId: roomId,
+        status: 'waiting'
+    }));
+    
+    return roomId;
+}
+
+function joinGameRoom(userId: string, connection: any, roomId: string) {
+    const room = gameRooms.get(roomId);
+    
+    if (!room) {
+        connection.send(JSON.stringify({ type: 'error', message: 'Sala não encontrada' }));
+        return;
+    }
+    
+    if (room.players.size >= 2) {
+        connection.send(JSON.stringify({ type: 'error', message: 'Sala cheia' }));
+        return;
+    }
+    
+    room.players.set(userId, connection);
+    userToRoom.set(userId, roomId);
+    
+    // Se sala ficou cheia, iniciar jogo
+    if (room.players.size === 2) {
+        room.status = 'playing';
+        startGameLoop(roomId);
+        
+        // Notificar jogadores
+        broadcastToRoom(roomId, {
+            type: 'game_started',
+            roomId: roomId,
+            gameState: room.gameState
+        });
+    }
+}
+
+
+function startGameLoop(roomId: string) {
+    const room = gameRooms.get(roomId);
+    if (!room) return;
+    
+    // Game loop específico para esta sala
+    room.gameLoop = setInterval(() => {
+        if (room.status === 'playing') {
+            updateGameLogic(room);
+            broadcastToRoom(roomId, {
+                type: 'game_update',
+                gameState: room.gameState
+            });
+        }
+    }, 16); // 60 FPS
+}
+
+
+
+function leaveGameRoom(userId: string) {
+    const roomId = userToRoom.get(userId);
+    if (!roomId) return;
+    
+    const room = gameRooms.get(roomId);
+    if (!room) return;
+    
+    room.players.delete(userId);
+    userToRoom.delete(userId);
+    
+    // Se sala ficou vazia, limpar
+    if (room.players.size === 0) {
+        if (room.gameLoop) {
+            clearInterval(room.gameLoop);
+        }
+        gameRooms.delete(roomId);
+    } else {
+        // Notificar jogador restante
+        broadcastToRoom(roomId, {
+            type: 'player_left',
+            message: 'Adversário saiu do jogo'
+        });
+    }
+}
+
+export {
+    GameRoom, leaveGameRoom, createGameRoom, joinGameRoom, handlePlayerMove,
+    broadcastToRoom, updateGameLogic, resetBall, checkPaddleCollision, startGameLoop}
