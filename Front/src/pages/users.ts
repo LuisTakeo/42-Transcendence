@@ -218,9 +218,9 @@ export default function UsersPage(): void {
   // Add event delegation for View Profile buttons
   const mainContainer = document.getElementById('main-container');
   if (mainContainer) {
-    console.log('Main container found, adding event listener');
+    if (DEBUG) console.log('Main container found, adding event listener');
     mainContainer.addEventListener('click', (e) => {
-      console.log('Click detected on main container', e.target);
+      if (DEBUG) console.log('Click detected on main container', e.target);
       const target = e.target as HTMLElement;
 
       // Check if the clicked element or its parent has the view-profile-btn class
