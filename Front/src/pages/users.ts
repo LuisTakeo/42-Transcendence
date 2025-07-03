@@ -108,9 +108,6 @@ export default function UsersPage(): void {
         </div>
       </div>
     `).join("");
-
-    // Add event listeners for the newly rendered buttons
-    addViewProfileListeners();
   }
 
   // Function to update pagination
@@ -166,7 +163,7 @@ export default function UsersPage(): void {
   }
 
   // Debounce function to limit API calls
-  let searchTimeout: number;
+  let searchTimeout: NodeJS.Timeout;
 
   function debouncedSearch(searchTerm: string) {
     clearTimeout(searchTimeout);
