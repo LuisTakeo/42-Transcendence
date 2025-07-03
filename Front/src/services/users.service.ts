@@ -36,6 +36,17 @@ export class UsersService extends BaseApiService {
   async getUserById(id: number): Promise<SingleResponse<User>> {
     return this.request<SingleResponse<User>>(`/users/${id}`);
   }
+
+  // Navigate to user profile
+  navigateToProfile(userId: number): void {
+    // Update the URL to include the user ID
+    window.history.pushState({}, '', `/profile/${userId}`);
+
+    // Dispatch a custom event to notify the router
+    window.dispatchEvent(new CustomEvent('routeChange', {
+      detail: { path: `/profile/${userId}` }
+    }));
+  }
 }
 
 // Export a singleton instance

@@ -8,7 +8,7 @@ export default function UsersPage(): void {
   app.innerHTML = ""; // Limpa o conteúdo
 
   const main = document.createElement("main");
-  main.className = "ml-24 p-[2cm] flex justify-center items-center min-h-screen";
+  main.className = "main-content p-[2cm] flex justify-center items-center min-h-screen";
   main.innerHTML = `
     <div class="w-full max-w-6xl bg-[#1E1B4B] rounded-lg p-8">
       <h1 class="text-5xl font-bold mb-6 text-center">Looking for users?</h1>
@@ -80,12 +80,11 @@ export default function UsersPage(): void {
       <div class="p-6 bg-[#383568] rounded-lg text-white shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-[1.02]">
         <div class="flex items-center space-x-4">
           <div class="flex-shrink-0">
-            <div class="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-2xl font-bold">
-              ${user.avatar_url ?
-                `<img src="${user.avatar_url}" alt="${user.name}" class="w-16 h-16 rounded-full object-cover">` :
-                user.name.charAt(0).toUpperCase()
-              }
-            </div>
+            ${user.avatar_url
+              ? `<img src="${user.avatar_url}" alt="${user.name}" class="w-16 h-16 rounded-full object-cover" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                 <div class="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-2xl font-bold" style="display: none;">${user.name.charAt(0).toUpperCase()}</div>`
+              : `<div class="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-2xl font-bold">${user.name.charAt(0).toUpperCase()}</div>`
+            }
           </div>
           <div class="flex-1 min-w-0">
             <h3 class="text-2xl font-semibold mb-1 truncate">${user.name}</h3>
@@ -103,7 +102,7 @@ export default function UsersPage(): void {
             </div>
           </div>
           <div class="flex-shrink-0">
-            <button class="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 transition duration-200 text-sm">
+            <button class="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 transition duration-200 text-sm view-profile-btn" data-user-id="${user.id}">
               View Profile
             </button>
           </div>
@@ -165,7 +164,7 @@ export default function UsersPage(): void {
   }
 
   // Debounce function to limit API calls
-  let searchTimeout: number;
+  let searchTimeout: ReturnType<typeof setTimeout>;
 
   function debouncedSearch(searchTerm: string) {
     clearTimeout(searchTimeout);
@@ -216,6 +215,27 @@ export default function UsersPage(): void {
       loadUsers(currentPage, currentSearch);
     }
   });
+
+  // Add event delegation for View Profile buttons
+  const mainContainer = document.querySelector('.main-content');
+  if (mainContainer) {
+    mainContainer.addEventListener('click', (e) => {
+      const target = e.target as HTMLElement;
+
+      // Check if the clicked element or its parent has the view-profile-btn class
+      let buttonElement = target;
+      if (!buttonElement.classList.contains('view-profile-btn')) {
+        buttonElement = target.closest('.view-profile-btn') as HTMLElement;
+      }
+
+      if (buttonElement && buttonElement.classList.contains('view-profile-btn')) {
+        const userId = buttonElement.getAttribute('data-user-id');
+        if (userId) {
+          usersService.navigateToProfile(parseInt(userId));
+        }
+      }
+    });
+  }
 
   // Load initial users
   loadUsers();
