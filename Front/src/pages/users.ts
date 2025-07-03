@@ -81,8 +81,9 @@ export default function UsersPage(): void {
         <div class="flex items-center space-x-4">
           <div class="flex-shrink-0">
             ${user.avatar_url
-              ? `<img src="${user.avatar_url}" alt="${user.name}" class="w-16 h-16 rounded-full object-cover">`
-              : `<div class=\"w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-2xl font-bold\">${user.name.charAt(0).toUpperCase()}</div>`
+              ? `<img src="${user.avatar_url}" alt="${user.name}" class="w-16 h-16 rounded-full object-cover" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                 <div class="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-2xl font-bold" style="display: none;">${user.name.charAt(0).toUpperCase()}</div>`
+              : `<div class="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-2xl font-bold">${user.name.charAt(0).toUpperCase()}</div>`
             }
           </div>
           <div class="flex-1 min-w-0">

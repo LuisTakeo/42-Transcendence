@@ -132,6 +132,19 @@ async function loadUserProfile(userId: number): Promise<void> {
         userAvatar.src = user.avatar_url;
         userAvatar.alt = user.name;
         userAvatar.style.display = '';
+
+        // Add error handler for failed avatar loads
+        userAvatar.onerror = () => {
+          userAvatar.style.display = 'none';
+          const avatarContainer = userAvatar.parentElement;
+          if (avatarContainer) {
+            avatarContainer.innerHTML = `
+              <div class="w-36 h-36 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-4xl font-bold text-white">
+                ${user.name.charAt(0).toUpperCase()}
+              </div>
+            `;
+          }
+        };
       } else if (userAvatar) {
         userAvatar.style.display = 'none';
         const avatarContainer = userAvatar.parentElement;
@@ -173,7 +186,6 @@ async function loadUserProfile(userId: number): Promise<void> {
     const matchesContainer = document.getElementById("matches-container") as HTMLDivElement;
     if (matchesResponse.success && matchesResponse.data && matchesResponse.data.length > 0) {
       const matches = matchesResponse.data;
-      const userName = userResponse.data?.name || "User";
 
       if (matchesContainer) {
         const table = document.createElement("table");
