@@ -91,21 +91,21 @@ export default function ProfilePage(userId?: number): void {
   }
 
   // Show a button to return to users page
-  if (app) {
-    app.innerHTML += `
-      <div class='flex flex-col items-center mt-8'>
-        <button id='back-to-users' class='mt-4 px-6 py-3 bg-purple-600 text-white rounded hover:bg-purple-700 transition text-lg'>
-          Return to Users
-        </button>
-      </div>
-    `;
-    const backBtn = document.getElementById('back-to-users');
-    if (backBtn) {
-      backBtn.addEventListener('click', () => {
-        window.history.pushState({}, '', '/users');
-        window.dispatchEvent(new Event('popstate'));
-      });
-    }
+  const returnButtonContainer = document.createElement('div');
+  returnButtonContainer.className = 'flex flex-col items-center mt-8';
+  returnButtonContainer.innerHTML = `
+    <button id='back-to-users' class='mt-4 px-6 py-3 bg-purple-600 text-white rounded hover:bg-purple-700 transition text-lg'>
+      Return to Users
+    </button>
+  `;
+  app.appendChild(returnButtonContainer);
+
+  const backBtn = document.getElementById('back-to-users');
+  if (backBtn) {
+    backBtn.addEventListener('click', () => {
+      window.history.pushState({}, '', '/users');
+      window.dispatchEvent(new Event('popstate'));
+    });
   }
 }
 
