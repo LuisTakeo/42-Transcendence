@@ -107,8 +107,6 @@ window.addEventListener('popstate', onRouteChange);
 
 // Listen for custom route change events
 window.addEventListener('routeChange', (event: Event) => {
-  const customEvent = event as CustomEvent;
-  const path = customEvent.detail.path;
   onRouteChange();
 });
 
