@@ -1,5 +1,5 @@
 import { usersService } from "../services/users.service.ts";
-import { matchesService, MatchStats } from "../services/matches.service.ts";
+import { matchesService } from "../services/matches.service.ts";
 
 export default function ProfilePage(userId?: number): void {
   const app = document.getElementById("app");
