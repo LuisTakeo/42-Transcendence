@@ -20,30 +20,40 @@ export default function UsersPage(): void {
   const main = document.createElement("main");
   main.className = "ml-24 p-[50px] flex justify-center items-center min-h-screen";
   main.innerHTML = `
-    <div class="w-full max-w-6xl bg-[#1E1B4B] rounded-lg p-8">
-      <h1 class="text-5xl font-bold mb-6 text-center">Looking for users?</h1>
-      <span class="block h-4"></span>
+    <div class="w-full px-4">
+  <div class="max-w-7xl mx-auto bg-[#1E1B4B] rounded-lg p-6 md:p-10">
+    <!-- Título -->
+    <h1 class="text-3xl md:text-5xl font-bold mb-6 text-center text-white">
+      Looking for users?
+    </h1>
 
-      <div class="flex justify-center mb-8">
-        <input type="text" id="searchUsers" placeholder="Search..."
-          class="w-80 px-6 py-3 rounded-l-[5px] border border-[#383568] bg-[#1E1B4B] text-white placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-purple-500 focus:border-transparent text-2xl" />
-        <button class="px-6 py-3 bg-[#383568] text-white font-semibold rounded-r-[5px] hover:bg-[#4E4A72] transition duration-200 ease-in-out"
-          id="searchUsersButton">
-          <img src="../../assets/find.png" alt="find">
-        </button>
-      </div>
+    <!-- Formulário de busca -->
+    <form class="flex flex-col md:flex-row items-center w-full max-w-3xl mx-auto mb-10 gap-2 md:gap-0">
+      <input
+        type="text"
+        id="searchUsers"
+        placeholder="Search..."
+        class="flex-1 w-full px-5 py-4 text-base md:text-xl bg-[#1E1B4B] border border-[#383568] placeholder-gray-300 text-white focus:outline-none focus:ring-2 focus:ring-purple-500 rounded md:rounded-l-[5px]"
+      />
+      <button
+        id="searchUsersButton"
+        class="w-full md:w-auto px-5 py-4 bg-[#383568] text-white font-semibold rounded md:rounded-r-[5px] md:rounded-l-none hover:bg-[#4E4A72] transition flex justify-center items-center">
+        <img src="../../assets/find.png" alt="Find" class="w-6 h-6" />
+      </button>
+    </form>
 
-      <span class="block h-4"></span>
-
-      <div class="grid grid-cols-1 gap-6" id="results">
-        ${[1, 2, 3].map(i => `
-          <div class="p-4 bg-[#383568] rounded-lg text-white shadow-lg hover:shadow-2xl transition">
-            <h3 class="text-2xl font-semibold mb-2">Resultado ${i}</h3>
-            <p>Descrição do ${i === 1 ? "primeiro" : i === 2 ? "segundo" : "terceiro"} resultado de pesquisa...</p>
-          </div>
-        `).join("")}
-      </div>
+    <!-- Resultados -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 place-items-center">
+      ${[1, 2, 3, 4, 5, 6].map(i => `
+        <div class="w-full max-w-sm p-6 bg-[#383568] rounded-lg text-white shadow hover:shadow-xl transition">
+          <h3 class="text-xl md:text-2xl font-bold mb-2">Result ${i}</h3>
+          <p>Description for result ${i}...</p>
+        </div>
+      `).join("")}
     </div>
+  </div>
+</div>
+
   `;
 
   app.appendChild(main);
