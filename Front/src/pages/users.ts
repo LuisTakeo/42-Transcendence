@@ -80,10 +80,12 @@ export default function UsersPage(): void {
       <div class="p-6 bg-[#383568] rounded-lg text-white shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-[1.02]">
         <div class="flex items-center space-x-4">
           <div class="flex-shrink-0">
-            ${user.avatar_url
-              ? `<img src="${user.avatar_url}" alt="${user.name}" class="w-16 h-16 rounded-full object-cover">`
-              : `<div class=\"w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-2xl font-bold\">${user.name.charAt(0).toUpperCase()}</div>`
-            }
+            <div class="w-16 h-16 rounded-full flex items-center justify-center overflow-hidden bg-gradient-to-br from-purple-500 to-pink-500">
+              ${user.avatar_url
+                ? `<img src="${user.avatar_url}" alt="${user.name}" class="w-full h-full object-cover">`
+                : `<span class="text-2xl font-bold text-white">${user.name.charAt(0).toUpperCase()}</span>`
+              }
+            </div>
           </div>
           <div class="flex-1 min-w-0">
             <h3 class="text-2xl font-semibold mb-1 truncate">${user.name}</h3>
