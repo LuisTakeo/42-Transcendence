@@ -1,0 +1,89 @@
+# Test file for Conversations CRUD operations
+# You can use this with VS Code REST Client extension or any HTTP client
+
+### Get all conversations (default pagination)
+GET http://localhost:3143/conversations
+
+### Get conversations with pagination (page 1, limit 5)
+GET http://localhost:3143/conversations?page=1&limit=5
+
+### Search conversations by user names
+GET http://localhost:3143/conversations?search=alice
+
+### Get all conversations without pagination (simple list)
+GET http://localhost:3143/conversations/all
+
+### Get conversation by ID
+GET http://localhost:3143/conversations/1
+
+### Get conversations by user ID (Alice's conversations)
+GET http://localhost:3143/conversations/user/1
+
+### Get conversations by user ID (Bob's conversations)
+GET http://localhost:3143/conversations/user/2
+
+### Check if conversation exists between two users
+GET http://localhost:3143/conversations/check/1/2
+
+### Check if conversation exists between users who don't have a conversation
+GET http://localhost:3143/conversations/check/1/5
+
+### Get or create conversation between two users (existing)
+GET http://localhost:3143/conversations/between/1/2
+
+### Get or create conversation between two users (new)
+GET http://localhost:3143/conversations/between/1/5
+
+### Create a new conversation (Alice and Carol)
+POST http://localhost:3143/conversations
+Content-Type: application/json
+
+{
+  "user1_id": 1,
+  "user2_id": 5
+}
+
+### Create another conversation (Bob and John)
+POST http://localhost:3143/conversations
+Content-Type: application/json
+
+{
+  "user1_id": 2,
+  "user2_id": 4
+}
+
+### Test validation - Create conversation with same user
+POST http://localhost:3143/conversations
+Content-Type: application/json
+
+{
+  "user1_id": 1,
+  "user2_id": 1
+}
+
+### Test validation - Create conversation with non-existent user
+POST http://localhost:3143/conversations
+Content-Type: application/json
+
+{
+  "user1_id": 1,
+  "user2_id": 999
+}
+
+### Test validation - Create duplicate conversation
+POST http://localhost:3143/conversations
+Content-Type: application/json
+
+{
+  "user1_id": 1,
+  "user2_id": 2
+}
+
+### Test validation - Invalid conversation ID
+GET http://localhost:3143/conversations/abc
+
+### Test validation - Check conversation with same user
+GET http://localhost:3143/conversations/check/1/1
+
+### Test validation - Invalid user IDs in check
+GET http://localhost:3143/conversations/check/abc/xyz

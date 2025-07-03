@@ -1,0 +1,107 @@
+# Test file for Matches CRUD operations
+# You can use this with VS Code REST Client extension or any HTTP client
+
+### Get all matches (default pagination)
+GET http://localhost:3143/matches
+
+### Get matches with pagination (page 1, limit 5)
+GET http://localhost:3143/matches?page=1&limit=5
+
+### Get matches with pagination (page 2, limit 5)
+GET http://localhost:3143/matches?page=2&limit=5
+
+### Search matches by player names/aliases
+GET http://localhost:3143/matches?search=alice
+
+### Search matches with pagination
+GET http://localhost:3143/matches?search=alice&page=1&limit=3
+
+### Get all matches without pagination (simple list)
+GET http://localhost:3143/matches/all
+
+### Get match by ID
+GET http://localhost:3143/matches/1
+
+### Get matches by player ID
+GET http://localhost:3143/matches/player/1
+
+### Get player statistics
+GET http://localhost:3143/matches/player/1/stats
+
+### Create a new match
+POST http://localhost:3143/matches
+Content-Type: application/json
+
+{
+  "player1_id": 1,
+  "player2_id": 2,
+  "player1_alias": "Alice",
+  "player2_alias": "Bob",
+  "winner_id": 1,
+  "player1_score": 5,
+  "player2_score": 3
+}
+
+### Create a match without winner (draw/incomplete)
+POST http://localhost:3143/matches
+Content-Type: application/json
+
+{
+  "player1_id": 1,
+  "player2_id": 3,
+  "player1_alias": "Alice Silva",
+  "player2_alias": "Charlie Brown",
+  "player1_score": 2,
+  "player2_score": 2
+}
+
+### Update match
+PUT http://localhost:3143/matches/1
+Content-Type: application/json
+
+{
+  "player1_alias": "Alice Updated",
+  "winner_id": 2,
+  "player1_score": 4,
+  "player2_score": 5
+}
+
+### Test validation - Create match with same player
+POST http://localhost:3143/matches
+Content-Type: application/json
+
+{
+  "player1_id": 1,
+  "player2_id": 1,
+  "player1_alias": "Alice",
+  "player2_alias": "Alice",
+  "player1_score": 5,
+  "player2_score": 3
+}
+
+### Test validation - Create match with invalid winner
+POST http://localhost:3143/matches
+Content-Type: application/json
+
+{
+  "player1_id": 1,
+  "player2_id": 2,
+  "player1_alias": "Alice",
+  "player2_alias": "Bob",
+  "winner_id": 999,
+  "player1_score": 5,
+  "player2_score": 3
+}
+
+### Test validation - Create match with negative score
+POST http://localhost:3143/matches
+Content-Type: application/json
+
+{
+  "player1_id": 1,
+  "player2_id": 2,
+  "player1_alias": "Alice",
+  "player2_alias": "Bob",
+  "player1_score": -1,
+  "player2_score": 3
+}

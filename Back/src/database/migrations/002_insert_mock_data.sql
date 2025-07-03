@@ -1,15 +1,4 @@
 -- Inserindo usuários mock
-INSERT INTO users (name, username, email, password_hash, avatar_url, is_online, last_seen_at)
-SELECT 'Alice Silva', 'alice', 'alice@example.com', 'hashedpassword1', NULL, 1, datetime('now')
-WHERE NOT EXISTS (SELECT 1 FROM users WHERE email = 'alice@example.com');
-
-INSERT INTO users (name, username, email, password_hash, avatar_url, is_online, last_seen_at)
-SELECT 'Bob Santos', 'bob', 'bob@example.com', 'hashedpassword2', NULL, 0, datetime('now', '-1 hour')
-WHERE NOT EXISTS (SELECT 1 FROM users WHERE email = 'bob@example.com');
-
-INSERT INTO users (name, username, email, password_hash, avatar_url, is_online, last_seen_at)
-SELECT 'Carol Lima', 'carol', 'carol@example.com', 'hashedpassword3', NULL, 0, datetime('now', '-2 hours')
-WHERE NOT EXISTS (SELECT 1 FROM users WHERE email = 'carol@example.com');
 
 -- Inserindo conversas (conversations)
 INSERT INTO conversations (user1_id, user2_id)

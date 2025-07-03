@@ -1,13 +1,14 @@
 -- users
 CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT NOT NULL,
-    username TEXT UNIQUE NOT NULL,
+    name TEXT,
+    username TEXT NOT NULL,
     email TEXT UNIQUE NOT NULL,
-    password_hash TEXT NOT NULL,
     avatar_url TEXT,
-    is_online INTEGER DEFAULT 0,
     last_seen_at DATETIME,
+    two_factor_enabled INTEGER DEFAULT 0,
+    two_factor_secret TEXT,
+    google_id TEXT UNIQUE,
     created_at DATETIME DEFAULT (datetime('now'))
 );
 

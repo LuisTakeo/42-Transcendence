@@ -30,6 +30,16 @@ function renderRoute(path: string) {
     sidebar.style.display = 'none';
     app.style.marginLeft = '0';
     app.innerHTML = LoginPage();
+  } else if (path.startsWith('/profile/')) {
+    // Handle profile routes with user ID
+    sidebar.style.display = 'flex';
+    app.style.marginLeft = '80px';
+    const userId = path.split('/')[2];
+    if (userId) {
+      ProfilePage(parseInt(userId));
+    } else {
+      app.innerHTML = '<h1>Invalid Profile</h1>';
+    }
   } else if (routesWithSidebar.includes(path)) {
     sidebar.style.display = 'flex';
     app.style.marginLeft = '80px'; // largura da sidebar
@@ -39,7 +49,7 @@ function renderRoute(path: string) {
         app.innerHTML = HomePage();
         break;
       case '/profile':
-        app.innerHTML = ProfilePage();
+        ProfilePage();
         break;
       case '/settings':
         SettingsPage();
@@ -94,6 +104,11 @@ document.body.addEventListener('click', (event) => {
 
 // Captura evento do botão voltar/avançar do navegador
 window.addEventListener('popstate', onRouteChange);
+
+// Listen for custom route change events
+window.addEventListener('routeChange', (event: Event) => {
+  onRouteChange();
+});
 
 // Inicializa a aplicação com a rota atual
 onRouteChange();

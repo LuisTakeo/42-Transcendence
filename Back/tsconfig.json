@@ -1,9 +1,14 @@
 {
+	"$schema": "https://json.schemastore.org/tsconfig",
+	"_version": "22.0.0",
+
 	"compilerOptions": {
-	  "target": "ES6",
-	  "module": "commonjs",
-	  "outDir": "./dist",
-	  "rootDir": "./src",
+	  "lib": [
+		"es2024"
+	],
+	  "module": "nodenext",
+	  "target": "es2022",
+
 	  "strict": true,
 	  "esModuleInterop": true
 	},
