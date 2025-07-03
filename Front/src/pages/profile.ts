@@ -175,30 +175,32 @@ async function loadUserProfile(userId: number): Promise<void> {
       const matches = matchesResponse.data;
       const userName = userResponse.data?.name || "User";
 
-      const matchesHTML = matches.map(match => {
-        const isPlayer1 = match.player1_id === userId;
-        const playerName = isPlayer1 ? match.player1_name : match.player2_name;
-        const opponentName = isPlayer1 ? match.player2_name : match.player1_name;
-        const playerScore = isPlayer1 ? match.player1_score : match.player2_score;
-        const opponentScore = isPlayer1 ? match.player2_score : match.player1_score;
-
-        return `
-          <tr class="bg-[#383568] text-xl md:text-2xl rounded-[5px]">
-            <td class="py-4 px-3 text-center rounded-[5px]">
-              ${playerName} ${playerScore} x ${opponentScore} ${opponentName}
-            </td>
-          </tr>
-        `;
-      }).join("");
-
       if (matchesContainer) {
-        matchesContainer.innerHTML = `
-          <table class="w-full border-separate border-spacing-y-4">
-            <tbody>
-              ${matchesHTML}
-            </tbody>
-          </table>
-        `;
+        const table = document.createElement("table");
+        table.className = "w-full border-separate border-spacing-y-4";
+
+        const tbody = document.createElement("tbody");
+        matches.forEach(match => {
+          const isPlayer1 = match.player1_id === userId;
+          const playerName = isPlayer1 ? match.player1_name : match.player2_name;
+          const opponentName = isPlayer1 ? match.player2_name : match.player1_name;
+          const playerScore = isPlayer1 ? match.player1_score : match.player2_score;
+          const opponentScore = isPlayer1 ? match.player2_score : match.player1_score;
+
+          const row = document.createElement("tr");
+          row.className = "bg-[#383568] text-xl md:text-2xl rounded-[5px]";
+
+          const cell = document.createElement("td");
+          cell.className = "py-4 px-3 text-center rounded-[5px]";
+          cell.textContent = `${playerName} ${playerScore} x ${opponentScore} ${opponentName}`;
+
+          row.appendChild(cell);
+          tbody.appendChild(row);
+        });
+
+        table.appendChild(tbody);
+        matchesContainer.innerHTML = ""; // Clear existing content
+        matchesContainer.appendChild(table);
       }
     } else {
       // No matches found
