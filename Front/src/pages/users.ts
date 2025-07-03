@@ -163,7 +163,7 @@ export default function UsersPage(): void {
   }
 
   // Debounce function to limit API calls
-  let searchTimeout: NodeJS.Timeout;
+  let searchTimeout: ReturnType<typeof setTimeout>;
 
   function debouncedSearch(searchTerm: string) {
     clearTimeout(searchTimeout);
@@ -216,16 +216,33 @@ export default function UsersPage(): void {
   });
 
   // Add event delegation for View Profile buttons
-  const mainContainer = document.querySelector('#main-container');
-  mainContainer?.addEventListener('click', (e) => {
-    const target = e.target as HTMLElement;
-    if (target.classList.contains('view-profile-btn')) {
-      const userId = target.getAttribute('data-user-id');
-      if (userId) {
-        usersService.navigateToProfile(parseInt(userId));
+  const mainContainer = document.querySelector('.ml-24');
+  if (mainContainer) {
+    console.log('Main container found, adding event listener');
+    mainContainer.addEventListener('click', (e) => {
+      console.log('Click detected on main container', e.target);
+      const target = e.target as HTMLElement;
+
+      // Check if the clicked element or its parent has the view-profile-btn class
+      let buttonElement = target;
+      if (!buttonElement.classList.contains('view-profile-btn')) {
+        buttonElement = target.closest('.view-profile-btn') as HTMLElement;
       }
-    }
-  });
+
+      if (buttonElement && buttonElement.classList.contains('view-profile-btn')) {
+        console.log('View profile button clicked', buttonElement);
+        const userId = buttonElement.getAttribute('data-user-id');
+        if (userId) {
+          console.log('Navigating to profile for user ID:', userId);
+          usersService.navigateToProfile(parseInt(userId));
+        } else {
+          console.error('No user ID found on button');
+        }
+      }
+    });
+  } else {
+    console.error('Main container (.ml-24) not found');
+  }
 
   // Load initial users
   loadUsers();
