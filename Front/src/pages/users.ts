@@ -8,7 +8,7 @@ export default function UsersPage(): void {
   app.innerHTML = ""; // Limpa o conteúdo
 
   const main = document.createElement("main");
-  main.className = "ml-24 p-[2cm] flex justify-center items-center min-h-screen";
+  main.className = "main-content p-[2cm] flex justify-center items-center min-h-screen";
   main.innerHTML = `
     <div class="w-full max-w-6xl bg-[#1E1B4B] rounded-lg p-8">
       <h1 class="text-5xl font-bold mb-6 text-center">Looking for users?</h1>
@@ -217,7 +217,7 @@ export default function UsersPage(): void {
   });
 
   // Add event delegation for View Profile buttons
-  const mainContainer = document.querySelector('.ml-24');
+  const mainContainer = document.querySelector('.main-content');
   if (mainContainer) {
     mainContainer.addEventListener('click', (e) => {
       const target = e.target as HTMLElement;

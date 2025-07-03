@@ -34,7 +34,7 @@ function renderRows(): string {
 
 export default function RankingPage(): string {
   return `
-  <main class="ml-24 p-4 md:p-4 lg:p-10 flex justify-center items-center min-h-screen">
+  <main class="main-content p-4 md:p-4 lg:p-10 flex justify-center items-center min-h-screen">
     <div class="w-full md:p-2 lg:p-12 bg-[#1E1B4B] rounded-lg p-8">
       <h1 class="text-5xl font-bold mb-6 text-center">Ranking</h1>
       <div class="w-full max-w-3xl mx-auto mt-10">
