@@ -216,7 +216,7 @@ export default function UsersPage(): void {
   });
 
   // Add event delegation for View Profile buttons
-  const mainContainer = document.querySelector('.ml-24');
+  const mainContainer = document.getElementById('main-container');
   if (mainContainer) {
     console.log('Main container found, adding event listener');
     mainContainer.addEventListener('click', (e) => {
