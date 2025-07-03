@@ -219,7 +219,7 @@ export default function UsersPage(): void {
   });
 
   // Add event delegation for View Profile buttons
-  const mainContainer = document.querySelector('.ml-24');
+  const mainContainer = document.querySelector('#main-container');
   mainContainer?.addEventListener('click', (e) => {
     const target = e.target as HTMLElement;
     if (target.classList.contains('view-profile-btn')) {
