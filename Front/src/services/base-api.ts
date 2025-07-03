@@ -1,22 +1,19 @@
 const API_BASE_URL = 'http://localhost:3143';
 
-export class BaseApiService {
-  protected async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
+export class BaseApiService {  protected async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
     const url = `${API_BASE_URL}${endpoint}`;
 
-    const defaultHeaders: Record<string, string> = {};
+    // Start with provided headers
+    const headers = { ...options.headers } as Record<string, string>;
 
-    // Only add Content-Type header if there's a body
-    if (options.body) {
-      defaultHeaders['Content-Type'] = 'application/json';
+    // Only add Content-Type header if there's a body and Content-Type isn't already set
+    if (options.body && !headers['Content-Type']) {
+      headers['Content-Type'] = 'application/json';
     }
 
     const defaultOptions: RequestInit = {
-      headers: {
-        ...defaultHeaders,
-        ...options.headers,
-      },
       ...options,
+      headers,
     };
 
     try {

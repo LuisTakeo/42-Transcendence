@@ -25,7 +25,6 @@ export class RankingService extends BaseApiService {
       }
 
       const users = usersResponse.data;
-      const rankingUsers: RankingUser[] = [];
 
       // Get stats for each user
       const rankingUsers: RankingUser[] = await Promise.all(users.map(async (user) => {
@@ -38,7 +37,7 @@ export class RankingService extends BaseApiService {
             winRate: 0
           };
 
-          rankingUsers.push({
+          return {
             position: 0, // Will be set after sorting
             id: user.id,
             username: user.username,
@@ -46,11 +45,11 @@ export class RankingService extends BaseApiService {
             totalMatches: stats.totalMatches,
             wins: stats.wins,
             winRate: stats.winRate
-          });
+          };
         } catch (error) {
           // If stats fail, add user with zero stats
           console.warn(`Failed to get stats for user ${user.id}:`, error);
-          rankingUsers.push({
+          return {
             position: 0,
             id: user.id,
             username: user.username,
@@ -58,9 +57,9 @@ export class RankingService extends BaseApiService {
             totalMatches: 0,
             wins: 0,
             winRate: 0
-          });
+          };
         }
-      }
+      }));
 
       // Sort by win rate (descending), then by total wins (descending), then by total matches (descending)
       rankingUsers.sort((a, b) => {
