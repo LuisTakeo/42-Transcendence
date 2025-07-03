@@ -4,9 +4,16 @@ export class BaseApiService {
   protected async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
     const url = `${API_BASE_URL}${endpoint}`;
 
+    const defaultHeaders: Record<string, string> = {};
+
+    // Only add Content-Type header if there's a body
+    if (options.body) {
+      defaultHeaders['Content-Type'] = 'application/json';
+    }
+
     const defaultOptions: RequestInit = {
       headers: {
-        'Content-Type': 'application/json',
+        ...defaultHeaders,
         ...options.headers,
       },
       ...options,
@@ -16,7 +23,21 @@ export class BaseApiService {
       const response = await fetch(url, defaultOptions);
 
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        // Try to get error details from response body
+        let errorMessage = `HTTP error! status: ${response.status}`;
+        try {
+          const errorBody = await response.json();
+          if (errorBody.error) {
+            errorMessage += ` - ${errorBody.error}`;
+          }
+          if (errorBody.message) {
+            errorMessage += ` - ${errorBody.message}`;
+          }
+          console.error('API Error Response:', errorBody);
+        } catch (e) {
+          // If response body isn't JSON, just use status
+        }
+        throw new Error(errorMessage);
       }
 
       return await response.json();

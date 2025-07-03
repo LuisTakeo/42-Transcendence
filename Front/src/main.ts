@@ -55,7 +55,7 @@ function renderRoute(path: string) {
         SettingsPage();
         break;
       case '/ranking':
-        app.innerHTML = RankingPage();
+        RankingPage();
         break;
       case '/users':
         UsersPage();
