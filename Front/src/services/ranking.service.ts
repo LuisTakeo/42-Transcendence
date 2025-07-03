@@ -28,7 +28,7 @@ export class RankingService extends BaseApiService {
       const rankingUsers: RankingUser[] = [];
 
       // Get stats for each user
-      for (const user of users) {
+      const rankingUsers: RankingUser[] = await Promise.all(users.map(async (user) => {
         try {
           const statsResponse = await matchesService.getPlayerStats(user.id);
           const stats = statsResponse.success ? statsResponse.data : {
