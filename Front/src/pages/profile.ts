@@ -80,7 +80,7 @@ export default function ProfilePage(userId?: number): void {
   app.appendChild(main);
 
   // Load user data if userId is provided
-  if (userId) {
+  if (userId !== undefined && !isNaN(userId)) {
     loadUserProfile(userId);
   } else {
     // Show current user's profile (you can implement this later)
