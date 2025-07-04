@@ -49,8 +49,8 @@ export class UsersService extends BaseApiService {
   }
 
   // Get available avatars
-  async getAvailableAvatars(): Promise<SimpleResponse<string>> {
-    return this.request<SimpleResponse<string>>('/users/avatars/list');
+  async getAvailableAvatars(): Promise<SimpleResponse<string[]>> {
+    return this.request<SimpleResponse<string[]>>('/users/avatars/list');
   }
 
   // Navigate to user profile
