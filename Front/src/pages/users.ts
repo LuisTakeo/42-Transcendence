@@ -1,5 +1,6 @@
 import { initializeSearchButton } from "./button.ts";
 import { usersService, User } from "../services/users.service.ts";
+import { showErrorMessage } from './notification.ts';
 
 export default function UsersPage(): void {
   const app = document.getElementById("app");
@@ -156,6 +157,7 @@ export default function UsersPage(): void {
           </button>
         </div>
       `;
+      showErrorMessage('Failed to load users. Please try again.');
       const retryButton = document.getElementById("retry-button");
       retryButton?.addEventListener("click", () => {
         location.reload();

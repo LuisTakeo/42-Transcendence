@@ -1,5 +1,6 @@
 import { usersService } from "../services/users.service.ts";
 import { matchesService } from "../services/matches.service.ts";
+import { showErrorMessage } from './notification.ts';
 
 export default function ProfilePage(userId?: number): void {
   const app = document.getElementById("app");
@@ -227,9 +228,9 @@ async function loadUserProfile(userId: number): Promise<void> {
     }
   } catch (error) {
     console.error('Error loading user profile:', error);
+    showErrorMessage('Failed to load user profile. Redirecting to users list.');
     const userName = document.getElementById("user-name") as HTMLParagraphElement;
     if (userName) userName.textContent = "User not found";
-    // Immediately redirect to /users
     window.history.pushState({}, '', '/users');
     window.dispatchEvent(new Event('popstate'));
   }

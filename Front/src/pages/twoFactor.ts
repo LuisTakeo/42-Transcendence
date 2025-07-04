@@ -1,3 +1,5 @@
+import { showSuccessMessage, showErrorMessage } from './notification.ts';
+
 export function initializeTwoFactor() {
   const activateBtn = document.getElementById('activate-2fa-btn') as HTMLButtonElement;
   const confirmBtn = document.getElementById('confirm-2fa-btn') as HTMLButtonElement;
@@ -24,8 +26,9 @@ export function initializeTwoFactor() {
       status.textContent = '✅ Two-factor authentication is enabled.';
       status.classList.remove('text-gray-300');
       status.classList.add('text-green-400');
+      showSuccessMessage('Two-factor authentication enabled!');
     } else {
-      alert('Invalid code. Please try again.');
+      showErrorMessage('Invalid code. Please try again.');
     }
   });
 }

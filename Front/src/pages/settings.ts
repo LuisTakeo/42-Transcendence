@@ -3,6 +3,7 @@ import { initializeTwoFactor } from "./twoFactor.ts";
 import { friendsService } from "../services/friends.service.ts";
 import { usersService } from "../services/users.service.ts";
 import { getBaseUrl } from "../services/base-api.ts";
+import { showSuccessMessage, showErrorMessage } from './notification.ts';
 
 export default function SettingsPage(): void {
 	const app = document.getElementById("app");
@@ -119,6 +120,12 @@ export default function SettingsPage(): void {
 			&times;
 		</button>
 	</div>
+
+	<!-- Error Message -->
+	<div id="error-message" class="fixed bottom-4 right-4 bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg opacity-0 invisible transition-all duration-300 z-50 flex items-center gap-3">
+		<span id="error-text">Something went wrong!</span>
+		<button id="close-error" class="text-white hover:text-gray-200 text-xl font-bold leading-none">&times;</button>
+	</div>
 	`;
 
 	// Load current user data and friends
@@ -177,7 +184,7 @@ async function loadCurrentUser(): Promise<void> {
 
 	} catch (error) {
 		console.error('Error loading current user:', error);
-		// Keep default values if loading fails
+		showErrorMessage('Failed to load user data. Please try again.');
 	}
 }
 
@@ -258,21 +265,20 @@ async function loadFriends(): Promise<void> {
 		const deleteFriend = async (userId1: number, userId2: number) => {
 			try {
 				const response = await friendsService.deleteFriendship(userId1, userId2);
-
 				if (response.success) {
-					// Reload friends list
 					loadFriends();
 				} else {
-					alert('Failed to remove friend. Please try again.');
+					showErrorMessage('Failed to remove friend. Please try again.');
 				}
 			} catch (error) {
 				console.error('Error deleting friendship:', error);
-				alert('Failed to remove friend. Please try again.');
+				showErrorMessage('Failed to remove friend. Please try again.');
 			}
 		};
 
 	} catch (error) {
 		console.error('Error loading friends:', error);
+		showErrorMessage('Failed to load friends. Please try again.');
 		const friendsContainer = document.getElementById('friends-container');
 		if (friendsContainer) {
 			friendsContainer.innerHTML = `
@@ -404,52 +410,7 @@ async function fetchAvatarsFromBackend(): Promise<void> {
 				</button>
 			</div>
 		`;
-	}
-}
-
-function showSuccessMessage(message: string): void {
-	const successMessage = document.getElementById('success-message');
-	const successText = document.getElementById('success-text');
-	const closeSuccessBtn = document.getElementById('close-success');
-
-	if (successMessage && successText) {
-		successText.textContent = message;
-
-		// Clear any existing timeout
-		if (successMessage.dataset.timeoutId) {
-			clearTimeout(parseInt(successMessage.dataset.timeoutId));
-		}
-
-		// Show the message
-		successMessage.classList.remove('opacity-0', 'invisible');
-		successMessage.classList.add('opacity-100', 'visible');
-
-		// Set up close button handler
-		if (closeSuccessBtn) {
-			const closeHandler = () => {
-				hideSuccessMessage();
-				closeSuccessBtn.removeEventListener('click', closeHandler);
-			};
-			closeSuccessBtn.addEventListener('click', closeHandler);
-		}
-
-		// Hide after 5 seconds
-		const timeoutId = setTimeout(() => {
-			hideSuccessMessage();
-		}, 5000);
-
-		// Store timeout ID for potential clearing
-		successMessage.dataset.timeoutId = timeoutId.toString();
-	}
-}
-
-function hideSuccessMessage(): void {
-	const successMessage = document.getElementById('success-message');
-	if (successMessage) {
-		successMessage.classList.remove('opacity-100', 'visible');
-		successMessage.classList.add('opacity-0', 'invisible');
-		// Clear timeout ID
-		delete successMessage.dataset.timeoutId;
+		showErrorMessage('Failed to load avatars. Please try again.');
 	}
 }
 
@@ -480,7 +441,7 @@ async function selectAvatar(avatarName: string): Promise<void> {
 		showSuccessMessage('Avatar updated successfully!');
 	} catch (error) {
 		console.error('Error updating avatar:', error);
-		showSuccessMessage('Failed to update avatar. Please try again.');
+		showErrorMessage('Failed to update avatar. Please try again.');
 	} finally {
 		// Reset button state
 		const changePicBtn = document.getElementById('change-pic-btn') as HTMLButtonElement;
@@ -506,7 +467,7 @@ async function saveAvatarUrl(avatarName: string): Promise<void> {
 		}
 	} catch (error) {
 		console.error('Error saving avatar URL:', error);
-		throw error;
+		showErrorMessage('Failed to save avatar. Please try again.');
 	}
 }
 

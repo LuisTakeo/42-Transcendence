@@ -1,6 +1,7 @@
 import { usersService } from "../services/users.service.ts";
 import { rankingService, RankingUser } from "../services/ranking.service.ts";
 import { friendsService } from "../services/friends.service.ts";
+import { showSuccessMessage, showErrorMessage } from './notification.ts';
 
 let rankingData: RankingUser[] = [];
 
@@ -150,38 +151,25 @@ async function loadRanking(): Promise<void> {
 
 async function handleAddFriend(userId: number, buttonElement: HTMLElement): Promise<void> {
   try {
-    // Disable button during request
     buttonElement.style.opacity = '0.5';
     buttonElement.style.pointerEvents = 'none';
-
-    // For testing purposes when not logged in, we'll use a mock user ID
-    // In a real app this would come from auth/session
-    const currentUserId = getCurrentUserId(); // Helper function to get current user
-
+    const currentUserId = getCurrentUserId();
     if (currentUserId && userId === currentUserId) {
-      alert("You cannot add yourself as a friend!");
+      showErrorMessage("You cannot add yourself as a friend!");
       return;
     }
-
-    // If no current user (not logged in), use a test user ID for demo
-    const testUserId = currentUserId || 999; // Use 999 as test user when not logged in
-
-    // Check if already friends
+    const testUserId = currentUserId || 999;
     const checkResponse = await friendsService.checkFriendship(testUserId, userId);
     if (checkResponse.success && checkResponse.data?.are_friends) {
-      alert("You are already friends with this user!");
+      showErrorMessage("You are already friends with this user!");
       return;
     }
-
-    // Create friendship
     const response = await friendsService.createFriendship({
       user1_id: testUserId,
       user2_id: userId
     });
-
     if (response.success) {
-      alert("Friend added successfully!");
-      // Optionally update UI to reflect the change
+      showSuccessMessage("Friend added successfully!");
       buttonElement.style.opacity = '0.3';
       buttonElement.title = 'Already friends';
     } else {
@@ -189,9 +177,8 @@ async function handleAddFriend(userId: number, buttonElement: HTMLElement): Prom
     }
   } catch (error) {
     console.error('Error adding friend:', error);
-    alert('Failed to add friend. Please try again.');
+    showErrorMessage('Failed to add friend. Please try again.');
   } finally {
-    // Re-enable button
     buttonElement.style.opacity = '1';
     buttonElement.style.pointerEvents = 'auto';
   }
@@ -199,44 +186,23 @@ async function handleAddFriend(userId: number, buttonElement: HTMLElement): Prom
 
 async function handleRemoveFriend(userId: number, buttonElement: HTMLElement): Promise<void> {
   try {
-    // Disable button during request
     buttonElement.style.opacity = '0.5';
     buttonElement.style.pointerEvents = 'none';
-
-    // For testing purposes when not logged in, we'll use a mock user ID
-    // In a real app this would come from auth/session
-    const currentUserId = getCurrentUserId(); // Helper function to get current user
-
+    const currentUserId = getCurrentUserId();
     if (currentUserId && userId === currentUserId) {
-      alert("You cannot remove yourself!");
+      showErrorMessage("You cannot remove yourself!");
       return;
     }
-
-    // If no current user (not logged in), use a test user ID for demo
-    const testUserId = currentUserId || 999; // Use 999 as test user when not logged in
-
-    // Only allow removing friendships where the current user is involved (more secure)
+    const testUserId = currentUserId || 999;
     const checkResponse = await friendsService.checkFriendship(testUserId, userId);
-
     if (!checkResponse.success || !checkResponse.data?.are_friends) {
-      alert("You are not friends with this user!");
+      showErrorMessage("You are not friends with this user!");
       return;
     }
-
-    // Confirm removal
-    const targetUser = rankingData.find(u => u.id === userId);
-    const targetUsername = targetUser ? targetUser.username : `user ${userId}`;
-
-    if (!confirm(`Are you sure you want to remove ${targetUsername} from your friends?`)) {
-      return;
-    }
-
-    // Delete friendship
+    // Actually perform the removal, no confirmation
     const response = await friendsService.deleteFriendship(testUserId, userId);
-
     if (response.success) {
-      alert("Friend removed successfully!");
-      // Optionally update UI to reflect the change
+      showSuccessMessage("Friend removed successfully!");
       const addButton = buttonElement.parentElement?.querySelector('.add-friend-btn') as HTMLElement;
       if (addButton) {
         addButton.style.opacity = '1';
@@ -248,9 +214,8 @@ async function handleRemoveFriend(userId: number, buttonElement: HTMLElement): P
   } catch (error) {
     console.error('Error removing friend:', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-    alert(`Failed to remove friend: ${errorMessage}`);
+    showErrorMessage(`Failed to remove friend: ${errorMessage}`);
   } finally {
-    // Re-enable button
     buttonElement.style.opacity = '1';
     buttonElement.style.pointerEvents = 'auto';
   }
