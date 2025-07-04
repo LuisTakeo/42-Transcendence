@@ -1,40 +1,20 @@
 import { usersService } from '../services/users.service.ts';
 
 export function initializeEditField() {
-  console.log('🔧 Initializing edit field...');
-
   // Inicializa botões de edição de campos
   const buttons = document.querySelectorAll<HTMLButtonElement>('.edit-btn');
-  console.log('📋 Found edit buttons:', buttons.length);
 
-  buttons.forEach((btn, index) => {
-    console.log(`🔘 Setting up button ${index}:`, btn);
-    console.log('🔘 Button data-id:', btn.dataset.id);
-
-    btn.addEventListener('click', async (e) => {
-      console.log('🖱️ Button clicked!', e);
-
+  buttons.forEach((btn) => {
+    btn.addEventListener('click', async () => {
       const inputId = btn.dataset.id;
-      console.log('📝 Input ID:', inputId);
-
-      if (!inputId) {
-        console.log('❌ No input ID found');
-        return;
-      }
+      if (!inputId) return;
 
       const input = document.getElementById(inputId) as HTMLInputElement;
-      console.log('📝 Input element:', input);
-
-      if (!input) {
-        console.log('❌ Input element not found');
-        return;
-      }
+      if (!input) return;
 
       const isDisabled = input.disabled;
-      console.log('🔒 Input disabled:', isDisabled);
 
       if (isDisabled) {
-        console.log('✏️ Entering edit mode...');
         // Entering edit mode
         input.disabled = false;
         input.focus();
@@ -44,7 +24,6 @@ export function initializeEditField() {
         btn.innerHTML = 'Save';
         btn.classList.add('bg-green-600', 'hover:bg-green-700');
         btn.classList.remove('bg-[#4A4580]', 'hover:bg-[#5C5599]');
-        console.log('✅ Edit mode activated');
       } else {
         // Saving the new value
         const newValue = input.value.trim();
