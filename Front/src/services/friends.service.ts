@@ -46,36 +46,9 @@ export class FriendsService extends BaseApiService {
 
   // Delete friendship
   async deleteFriendship(userId1: number, userId2: number): Promise<{ success: boolean; message?: string }> {
-    // Use a custom request without the base service to avoid any header issues
-    const url = `http://localhost:3143/friends/${userId1}/${userId2}`;
-
-    try {
-      const response = await fetch(url, {
-        method: 'DELETE',
-        // Explicitly no headers to avoid Content-Type issues
-      });
-
-      if (!response.ok) {
-        let errorMessage = `HTTP error! status: ${response.status}`;
-        try {
-          const errorBody = await response.json();
-          if (errorBody.error) {
-            errorMessage += ` - ${errorBody.error}`;
-          }
-          if (errorBody.message) {
-            errorMessage += ` - ${errorBody.message}`;
-          }
-        } catch (e) {
-          // If response body isn't JSON, just use status
-        }
-        throw new Error(errorMessage);
-      }
-
-      return await response.json();
-    } catch (error) {
-      console.error('Delete friendship request failed:', error);
-      throw error;
-    }
+    return this.request<{ success: boolean; message?: string }>(`/friends/${userId1}/${userId2}`, {
+      method: 'DELETE'
+    });
   }
 
   // Get user's friend count

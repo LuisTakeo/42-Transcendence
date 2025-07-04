@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://localhost:3143';
+const API_BASE_URL = 'http://localhost:3142';
 
 export class BaseApiService {  protected async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
     const url = `${API_BASE_URL}${endpoint}`;
