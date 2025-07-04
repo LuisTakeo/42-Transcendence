@@ -461,12 +461,11 @@ async function selectAvatar(avatarName: string): Promise<void> {
 			changePicBtn.disabled = true;
 		}
 
-		// Update the profile photo immediately
-		updateProfilePhoto(`http://localhost:3142/public/avatars/${avatarName}`);
-
 		// Save to backend
 		await saveAvatarUrl(avatarName);
 
+		// Update the profile photo after backend confirmation
+		updateProfilePhoto(`http://localhost:3142/public/avatars/${avatarName}`);
 		// Close modal
 		const modal = document.getElementById('avatar-modal');
 		if (modal) {
