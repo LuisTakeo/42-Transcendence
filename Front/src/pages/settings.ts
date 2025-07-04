@@ -2,6 +2,7 @@ import { initializeEditField } from "./editField.ts";
 import { initializeTwoFactor } from "./twoFactor.ts";
 import { friendsService } from "../services/friends.service.ts";
 import { usersService } from "../services/users.service.ts";
+import { getBaseUrl } from "../services/base-api.ts";
 
 export default function SettingsPage(): void {
 	const app = document.getElementById("app");
@@ -156,7 +157,7 @@ async function loadCurrentUser(): Promise<void> {
 			// Check if it's a base64 string or a filename
 			const avatarUrl = user.avatar_url.startsWith('data:')
 				? user.avatar_url
-				: `http://localhost:3142/public/avatars/${user.avatar_url}`;
+				: `${getBaseUrl()}/public/avatars/${user.avatar_url}`;
 
 			profilePicContainer.innerHTML = `
 				<img src="${avatarUrl}" alt="${user.name}" class="object-cover w-full h-full" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
@@ -367,7 +368,7 @@ async function fetchAvatarsFromBackend(): Promise<void> {
 					title="Avatar ${index + 1}"
 				>
 					<img
-						src="http://localhost:3142/public/avatars/${avatarName}"
+						src="${getBaseUrl()}/public/avatars/${avatarName}"
 						alt="Avatar ${index + 1}"
 						class="w-full h-full object-cover"
 						onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
@@ -462,7 +463,7 @@ async function selectAvatar(avatarName: string): Promise<void> {
 		}
 
 		// Update the profile photo immediately
-		updateProfilePhoto(`http://localhost:3142/public/avatars/${avatarName}`);
+		updateProfilePhoto(`${getBaseUrl()}/public/avatars/${avatarName}`);
 
 		// Save to backend
 		await saveAvatarUrl(avatarName);

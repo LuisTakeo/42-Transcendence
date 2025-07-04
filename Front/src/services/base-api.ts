@@ -1,4 +1,15 @@
-const API_BASE_URL = 'http://localhost:3142';
+// Get the backend API URL from environment variable or default to localhost
+const getBackendUrl = (): string => {
+  // Check for environment variable (set by Vite)
+  if (typeof process !== 'undefined' && process.env.BACK_API_BASE_URL) {
+    return process.env.BACK_API_BASE_URL;
+  }
+
+  // Default fallback for development
+  return 'http://localhost:3142';
+};
+
+const API_BASE_URL = getBackendUrl();
 
 export class BaseApiService {
   protected async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
@@ -45,3 +56,6 @@ export class BaseApiService {
     }
   }
 }
+
+// Export the base URL for use in other files
+export const getBaseUrl = (): string => API_BASE_URL;

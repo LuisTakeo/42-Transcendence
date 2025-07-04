@@ -6,6 +6,9 @@ export default defineConfig({
     host: '0.0.0.0',
     allowedHosts: ['pong.fazai.dev', 'devpong.fazai.dev']
   },
+  define: {
+    'process.env.BACK_API_BASE_URL': JSON.stringify(process.env.BACK_API_BASE_URL || 'http://localhost:3142')
+  },
   build: {
     rollupOptions: {
       input: {
