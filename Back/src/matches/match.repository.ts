@@ -283,3 +283,74 @@ export async function getUserStats(userId: number): Promise<{
 		winRate: Math.round(winRate * 100) / 100 // Round to 2 decimal places
 	};
 }
+
+// Get bulk user statistics for multiple users in a single query
+export async function getBulkUserStats(userIds: number[]): Promise<Map<number, {
+	totalMatches: number;
+	wins: number;
+	losses: number;
+	winRate: number;
+}>> {
+	if (userIds.length === 0) {
+		return new Map();
+	}
+
+	const db = await openDb();
+	const placeholders = userIds.map(() => '?').join(',');
+
+	// Get total matches for all users
+	const totalMatchesQuery = `
+		SELECT
+			user_id,
+			COUNT(*) as total_matches
+		FROM (
+			SELECT player1_id as user_id FROM matches WHERE player1_id IN (${placeholders})
+			UNION ALL
+			SELECT player2_id as user_id FROM matches WHERE player2_id IN (${placeholders})
+		)
+		GROUP BY user_id
+	`;
+
+	// Get wins for all users
+	const winsQuery = `
+		SELECT
+			winner_id as user_id,
+			COUNT(*) as wins
+		FROM matches
+		WHERE winner_id IN (${placeholders})
+		GROUP BY winner_id
+	`;
+
+	const totalMatchesResults = await db.all(totalMatchesQuery, [...userIds, ...userIds]);
+	const winsResults = await db.all(winsQuery, userIds);
+
+	// Create maps for easy lookup
+	const totalMatchesMap = new Map();
+	const winsMap = new Map();
+
+	totalMatchesResults.forEach(row => {
+		totalMatchesMap.set(row.user_id, row.total_matches);
+	});
+
+	winsResults.forEach(row => {
+		winsMap.set(row.user_id, row.wins);
+	});
+
+	// Build result map
+	const result = new Map();
+	userIds.forEach(userId => {
+		const totalMatches = totalMatchesMap.get(userId) || 0;
+		const wins = winsMap.get(userId) || 0;
+		const losses = totalMatches - wins;
+		const winRate = totalMatches > 0 ? (wins / totalMatches) * 100 : 0;
+
+		result.set(userId, {
+			totalMatches,
+			wins,
+			losses,
+			winRate: Math.round(winRate * 100) / 100 // Round to 2 decimal places
+		});
+	});
+
+	return result;
+}

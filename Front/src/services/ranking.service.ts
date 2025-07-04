@@ -25,41 +25,31 @@ export class RankingService extends BaseApiService {
       }
 
       const users = usersResponse.data;
+      const userIds = users.map(user => user.id);
 
-      // Get stats for each user
-      const rankingUsers: RankingUser[] = await Promise.all(users.map(async (user) => {
-        try {
-          const statsResponse = await matchesService.getPlayerStats(user.id);
-          const stats = statsResponse.success ? statsResponse.data : {
-            totalMatches: 0,
-            wins: 0,
-            losses: 0,
-            winRate: 0
-          };
+      // Get bulk stats for all users in a single request
+      const bulkStatsResponse = await matchesService.getBulkUserStats(userIds);
+      const statsMap = bulkStatsResponse.success ? bulkStatsResponse.data : {};
 
-          return {
-            position: 0, // Will be set after sorting
-            id: user.id,
-            username: user.username,
-            name: user.name,
-            totalMatches: stats.totalMatches,
-            wins: stats.wins,
-            winRate: stats.winRate
-          };
-        } catch (error) {
-          // If stats fail, add user with zero stats
-          console.warn(`Failed to get stats for user ${user.id}:`, error);
-          return {
-            position: 0,
-            id: user.id,
-            username: user.username,
-            name: user.name,
-            totalMatches: 0,
-            wins: 0,
-            winRate: 0
-          };
-        }
-      }));
+      // Build ranking users with stats
+      const rankingUsers: RankingUser[] = users.map(user => {
+        const stats = statsMap[user.id] || {
+          totalMatches: 0,
+          wins: 0,
+          losses: 0,
+          winRate: 0
+        };
+
+        return {
+          position: 0, // Will be set after sorting
+          id: user.id,
+          username: user.username,
+          name: user.name,
+          totalMatches: stats.totalMatches,
+          wins: stats.wins,
+          winRate: stats.winRate
+        };
+      });
 
       // Sort by win rate (descending), then by total wins (descending), then by total matches (descending)
       rankingUsers.sort((a, b) => {
