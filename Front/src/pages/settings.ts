@@ -248,13 +248,13 @@ async function loadFriends(): Promise<void> {
 						}
 					</div>
 					<span class="text-white text-lg mx-4 flex-1">${displayName}</span>
-					<button class="text-red-400 hover:text-red-600 text-xl transition-colors" onclick="deleteFriend(${currentUserId}, ${friendId})">&#10006;</button>
+					<button class="text-red-400 hover:text-red-600 text-xl transition-colors delete-friend-btn" data-user-id1="${currentUserId}" data-user-id2="${friendId}">&#10006;</button>
 				</div>
 			`;
 		}).join('');
 
-		// Add delete function to global scope
-		(window as any).deleteFriend = async (userId1: number, userId2: number) => {
+		// Define deleteFriend as a module-scoped function
+		const deleteFriend = async (userId1: number, userId2: number) => {
 			try {
 				const response = await friendsService.deleteFriendship(userId1, userId2);
 
