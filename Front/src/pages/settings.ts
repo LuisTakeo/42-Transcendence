@@ -1,5 +1,7 @@
 import { initializeEditField } from "./editField.ts";
 import { initializeTwoFactor } from "./twoFactor.ts";
+import { friendsService } from "../services/friends.service.ts";
+import { usersService } from "../services/users.service.ts";
 
 export default function SettingsPage(): void {
 	const app = document.getElementById("app");
@@ -12,16 +14,15 @@ export default function SettingsPage(): void {
 		<!-- Caixa 1 -->
 		<div class="flex-1 bg-[#1E1B4B] rounded-[5px] p-6 ">
 		  <div class="w-36 h-36 rounded-full overflow-hidden bg-white mt-6 mb-2 mx-auto relative group">
-			<img id="profile-pic" src="../../assets/minecraft.jpg" alt="Usuário"
-			  class="object-cover w-full h-full" />
+			<div id="profile-pic-container" class="w-full h-full">
+				<!-- Profile photo will be loaded here dynamically -->
+			</div>
 
 			<div class="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition">
 			  <button id="change-pic-btn" class="text-white font-semibold text-lg px-3 py-1 bg-[#4A4580] rounded hover:bg-[#5C5599]">
-				Edit photo
+				Select Photo
 			  </button>
 			</div>
-
-			<input id="file-input" type="file" accept="image/*" class="hidden" />
 		  </div>
 
 		  <div class="w-full mb-2 p-6">
@@ -40,16 +41,9 @@ export default function SettingsPage(): void {
 
 		  <div class="w-full mb-2 p-6">
 			<label class="block text-lg mb-1">Username</label>
-			<div class="flex items-center gap-2">
-			  <input id="usernameInput" type="text" value="Bellatrix"
+			<input id="usernameInput" type="text" value="Bellatrix"
 				class="w-full px-4 py-2 rounded-[5px] bg-[#383568] text-white placeholder-white focus:outline-none focus:ring-2 focus:ring-purple-500"
 				disabled />
-
-			  <button data-id="usernameInput"
-				class="edit-btn w-10 h-10 p-1 bg-[#4A4580] rounded-[5px] hover:bg-[#5C5599] transition flex items-center justify-center">
-				<img src="../../assets/lapis.png" alt="Editar" class="w-6 h-6" />
-			  </button>
-			</div>
 		  </div>
 
 		  <div id="two-factor-section" class="bg-[#1E1B4B] p-6 rounded-lg w-full max-w-md">
@@ -84,28 +78,446 @@ export default function SettingsPage(): void {
 		<div class="flex-1 bg-[#1E1B4B] rounded-[5px] p-12">
 		  <h1 class="text-5xl text-white font-bold flex justify-center mb-6">Friends</h1>
 
-		  <div class="space-y-2">
-			<div class="flex items-center justify-between bg-[#383568] p-4 rounded-lg">
-			  <img src="../../assets/minecraft.jpg" alt="Amigo" class="w-12 h-12 rounded-full object-cover" />
-			  <span class="text-white text-lg mx-4 flex-1">amiga_1</span>
-			  <button class="text-red-400 hover:text-red-600 text-xl">&#10006;</button>
-			</div>
-
-			<div class="flex items-center justify-between bg-[#383568] p-4 rounded-lg">
-			  <img src="../../assets/minecraft.jpg" alt="Amigo" class="w-12 h-12 rounded-full object-cover" />
-			  <span class="text-white text-lg mx-4 flex-1">amiga_2</span>
-			  <button class="text-red-400 hover:text-red-600 text-xl">&#10006;</button>
+		  <div id="friends-container" class="space-y-2">
+			<div class="text-center text-white text-xl">
+			  <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500 mx-auto mb-4"></div>
+			  Loading friends...
 			</div>
 		  </div>
 		</div>
 
 	  </div>
 	</main>
+
+	<!-- Avatar Selection Modal -->
+	<div id="avatar-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+		<div class="bg-[#1E1B4B] rounded-lg p-8 max-w-2xl w-full mx-4 max-h-[80vh] overflow-y-auto">
+			<div class="flex justify-between items-center mb-6">
+				<h2 class="text-3xl font-bold text-white">Choose Your Avatar</h2>
+				<button id="close-modal" class="text-white hover:text-gray-300 text-2xl font-bold">
+					&times;
+				</button>
+			</div>
+
+			<div id="avatar-grid" class="grid grid-cols-4 gap-4">
+				<!-- Avatars will be loaded here -->
+			</div>
+
+			<div class="flex justify-end mt-6">
+				<button id="cancel-avatar" class="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 mr-2">
+					Cancel
+				</button>
+			</div>
+		</div>
+	</div>
+
+	<!-- Success Message -->
+	<div id="success-message" class="fixed bottom-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg opacity-0 invisible transition-all duration-300 z-50 flex items-center gap-3">
+		<span id="success-text">Avatar updated successfully!</span>
+		<button id="close-success" class="text-white hover:text-gray-200 text-xl font-bold leading-none">
+			&times;
+		</button>
+	</div>
 	`;
+
+	// Load current user data and friends
+	loadCurrentUser();
+	loadFriends();
 
 	// Inicializa as funcionalidades após renderizar o HTML
 	setTimeout(() => {
 		initializeEditField();
 		initializeTwoFactor();
+		initializeAvatarSelection();
 	}, 0);
+}
+
+async function loadCurrentUser(): Promise<void> {
+	try {
+		// For now, we'll use user ID 1 as the current user
+		// In a real app, you'd get this from authentication context
+		const currentUserId = 1;
+
+		const userResponse = await usersService.getUserById(currentUserId);
+
+		if (!userResponse.success || !userResponse.data) {
+			throw new Error('Failed to load user data');
+		}
+
+		const user = userResponse.data;
+		const profilePicContainer = document.getElementById('profile-pic-container');
+		const nameInput = document.getElementById('nameInput') as HTMLInputElement;
+		const usernameInput = document.getElementById('usernameInput') as HTMLInputElement;
+
+		if (!profilePicContainer || !nameInput || !usernameInput) return;
+
+		// Update profile photo using the same pattern as users.ts
+		if (user.avatar_url) {
+			// Check if it's a base64 string or a filename
+			const avatarUrl = user.avatar_url.startsWith('data:')
+				? user.avatar_url
+				: `http://localhost:3142/public/avatars/${user.avatar_url}`;
+
+			profilePicContainer.innerHTML = `
+				<img src="${avatarUrl}" alt="${user.name}" class="object-cover w-full h-full" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+				<div class="w-full h-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-6xl font-bold text-white" style="display: none;">${user.name.charAt(0).toUpperCase()}</div>
+			`;
+		} else {
+			profilePicContainer.innerHTML = `
+				<div class="w-full h-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-6xl font-bold text-white">${user.name.charAt(0).toUpperCase()}</div>
+			`;
+		}
+
+		// Update form fields and store original values
+		nameInput.value = user.name;
+		nameInput.dataset.originalValue = user.name;
+		usernameInput.value = user.username;
+		usernameInput.dataset.originalValue = user.username;
+
+	} catch (error) {
+		console.error('Error loading current user:', error);
+		// Keep default values if loading fails
+	}
+}
+
+async function loadFriends(): Promise<void> {
+	try {
+		// For now, we'll use user ID 1 as the current user
+		// In a real app, you'd get this from authentication context
+		const currentUserId = 1;
+
+		const friendsResponse = await friendsService.getFriendsByUser(currentUserId);
+
+		if (!friendsResponse.success || !friendsResponse.data) {
+			throw new Error('Failed to load friends');
+		}
+
+		const friends = friendsResponse.data;
+		const friendsContainer = document.getElementById('friends-container');
+
+		if (!friendsContainer) return;
+
+		if (friends.length === 0) {
+			friendsContainer.innerHTML = `
+				<div class="text-center text-white text-xl py-8">
+					<p>No friends yet.</p>
+					<p class="text-gray-400 mt-2">Add some friends to see them here!</p>
+				</div>
+			`;
+			return;
+		}
+
+		// Get all unique user IDs from friends
+		const userIds = new Set<number>();
+		friends.forEach(friend => {
+			if (friend.user1_id !== currentUserId) userIds.add(friend.user1_id);
+			if (friend.user2_id !== currentUserId) userIds.add(friend.user2_id);
+		});
+
+		// Get user details for all friends
+		const usersResponse = await usersService.getAllUsers();
+		const users = usersResponse.success ? usersResponse.data : [];
+		const userMap = new Map(users.map(user => [user.id, user]));
+
+		// Render friends
+		friendsContainer.innerHTML = friends.map(friend => {
+			const friendId = friend.user1_id === currentUserId ? friend.user2_id : friend.user1_id;
+			const friendUser = userMap.get(friendId);
+
+			if (!friendUser) {
+				return `
+					<div class="flex items-center justify-between bg-[#383568] p-4 rounded-lg">
+						<div class="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white font-bold">
+							?
+						</div>
+						<span class="text-white text-lg mx-4 flex-1">Unknown User</span>
+						<button class="text-red-400 hover:text-red-600 text-xl" onclick="deleteFriend(${currentUserId}, ${friendId})">&#10006;</button>
+					</div>
+				`;
+			}
+
+			const displayName = friendUser.name || friendUser.username || 'Unknown User';
+
+			return `
+				<div class="flex items-center justify-between bg-[#383568] p-4 rounded-lg">
+					<div class="flex-shrink-0">
+						${friendUser.avatar_url
+							? `<img src="${friendUser.avatar_url}" alt="${displayName}" class="w-12 h-12 rounded-full object-cover" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+							   <div class="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white font-bold" style="display: none;">${displayName.charAt(0).toUpperCase()}</div>`
+							: `<div class="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white font-bold">${displayName.charAt(0).toUpperCase()}</div>`
+						}
+					</div>
+					<span class="text-white text-lg mx-4 flex-1">${displayName}</span>
+					<button class="text-red-400 hover:text-red-600 text-xl transition-colors" onclick="deleteFriend(${currentUserId}, ${friendId})">&#10006;</button>
+				</div>
+			`;
+		}).join('');
+
+		// Add delete function to global scope
+		(window as any).deleteFriend = async (userId1: number, userId2: number) => {
+			try {
+				const response = await friendsService.deleteFriendship(userId1, userId2);
+
+				if (response.success) {
+					// Reload friends list
+					loadFriends();
+				} else {
+					alert('Failed to remove friend. Please try again.');
+				}
+			} catch (error) {
+				console.error('Error deleting friendship:', error);
+				alert('Failed to remove friend. Please try again.');
+			}
+		};
+
+	} catch (error) {
+		console.error('Error loading friends:', error);
+		const friendsContainer = document.getElementById('friends-container');
+		if (friendsContainer) {
+			friendsContainer.innerHTML = `
+				<div class="text-center text-white text-xl py-8">
+					<p class="text-red-400 mb-2">Error loading friends</p>
+					<p class="text-gray-400 text-sm">Please try again later.</p>
+					<button onclick="location.reload()" class="mt-4 px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 transition">
+						Retry
+					</button>
+				</div>
+			`;
+		}
+	}
+}
+
+function initializeAvatarSelection(): void {
+	const changePicBtn = document.getElementById('change-pic-btn') as HTMLButtonElement;
+	const modal = document.getElementById('avatar-modal');
+	const closeModal = document.getElementById('close-modal');
+	const cancelBtn = document.getElementById('cancel-avatar');
+	const avatarGrid = document.getElementById('avatar-grid');
+
+	if (!changePicBtn || !modal || !closeModal || !cancelBtn || !avatarGrid) return;
+
+	// Load avatars into the grid
+	loadAvatarOptions();
+
+	// Handle edit photo button click
+	changePicBtn.addEventListener('click', () => {
+		modal.classList.remove('hidden');
+	});
+
+	// Handle close modal
+	closeModal.addEventListener('click', () => {
+		modal.classList.add('hidden');
+	});
+
+	// Handle cancel button
+	cancelBtn.addEventListener('click', () => {
+		modal.classList.add('hidden');
+	});
+
+	// Handle clicking outside modal
+	modal.addEventListener('click', (e) => {
+		if (e.target === modal) {
+			modal.classList.add('hidden');
+		}
+	});
+
+	// Handle escape key
+	document.addEventListener('keydown', (e) => {
+		if (e.key === 'Escape' && !modal.classList.contains('hidden')) {
+			modal.classList.add('hidden');
+		}
+	});
+}
+
+function loadAvatarOptions(): void {
+	const avatarGrid = document.getElementById('avatar-grid');
+	if (!avatarGrid) return;
+
+	// Show loading state
+	avatarGrid.innerHTML = `
+		<div class="col-span-4 text-center text-white text-xl py-8">
+			<div class="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500 mx-auto mb-4"></div>
+			Loading avatars...
+		</div>
+	`;
+
+	// Fetch avatars dynamically from backend
+	fetchAvatarsFromBackend();
+}
+
+async function fetchAvatarsFromBackend(): Promise<void> {
+	const avatarGrid = document.getElementById('avatar-grid');
+	if (!avatarGrid) return;
+
+	try {
+		const response = await usersService.getAvailableAvatars();
+
+		if (!response.success || !response.data) {
+			throw new Error('Failed to load avatars');
+		}
+
+		const avatarOptions = response.data;
+
+		// Create avatar grid
+		avatarGrid.innerHTML = avatarOptions.map((avatarName, index) => `
+			<div class="flex flex-col items-center">
+				<button
+					class="avatar-option w-16 h-16 rounded-full overflow-hidden border-2 border-transparent hover:border-purple-500 transition-all duration-200 hover:scale-110"
+					data-avatar="${avatarName}"
+					title="Avatar ${index + 1}"
+				>
+					<img
+						src="http://localhost:3142/public/avatars/${avatarName}"
+						alt="Avatar ${index + 1}"
+						class="w-full h-full object-cover"
+						onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+					/>
+					<div class="w-full h-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold text-lg" style="display: none;">
+						${String.fromCharCode(65 + index)} <!-- A, B, C, etc. -->
+					</div>
+				</button>
+			</div>
+		`).join('');
+
+		// Add click handlers for avatar selection
+		avatarGrid.addEventListener('click', async (e) => {
+			const target = e.target as HTMLElement;
+			const avatarButton = target.closest('.avatar-option') as HTMLElement;
+
+			if (avatarButton) {
+				const avatarName = avatarButton.getAttribute('data-avatar');
+				if (avatarName) {
+					await selectAvatar(avatarName);
+				}
+			}
+		});
+
+	} catch (error) {
+		console.error('Error loading avatars:', error);
+		avatarGrid.innerHTML = `
+			<div class="col-span-4 text-center text-white text-xl py-8">
+				<p class="text-red-400 mb-2">Error loading avatars</p>
+				<p class="text-gray-400 text-sm">Please try again later.</p>
+				<button onclick="location.reload()" class="mt-4 px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 transition">
+					Retry
+				</button>
+			</div>
+		`;
+	}
+}
+
+function showSuccessMessage(message: string): void {
+	const successMessage = document.getElementById('success-message');
+	const successText = document.getElementById('success-text');
+	const closeSuccessBtn = document.getElementById('close-success');
+
+	if (successMessage && successText) {
+		successText.textContent = message;
+
+		// Clear any existing timeout
+		if (successMessage.dataset.timeoutId) {
+			clearTimeout(parseInt(successMessage.dataset.timeoutId));
+		}
+
+		// Show the message
+		successMessage.classList.remove('opacity-0', 'invisible');
+		successMessage.classList.add('opacity-100', 'visible');
+
+		// Set up close button handler
+		if (closeSuccessBtn) {
+			const closeHandler = () => {
+				hideSuccessMessage();
+				closeSuccessBtn.removeEventListener('click', closeHandler);
+			};
+			closeSuccessBtn.addEventListener('click', closeHandler);
+		}
+
+		// Hide after 5 seconds
+		const timeoutId = setTimeout(() => {
+			hideSuccessMessage();
+		}, 5000);
+
+		// Store timeout ID for potential clearing
+		successMessage.dataset.timeoutId = timeoutId.toString();
+	}
+}
+
+function hideSuccessMessage(): void {
+	const successMessage = document.getElementById('success-message');
+	if (successMessage) {
+		successMessage.classList.remove('opacity-100', 'visible');
+		successMessage.classList.add('opacity-0', 'invisible');
+		// Clear timeout ID
+		delete successMessage.dataset.timeoutId;
+	}
+}
+
+async function selectAvatar(avatarName: string): Promise<void> {
+	try {
+		// Show loading state
+		const changePicBtn = document.getElementById('change-pic-btn') as HTMLButtonElement;
+		if (changePicBtn) {
+			changePicBtn.textContent = 'Updating...';
+			changePicBtn.disabled = true;
+		}
+
+		// Update the profile photo immediately
+		updateProfilePhoto(`http://localhost:3142/public/avatars/${avatarName}`);
+
+		// Save to backend
+		await saveAvatarUrl(avatarName);
+
+		// Close modal
+		const modal = document.getElementById('avatar-modal');
+		if (modal) {
+			modal.classList.add('hidden');
+		}
+
+		// Show success message
+		showSuccessMessage('Avatar updated successfully!');
+	} catch (error) {
+		console.error('Error updating avatar:', error);
+		showSuccessMessage('Failed to update avatar. Please try again.');
+	} finally {
+		// Reset button state
+		const changePicBtn = document.getElementById('change-pic-btn') as HTMLButtonElement;
+		if (changePicBtn) {
+			changePicBtn.textContent = 'Select Photo';
+			changePicBtn.disabled = false;
+		}
+	}
+}
+
+async function saveAvatarUrl(avatarName: string): Promise<void> {
+	try {
+		// For now, we'll use user ID 1 as the current user
+		const currentUserId = 1;
+
+		// Update user's avatar_url in the backend
+		const response = await usersService.updateUser(currentUserId, {
+			avatar_url: avatarName
+		});
+
+		if (!response.success) {
+			throw new Error('Failed to save avatar URL');
+		}
+	} catch (error) {
+		console.error('Error saving avatar URL:', error);
+		throw error;
+	}
+}
+
+function updateProfilePhoto(avatarUrl: string): void {
+	const profilePicContainer = document.getElementById('profile-pic-container');
+	if (!profilePicContainer) return;
+
+	// Get current user name for the alt text
+	const nameInput = document.getElementById('nameInput') as HTMLInputElement;
+	const userName = nameInput?.value || 'User';
+
+	// Update the profile photo using the same pattern as users.ts
+	profilePicContainer.innerHTML = `
+		<img src="${avatarUrl}" alt="${userName}" class="object-cover w-full h-full" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+		<div class="w-full h-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-6xl font-bold text-white" style="display: none;">${userName.charAt(0).toUpperCase()}</div>
+	`;
 }

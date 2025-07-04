@@ -19,9 +19,9 @@ export default function UsersPage(): void {
           <input type="text" id="searchUsers" placeholder="Search by name, username, or email..."
             class="w-80 px-6 py-3 rounded-l-[5px] border border-[#383568] bg-[#383568] text-white placeholder-gray-400 focus:outline-none text-2xl [&:-webkit-autofill]:bg-[#383568] [&:-webkit-autofill]:text-white [&:-webkit-autofill]:shadow-[0_0_0_1000px_#383568_inset] [&:-webkit-autofill]:[-webkit-text-fill-color:white]" />
           <button class="px-6 py-3 bg-[#383568] text-white font-semibold rounded-r-[5px] hover:bg-[#4E4A72] transition duration-200 ease-in-out border-l-0 border border-[#383568]"
-            id="searchUsersButton">
-            <img src="../../assets/find.png" alt="find">
-          </button>
+          id="searchUsersButton">
+          <img src="../../assets/find.png" alt="find">
+        </button>
         </div>
       </div>
 
@@ -32,7 +32,7 @@ export default function UsersPage(): void {
           <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500 mx-auto mb-4"></div>
           Loading users...
         </div>
-      </div>
+          </div>
 
       <div class="flex justify-center mt-8 space-x-4" id="pagination" style="display: none;">
         <button id="prevPage" class="px-4 py-2 bg-[#383568] text-white rounded hover:bg-[#4E4A72] transition disabled:opacity-50 disabled:cursor-not-allowed">

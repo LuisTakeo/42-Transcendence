@@ -409,3 +409,33 @@ export async function updateUserOnlineStatus(request: FastifyRequest, reply: Fas
 		});
 	}
 }
+
+// Get available avatars
+export async function getAvailableAvatars(request: FastifyRequest, reply: FastifyReply) {
+	try {
+		const fs = require('fs').promises;
+		const path = require('path');
+
+		// Path to avatars folder in backend public directory
+		const avatarsPath = path.join(__dirname, '../../../public/avatars');
+
+		// Read all files in the avatars directory
+		const files = await fs.readdir(avatarsPath);
+
+		// Filter for image files and sort them
+		const avatarFiles = files
+			.filter(file => /\.(png|jpg|jpeg|gif|webp)$/i.test(file))
+			.sort();
+
+		reply.send({
+			success: true,
+			data: avatarFiles
+		});
+	} catch (error) {
+		reply.status(500).send({
+			success: false,
+			error: 'Failed to get available avatars',
+			message: error instanceof Error ? error.message : 'Unknown error'
+		});
+	}
+}

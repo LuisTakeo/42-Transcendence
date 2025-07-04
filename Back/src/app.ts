@@ -2,7 +2,9 @@
 import fastify from 'fastify';
 import fastifyJwt from '@fastify/jwt';
 import cors from '@fastify/cors';
+import fastifyStatic from '@fastify/static';
 import dotenv from 'dotenv';
+import path from 'path';
 
 import matchesRoutes from './matches/matches.routes';
 import friendsRoutes from './friends/friends.routes';
@@ -35,6 +37,12 @@ export const startServer = async () => {
 		credentials: true,
 		methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
 		allowedHeaders: ['Content-Type', 'Authorization']
+	});
+
+	// Serve static files from public folder
+	await app.register(fastifyStatic, {
+		root: path.join(__dirname, '../public'),
+		prefix: '/public/'
 	});
 
 	// Run migrations
