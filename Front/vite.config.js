@@ -7,7 +7,7 @@ export default defineConfig({
     allowedHosts: ['pong.fazai.dev', 'devpong.fazai.dev']
   },
   define: {
-    'process.env.BACK_API_BASE_URL': JSON.stringify(process.env.BACK_API_BASE_URL || 'http://localhost:3142')
+    'import.meta.env.VITE_BACK_API_BASE_URL': JSON.stringify(process.env.VITE_BACK_API_BASE_URL || 'http://localhost:3142')
   },
   build: {
     rollupOptions: {
