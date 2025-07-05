@@ -152,7 +152,7 @@ function setupFriendDeleteHandlers(): void {
 						target.style.opacity = '0.5';
 						target.style.pointerEvents = 'none';
 
-						const response = await friendsService.deleteFriendship(parseInt(userId1), parseInt(userId2));
+						const response = await friendsService.deleteFriendship(parseInt(userId1, 10), parseInt(userId2, 10));
 						if (response.success) {
 							showSuccessMessage('Friend removed successfully!');
 							loadFriends(); // Reload the friends list
