@@ -413,9 +413,6 @@ export async function updateUserOnlineStatus(request: FastifyRequest, reply: Fas
 // Get available avatars
 export async function getAvailableAvatars(request: FastifyRequest, reply: FastifyReply) {
 	try {
-		const fs = require('fs').promises;
-		const path = require('path');
-
 		// Path to avatars folder in backend public directory
 		const avatarsPath = path.join(__dirname, '../../../public/avatars');
 
