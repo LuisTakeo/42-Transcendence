@@ -113,19 +113,6 @@ export default function SettingsPage(): void {
 		</div>
 	</div>
 
-	<!-- Success Message -->
-	<div id="success-message" class="fixed bottom-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg opacity-0 invisible transition-all duration-300 z-50 flex items-center gap-3">
-		<span id="success-text">Avatar updated successfully!</span>
-		<button id="close-success" class="text-white hover:text-gray-200 text-xl font-bold leading-none">
-			&times;
-		</button>
-	</div>
-
-	<!-- Error Message -->
-	<div id="error-message" class="fixed bottom-4 right-4 bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg opacity-0 invisible transition-all duration-300 z-50 flex items-center gap-3">
-		<span id="error-text">Something went wrong!</span>
-		<button id="close-error" class="text-white hover:text-gray-200 text-xl font-bold leading-none">&times;</button>
-	</div>
 	`;
 
 	// Load current user data and friends
