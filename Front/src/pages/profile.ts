@@ -231,7 +231,9 @@ async function loadUserProfile(userId: number): Promise<void> {
     showErrorMessage('Failed to load user profile. Redirecting to users list.');
     const userName = document.getElementById("user-name") as HTMLParagraphElement;
     if (userName) userName.textContent = "User not found";
-    window.history.pushState({}, '', '/users');
-    window.dispatchEvent(new Event('popstate'));
+    setTimeout(() => {
+      window.history.pushState({}, '', '/users');
+      window.dispatchEvent(new Event('popstate'));
+    }, 3000); // Delay redirection by 3 seconds
   }
   }
