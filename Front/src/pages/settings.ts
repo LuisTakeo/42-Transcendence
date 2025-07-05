@@ -119,6 +119,9 @@ export default function SettingsPage(): void {
 	loadCurrentUser();
 	loadFriends();
 
+	// Add event delegation for delete friend buttons
+	setupFriendDeleteHandlers();
+
 	// Inicializa as funcionalidades após renderizar o HTML
 	setTimeout(() => {
 		initializeEditField();
@@ -127,10 +130,68 @@ export default function SettingsPage(): void {
 	}, 0);
 }
 
+// Function to set up event delegation for delete friend buttons
+function setupFriendDeleteHandlers(): void {
+	const friendsContainer = document.getElementById('friends-container');
+	if (!friendsContainer) return;
+
+	friendsContainer.addEventListener('click', async (e) => {
+		const target = e.target as HTMLElement;
+
+		// Check if the clicked element is a delete friend button
+		if (target.classList.contains('delete-friend-btn')) {
+			const userId1 = target.getAttribute('data-user-id1');
+			const userId2 = target.getAttribute('data-user-id2');
+
+			if (userId1 && userId2) {
+				// Show confirmation dialog
+				const confirmed = confirm('Are you sure you want to remove this friend?');
+				if (confirmed) {
+					try {
+						// Disable button while processing
+						target.style.opacity = '0.5';
+						target.style.pointerEvents = 'none';
+
+						const response = await friendsService.deleteFriendship(parseInt(userId1, 10), parseInt(userId2, 10));
+						if (response.success) {
+							showSuccessMessage('Friend removed successfully!');
+							// Remove the friend element from the DOM
+							const friendElement = target.closest('.friend-entry');
+							if (friendElement) {
+								friendElement.remove();
+							}
+						} else {
+							showErrorMessage('Failed to remove friend. Please try again.');
+						}
+					} catch (error) {
+						console.error('Error deleting friendship:', error);
+						showErrorMessage('Failed to remove friend. Please try again.');
+					} finally {
+						// Re-enable button
+						target.style.opacity = '1';
+						target.style.pointerEvents = 'auto';
+					}
+				}
+			}
+		}
+	});
+}
+
+// Helper function to get current user ID - in a real app this would come from auth/session
+function getCurrentUserId(): number | null {
+  // For testing purposes, return user ID 1
+  // In a real app, this would check localStorage, sessionStorage, or auth context
+  return 1; // Testing as user ID 1
+}
+
 async function loadCurrentUser(): Promise<void> {
 	try {
 		// Retrieve the current user ID from the authentication context
 		const currentUserId = getCurrentUserId();
+
+		if (!currentUserId) {
+			throw new Error('No user ID found');
+		}
 
 		const userResponse = await usersService.getUserById(currentUserId);
 
@@ -171,9 +232,12 @@ async function loadCurrentUser(): Promise<void> {
 
 async function loadFriends(): Promise<void> {
 	try {
-		// For now, we'll use user ID 1 as the current user
-		// In a real app, you'd get this from authentication context
-		const currentUserId = 1;
+		// Get current user ID using the helper function
+		const currentUserId = getCurrentUserId();
+
+		if (!currentUserId) {
+			throw new Error('No user ID found');
+		}
 
 		const friendsResponse = await friendsService.getFriendsByUser(currentUserId);
 
@@ -220,7 +284,7 @@ async function loadFriends(): Promise<void> {
 							?
 						</div>
 						<span class="text-white text-lg mx-4 flex-1">Unknown User</span>
-						<button class="text-red-400 hover:text-red-600 text-xl" onclick="deleteFriend(${currentUserId}, ${friendId})">&#10006;</button>
+						<button class="text-red-400 hover:text-red-600 text-xl transition-colors delete-friend-btn" data-user-id1="${currentUserId}" data-user-id2="${friendId}">&#10006;</button>
 					</div>
 				`;
 			}
@@ -241,21 +305,6 @@ async function loadFriends(): Promise<void> {
 				</div>
 			`;
 		}).join('');
-
-		// Define deleteFriend as a module-scoped function
-		const deleteFriend = async (userId1: number, userId2: number) => {
-			try {
-				const response = await friendsService.deleteFriendship(userId1, userId2);
-				if (response.success) {
-					loadFriends();
-				} else {
-					showErrorMessage('Failed to remove friend. Please try again.');
-				}
-			} catch (error) {
-				console.error('Error deleting friendship:', error);
-				showErrorMessage('Failed to remove friend. Please try again.');
-			}
-		};
 
 	} catch (error) {
 		console.error('Error loading friends:', error);
@@ -433,8 +482,12 @@ async function selectAvatar(avatarName: string): Promise<void> {
 
 async function saveAvatarUrl(avatarName: string): Promise<void> {
 	try {
-		// For now, we'll use user ID 1 as the current user
-		const currentUserId = 1;
+		// Get current user ID using the helper function
+		const currentUserId = getCurrentUserId();
+
+		if (!currentUserId) {
+			throw new Error('No user ID found');
+		}
 
 		// Update user's avatar_url in the backend
 		const response = await usersService.updateUser(currentUserId, {
