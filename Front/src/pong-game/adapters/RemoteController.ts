@@ -10,6 +10,7 @@ export class RemoteController implements IInputController {
     private paddle: Paddle | null = null;
     private initialized: boolean = false;
     private moveDirection: number = 0;
+    private paddleSize: { width: number; height: number; depth: number };
 
     /**
      * Cria um novo controlador remoto
@@ -32,6 +33,7 @@ export class RemoteController implements IInputController {
     public getPaddle(): Paddle | null {
         return this.paddle;
     }
+
 
     /**
      * Conecta o controlador a um paddle específico

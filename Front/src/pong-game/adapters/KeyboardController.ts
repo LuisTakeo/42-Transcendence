@@ -14,6 +14,9 @@ export class KeyboardController implements IInputController {
     private keyStatus: { [key: string]: boolean } = {};
     private initialized: boolean = false;
     private moveSpeed: number;
+    private paddleSize: { width: number; height: number; depth: number };
+    private tableWidth: number;
+    private tableDepth: number;
 
     private _onKeyDown: ((evt: KeyboardEvent) => void) | null = null;
     private _onKeyUp: ((evt: KeyboardEvent) => void) | null = null;
@@ -26,12 +29,21 @@ export class KeyboardController implements IInputController {
      * @param downKey Tecla para mover para baixo
      * @param moveSpeed Velocidade de movimento (opcional)
      */
-    constructor(id: string, scene: Scene, upKey: string, downKey: string, moveSpeed: number = 0.5) {
+    constructor(
+        id: string,
+        scene: Scene,
+        upKey: string,
+        downKey: string,
+        moveSpeed: number = 0.5,
+        tableWidth: number = 100,
+        tableDepth: number = 80) {
         this.id = id;
         this.scene = scene;
         this.upKey = upKey;
         this.downKey = downKey;
         this.moveSpeed = moveSpeed;
+        this.tableWidth = tableWidth;
+        this.tableDepth = tableDepth;
     }
 
     /**
@@ -53,6 +65,7 @@ export class KeyboardController implements IInputController {
      */
     public connectToPaddle(paddle: Paddle): void {
         this.paddle = paddle;
+        this.paddleSize = paddle.getPaddleSize();
     }
 
     /**
@@ -108,15 +121,12 @@ export class KeyboardController implements IInputController {
         }
 
         if (direction !== 0) {
-            // Define um limite de movimento
-            const moveLimit = 35; // Ajuste conforme necessário
+            const moveLimit = (this.tableDepth / 2) - (this.paddleSize.depth - 3); // Deixa uma margem de 5 unidades
 
-            // Em vez de usar paddle.move(), vamos usar moveUp e moveDown
+
             if (direction < 0) {
-                // Movimento para cima
                 this.paddle.moveUp(moveLimit);
             } else {
-                // Movimento para baixo
                 this.paddle.moveDown(moveLimit);
             }
         }

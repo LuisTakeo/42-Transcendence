@@ -42,5 +42,4 @@ export interface IInputController {
      */
     getPaddle(): Paddle | null;
 
-    getPaddleSize(): { width: number; height: number; depth: number };
 }

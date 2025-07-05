@@ -7,6 +7,7 @@ import { InputManager } from "./core/InputManager";
 import { KeyboardController } from "./adapters/KeyboardController";
 import { AIController } from "./adapters/AIController";
 import { RemoteController } from "./adapters/RemoteController";
+import { TextBlock, AdvancedDynamicTexture, Control, Rectangle } from "@babylonjs/gui";
 
 /**
  * Tipos de jogo disponíveis
@@ -35,6 +36,13 @@ class MainGame {
     // Tipo de jogo
     private gameType: GameType;
 
+    // Textures for GUI
+    private advancedTexture: AdvancedDynamicTexture;
+    private scoreText: TextBlock;
+    private instructionsText: TextBlock;
+    // Score tracking
+    private score: { player1: number, player2: number };
+
     /**
      * Constructor for the main class
      * @param canvasId ID of the canvas element in HTML
@@ -53,6 +61,7 @@ class MainGame {
 
         // Armazena o tipo de jogo
         this.gameType = gameType;
+        this.score = { player1: 0, player2: 0 };
 
         // Initialize Babylon engine
         this.engine = new Engine(this.canvas, true);
@@ -66,6 +75,11 @@ class MainGame {
         this.environmentManager = new EnvironmentManager(this.scene);
         this.tableManager = new TableManager(this.scene, tableWidth, tableDepth);
         this.inputManager = new InputManager();
+        // Inicializa a textura avançada para GUI
+        this.advancedTexture = AdvancedDynamicTexture.CreateFullscreenUI("UI");
+        // Inicializa os elementos de GUI
+        this.initializeScoreBox();
+        this.initializeInstructionsBox();
     }    /**
      * Initialize the scene with basic elements
      */
@@ -92,6 +106,51 @@ class MainGame {
     }
 
     /**
+     * Inicializa o retângulo e texto para o score
+     */
+    private initializeScoreBox(): void {
+        const scoreBox = new Rectangle("scoreBox");
+        scoreBox.width = "200px"; // Largura do bloco
+        scoreBox.height = "50px"; // Altura do bloco
+        scoreBox.background = "rgba(0, 0, 0, 0.5)"; // Fundo preto com 50% de transparência
+        scoreBox.cornerRadius = 10; // Bordas arredondadas
+        scoreBox.thickness = 0; // Sem borda
+        scoreBox.horizontalAlignment = Control.HORIZONTAL_ALIGNMENT_LEFT;
+        scoreBox.verticalAlignment = Control.VERTICAL_ALIGNMENT_TOP;
+        scoreBox.left = "10px"; // Margem da esquerda
+        scoreBox.top = "10px"; // Margem do topo
+
+        this.scoreText = new TextBlock("scoreText", "Score: 0 - 0");
+        this.scoreText.color = "white";
+        this.scoreText.fontSize = 20;
+        scoreBox.addControl(this.scoreText);
+
+        this.advancedTexture.addControl(scoreBox);
+    }
+
+    /**
+     * Inicializa o retângulo e texto para as instruções
+     */
+    private initializeInstructionsBox(): void {
+        const instructionsBox = new Rectangle("instructionsBox");
+        instructionsBox.width = "300px"; // Largura do bloco
+        instructionsBox.height = "100px"; // Altura do bloco
+        instructionsBox.background = "rgba(0, 0, 0, 0.5)"; // Fundo preto com 50% de transparência
+        instructionsBox.cornerRadius = 10; // Bordas arredondadas
+        instructionsBox.thickness = 0; // Sem borda
+        instructionsBox.horizontalAlignment = Control.HORIZONTAL_ALIGNMENT_CENTER;
+        instructionsBox.verticalAlignment = Control.VERTICAL_ALIGNMENT_BOTTOM;
+        instructionsBox.top = "-100px"; // Margem do fundo
+
+        this.instructionsText = new TextBlock("instructionsText", "Use as setas para mover!");
+        this.instructionsText.color = "white";
+        this.instructionsText.fontSize = 20;
+        instructionsBox.addControl(this.instructionsText);
+
+        this.advancedTexture.addControl(instructionsBox);
+    }
+
+    /**
      * Configura os controladores de input com base no tipo de jogo
      */
     private setupInputBasedOnGameType(): void {
@@ -101,19 +160,26 @@ class MainGame {
 
         switch (this.gameType) {
             case GameType.LOCAL_TWO_PLAYERS:
+                this.instructionsText.text = "Use W/S para Jogador 1\nSetas para Jogador 2";
                 // 2 jogadores locais no mesmo teclado
                 const player1Controller = new KeyboardController(
                     "player1_keyboard",
                     this.scene,
                     "w",  // Tecla para cima
-                    "s"   // Tecla para baixo
+                    "s",   // Tecla para baixo
+                    0.5,  // Velocidade de movimento
+                    this.tableManager.getTableWidth(),
+                    this.tableManager.getTableDepth()
                 );
 
                 const player2Controller = new KeyboardController(
                     "player2_keyboard",
                     this.scene,
                     "ArrowUp",    // Tecla para cima
-                    "ArrowDown"   // Tecla para baixo
+                    "ArrowDown",
+                    0.5,  // Velocidade de movimento
+                    this.tableManager.getTableWidth(),
+                    this.tableManager.getTableDepth()
                 );
 
                 this.inputManager.registerController(player1Controller);
@@ -124,12 +190,16 @@ class MainGame {
                 break;
 
             case GameType.LOCAL_VS_AI:
+                this.instructionsText.text = "Use as setas para mover\nIA controla o paddle esquerdo";
                 // 1 jogador contra IA
                 const playerController = new KeyboardController(
                     "player_keyboard",
                     this.scene,
                     "ArrowUp",
-                    "ArrowDown"
+                    "ArrowDown",
+                    0.5,  // Velocidade de movimento
+                    this.tableManager.getTableWidth(),
+                    this.tableManager.getTableDepth()
                 );
 
                 const aiController = new AIController(
@@ -146,11 +216,12 @@ class MainGame {
                 this.inputManager.registerController(aiController);
 
                 // O jogador controla o paddle direito, a IA controla o esquerdo
-                this.inputManager.connectControllerToPaddle("player_keyboard", rightPaddle);
-                this.inputManager.connectControllerToPaddle("ai_controller", leftPaddle);
+                this.inputManager.connectControllerToPaddle("player_keyboard", leftPaddle);
+                this.inputManager.connectControllerToPaddle("ai_controller", rightPaddle);
                 break;
 
             case GameType.REMOTE:
+                this.instructionsText.text = "Use as setas para mover";
                 // Jogo remoto (online)
                 const localController = new KeyboardController(
                     "local_player",
