@@ -14,6 +14,9 @@ export class AIController implements IInputController {
     private reactionSpeed: number;
     private moveSpeed: number;
     private difficultyFactor: number; // 0 = fácil, 1 = difícil
+    private tableWidth: number;
+    private tableDepth: number;
+    private paddleSize: { width: number; height: number; depth: number };
 
     /**
      * Cria um controlador de IA para paddle
@@ -22,20 +25,28 @@ export class AIController implements IInputController {
      * @param ball A bola que a IA deve seguir
      * @param difficulty Fator de dificuldade (0 = fácil, 1 = difícil)
      * @param moveSpeed Velocidade de movimento da IA
+     * @param tableWidth Largura da mesa
+     * @param tableDepth Profundidade da mesa
      */
     constructor(
         id: string,
         scene: Scene,
         ball: Ball,
-        difficulty: number = 2,
-        moveSpeed: number = 0.5
+        difficulty: number = 0.2,
+        moveSpeed: number = 0.5,
+        tableWidth: number = 100,
+        tableDepth: number = 80
     ) {
         this.id = id;
         this.scene = scene;
         this.ball = ball;
+        this.tableWidth = tableWidth;
+        this.tableDepth = tableDepth;
+        this.paddleSize = { width: 1, height: 4, depth: 10 }; // Tamanho padrão do paddle
         this.difficultyFactor = Math.max(0, Math.min(1, difficulty)); // Limita entre 0 e 1
         this.reactionSpeed = 1 - (0.7 * (1 - this.difficultyFactor)); // Mais lento em dificuldades mais baixas
         this.moveSpeed = moveSpeed * (0.3 + (0.7 * this.difficultyFactor)); // Mais lento em dificuldades mais baixas
+
     }
 
     /**
@@ -57,6 +68,7 @@ export class AIController implements IInputController {
      */
     public connectToPaddle(paddle: Paddle): void {
         this.paddle = paddle;
+        this.paddleSize = paddle.getPaddleSize(); // Obtém o tamanho do paddle
     }
 
     /**
@@ -85,10 +97,6 @@ export class AIController implements IInputController {
         const ballPosition = this.ball.getMesh().position;
         const paddlePosition = this.paddle.getMesh().position;
 
-        // Introduz um atraso com base na dificuldade
-        // Quanto menor a dificuldade, mais a IA "olha" para uma bola no passado
-        const paddleWidth = this.paddle.getMesh().getBoundingInfo().boundingBox.extendSize.x * 2;
-
         // Decide se o paddle se move
         if (Math.random() > this.reactionSpeed) {
             // Ocasionalmente não faz nada - simula tempo de reação humana
@@ -103,15 +111,19 @@ export class AIController implements IInputController {
 
         // Calcula e aplica o movimento
         const difference = targetZ - paddlePosition.z;
-        const moveLimit = 35; // Ajustar conforme a mesa
+
+        // ✅ Calcular limite baseado no tamanho da mesa
+        // const margin = 5 + this.paddle.getSide().depth / 2; // Margem de segurança
+        const moveLimit = (this.tableDepth / 2) - (this.paddleSize.depth - 5); // Deixa uma margem de 5 unidades
 
         // Aplica movimento suavizado pela dificuldade
         const moveAmount = difference * this.moveSpeed * deltaTime * 60; // Normaliza com base em 60 FPS
 
+        // Limita o movimento para não ultrapassar os limites da mesa
         if (moveAmount > 0) {
-            this.paddle.moveUp(Math.min(moveAmount, moveLimit));
+            this.paddle.moveUp(moveLimit);
         } else if (moveAmount < 0) {
-            this.paddle.moveDown(Math.min(-moveAmount, moveLimit));
+            this.paddle.moveDown(moveLimit);
         }
     }
 
@@ -128,7 +140,18 @@ export class AIController implements IInputController {
      */
     public setDifficulty(difficulty: number): void {
         this.difficultyFactor = Math.max(0, Math.min(1, difficulty));
+
+        // Recalcula reactionSpeed e moveSpeed com base na nova dificuldade
         this.reactionSpeed = 1 - (0.7 * (1 - this.difficultyFactor));
         this.moveSpeed = 0.5 * (0.3 + (0.7 * this.difficultyFactor));
+
+        console.log(`Dificuldade atualizada: ${this.difficultyFactor}`);
+        console.log(`Velocidade de reação: ${this.reactionSpeed}, Velocidade de movimento: ${this.moveSpeed}`);
+    }
+
+    // ✅ Método para atualizar tamanho da mesa se necessário
+    public updateTableSize(tableWidth: number, tableDepth: number): void {
+        this.tableWidth = tableWidth;
+        this.tableDepth = tableDepth;
     }
 }

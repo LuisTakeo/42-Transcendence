@@ -41,4 +41,6 @@ export interface IInputController {
      * Retorna o paddle conectado ou null se não houver
      */
     getPaddle(): Paddle | null;
+
+    getPaddleSize(): { width: number; height: number; depth: number };
 }

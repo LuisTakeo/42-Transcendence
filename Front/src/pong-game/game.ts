@@ -132,12 +132,14 @@ class MainGame {
                     "ArrowDown"
                 );
 
-                // A IA agora é um controlador como os outros
                 const aiController = new AIController(
                     "ai_controller",
                     this.scene,
-                    ball,            // Passa a bola para a IA seguir
-                    0.8             // Dificuldade média
+                    ball,                    // Passa a bola para a IA seguir
+                    0.8,                     // Dificuldade média
+                    0.5,                     // Velocidade de movimento
+                    this.tableManager.getTableWidth(),  // Largura da mesa
+                    this.tableManager.getTableDepth()   // Profundidade da mesa
                 );
 
                 this.inputManager.registerController(playerController);

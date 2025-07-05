@@ -405,7 +405,8 @@ class TableManager {
 
         // Define o limite de movimento com base na mesa
         const moveLimit = (this.tableDepth / 2) - 5;
-
+        console.log("depth limit:", moveLimit);
+        console.log("depth:", this.tableDepth);
         // Exemplo de movimentação automatizada do paddle esquerdo (IA simples)
         const ballPosition = this.ball.getMesh().position;
         if (ballPosition.z > this.paddleLeft.getMesh().position.z + 2) {
@@ -437,6 +438,20 @@ class TableManager {
      */
     public getBall(): Ball {
         return this.ball;
+    }
+
+    /**
+     * Obtém a largura da mesa
+     */
+    public getTableWidth(): number {
+        return this.tableWidth;
+    }
+
+    /**
+     * Obtém a profundidade da mesa
+     */
+    public getTableDepth(): number {
+        return this.tableDepth;
     }
 }
 
