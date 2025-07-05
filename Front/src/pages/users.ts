@@ -148,6 +148,7 @@ export default function UsersPage(): void {
       }
     } catch (error) {
       console.error('Error loading users:', error);
+      showErrorMessage('Failed to load users. Please try again.');
       resultsContainer.innerHTML = `
         <div class="text-center text-white text-xl py-8">
           <p class="text-red-400 mb-2">Error loading users</p>
@@ -157,7 +158,6 @@ export default function UsersPage(): void {
           </button>
         </div>
       `;
-      showErrorMessage('Failed to load users. Please try again.');
       const retryButton = document.getElementById("retry-button");
       retryButton?.addEventListener("click", () => {
         location.reload();

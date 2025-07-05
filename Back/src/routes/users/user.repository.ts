@@ -1,6 +1,32 @@
 // src/routes/users/user.repository.ts
 import { openDb } from '../../database/database';
 
+// Helper function to construct full avatar URL from filename
+function constructAvatarUrl(avatarFilename: string | null | undefined): string | null {
+	if (!avatarFilename) return null;
+
+	// If it's already a full URL, return as is
+	if (avatarFilename.startsWith('http://') || avatarFilename.startsWith('https://')) {
+		return avatarFilename;
+	}
+
+	// Construct the full URL using the backend port from environment or default
+	const backendPort = process.env.BACK_PORT || '3142';
+	const baseUrl = `http://localhost:${backendPort}`;
+
+	return `${baseUrl}/public/avatars/${avatarFilename}`;
+}
+
+// Helper function to process user data and construct avatar URL
+function processUserData(user: any): User | null {
+	if (!user) return null;
+
+	return {
+		...user,
+		avatar_url: constructAvatarUrl(user.avatar_url)
+	};
+}
+
 // Interface for User data
 export interface User {
 	id?: number;
@@ -58,7 +84,8 @@ export async function getUsersFromDb(limit?: number, offset?: number, search?: s
 		}
 	}
 
-	return db.all(query, params);
+	const users = await db.all(query, params);
+	return users.map(user => processUserData(user)).filter((user): user is User => user !== null);
 }
 
 export async function findOrCreateUserDb(email: string, name: string, googleId: string) {
@@ -114,7 +141,8 @@ export async function findOrCreateUserDb(email: string, name: string, googleId: 
 // Get all users without pagination (for simple lists, dropdowns, etc.)
 export async function getAllUsersFromDb(): Promise<User[]> {
 	const db = await openDb();
-	return db.all('SELECT * FROM users ORDER BY created_at DESC');
+	const users = await db.all('SELECT * FROM users ORDER BY created_at DESC');
+	return users.map(user => processUserData(user)).filter((user): user is User => user !== null);
 }
 
 // Get total count of users with optional search
@@ -138,21 +166,21 @@ export async function getUsersCount(search?: string): Promise<number> {
 export async function getUserById(id: number): Promise<User | null> {
 	const db = await openDb();
 	const user = await db.get('SELECT * FROM users WHERE id = ?', [id]);
-	return user || null;
+	return processUserData(user);
 }
 
 // Get user by username
 export async function getUserByUsername(username: string): Promise<User | null> {
 	const db = await openDb();
 	const user = await db.get('SELECT * FROM users WHERE username = ?', [username]);
-	return user || null;
+	return processUserData(user);
 }
 
 // Get user by email
 export async function getUserByEmail(email: string): Promise<User | null> {
 	const db = await openDb();
 	const user = await db.get('SELECT * FROM users WHERE email = ?', [email]);
-	return user || null;
+	return processUserData(user);
 }
 
 // Create new user

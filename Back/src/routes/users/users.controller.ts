@@ -2,6 +2,8 @@
 import { FastifyRequest, FastifyReply } from 'fastify';
 import * as repository from './user.repository';
 import { CreateUserData, UpdateUserData } from './user.repository';
+import path from 'path';
+import { promises as fs } from 'fs';
 
 // Validation helper functions
 const isValidEmail = (email: string): boolean => {
