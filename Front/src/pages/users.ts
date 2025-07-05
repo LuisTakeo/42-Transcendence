@@ -1,5 +1,6 @@
 import { initializeSearchButton } from "./button.ts";
 import { usersService, User } from "../services/users.service.ts";
+import { showErrorMessage } from './notification.ts';
 
 export default function UsersPage(): void {
   const app = document.getElementById("app");
@@ -19,9 +20,9 @@ export default function UsersPage(): void {
           <input type="text" id="searchUsers" placeholder="Search by name, username, or email..."
             class="w-80 px-6 py-3 rounded-l-[5px] border border-[#383568] bg-[#383568] text-white placeholder-gray-400 focus:outline-none text-2xl [&:-webkit-autofill]:bg-[#383568] [&:-webkit-autofill]:text-white [&:-webkit-autofill]:shadow-[0_0_0_1000px_#383568_inset] [&:-webkit-autofill]:[-webkit-text-fill-color:white]" />
           <button class="px-6 py-3 bg-[#383568] text-white font-semibold rounded-r-[5px] hover:bg-[#4E4A72] transition duration-200 ease-in-out border-l-0 border border-[#383568]"
-            id="searchUsersButton">
-            <img src="../../assets/find.png" alt="find">
-          </button>
+          id="searchUsersButton">
+          <img src="../../assets/find.png" alt="find">
+        </button>
         </div>
       </div>
 
@@ -32,7 +33,7 @@ export default function UsersPage(): void {
           <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500 mx-auto mb-4"></div>
           Loading users...
         </div>
-      </div>
+          </div>
 
       <div class="flex justify-center mt-8 space-x-4" id="pagination" style="display: none;">
         <button id="prevPage" class="px-4 py-2 bg-[#383568] text-white rounded hover:bg-[#4E4A72] transition disabled:opacity-50 disabled:cursor-not-allowed">
@@ -81,7 +82,7 @@ export default function UsersPage(): void {
         <div class="flex items-center space-x-4">
           <div class="flex-shrink-0">
             ${user.avatar_url
-              ? `<img src="${user.avatar_url}" alt="${user.name}" class="w-16 h-16 rounded-full object-cover" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+              ? `<img src="${user.avatar_url}" alt="${user.name}" class="w-16 h-16 rounded-full object-cover avatar-image" data-user-name="${user.name}" data-avatar-url="${user.avatar_url}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
                  <div class="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-2xl font-bold" style="display: none;">${user.name.charAt(0).toUpperCase()}</div>`
               : `<div class="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-2xl font-bold">${user.name.charAt(0).toUpperCase()}</div>`
             }
@@ -147,6 +148,7 @@ export default function UsersPage(): void {
       }
     } catch (error) {
       console.error('Error loading users:', error);
+      showErrorMessage('Failed to load users. Please try again.');
       resultsContainer.innerHTML = `
         <div class="text-center text-white text-xl py-8">
           <p class="text-red-400 mb-2">Error loading users</p>

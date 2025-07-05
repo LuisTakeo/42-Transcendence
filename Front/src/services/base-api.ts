@@ -1,5 +1,8 @@
-const API_BASE_URL = 'http://localhost:3142';
-
+// Get the backend API URL from environment variable or default to localhost
+// Determine the backend API URL from environment variable or default to localhost
+const API_BASE_URL = import.meta.env.VITE_BACK_API_BASE_URL
+  ? import.meta.env.VITE_BACK_API_BASE_URL
+  : 'http://localhost:3142';
 export class BaseApiService {
   protected async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
     const url = `${API_BASE_URL}${endpoint}`;
@@ -45,3 +48,6 @@ export class BaseApiService {
     }
   }
 }
+
+// Export the base URL for use in other files
+export const getBaseUrl = (): string => API_BASE_URL;

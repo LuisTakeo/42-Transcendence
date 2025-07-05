@@ -37,6 +37,22 @@ export class UsersService extends BaseApiService {
     return this.request<SingleResponse<User>>(`/users/${id}`);
   }
 
+  // Update user
+  async updateUser(id: number, updateData: Partial<User>): Promise<SingleResponse<User>> {
+    return this.request<SingleResponse<User>>(`/users/${id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(updateData),
+    });
+  }
+
+  // Get available avatars
+  async getAvailableAvatars(): Promise<SimpleResponse<string[]>> {
+    return this.request<SimpleResponse<string[]>>('/users/avatars/list');
+  }
+
   // Navigate to user profile
   navigateToProfile(userId: number): void {
     // Update the URL to include the user ID
