@@ -155,7 +155,11 @@ function setupFriendDeleteHandlers(): void {
 						const response = await friendsService.deleteFriendship(parseInt(userId1, 10), parseInt(userId2, 10));
 						if (response.success) {
 							showSuccessMessage('Friend removed successfully!');
-							loadFriends(); // Reload the friends list
+							// Remove the friend element from the DOM
+							const friendElement = target.closest('.friend-entry');
+							if (friendElement) {
+								friendElement.remove();
+							}
 						} else {
 							showErrorMessage('Failed to remove friend. Please try again.');
 						}
