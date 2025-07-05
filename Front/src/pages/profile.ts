@@ -13,7 +13,7 @@ export default function ProfilePage(userId?: number): void {
   main.innerHTML = `
 	  <div class="flex flex-col md:flex-row gap-10 w-full p-8">
 		<div class="flex-1 bg-[#1E1B4B] rounded-[5px] min-h-[350px] flex flex-col items-center justify-center">
-		  <div class="w-36 h-36 rounded-full overflow-hidden bg-white mt-6 mb-6">
+		  <div class="w-36 h-36 rounded-full overflow-hidden mt-6 mb-6">
           <img id="user-avatar" src="../../assets/minecraft.jpg" alt="User" class="object-cover w-full h-full" />
 		  </div>
         <p id="user-name" class="text-white text-2xl font-semibold mb-4">Loading...</p>

@@ -15,7 +15,7 @@ export default function SettingsPage(): void {
 
 		<!-- Caixa 1 -->
 		<div class="flex-1 bg-[#1E1B4B] rounded-[5px] p-6 ">
-		  <div class="w-36 h-36 rounded-full overflow-hidden bg-white mt-6 mb-2 mx-auto relative group">
+		  <div class="w-36 h-36 rounded-full overflow-hidden mt-6 mb-2 mx-auto relative group">
 			<div id="profile-pic-container" class="w-full h-full">
 				<!-- Profile photo will be loaded here dynamically -->
 			</div>
@@ -146,15 +146,10 @@ async function loadCurrentUser(): Promise<void> {
 
 		if (!profilePicContainer || !nameInput || !usernameInput) return;
 
-		// Update profile photo using the same pattern as users.ts
+		// Update profile photo - backend now returns full URLs
 		if (user.avatar_url) {
-			// Check if it's a base64 string or a filename
-			const avatarUrl = user.avatar_url.startsWith('data:')
-				? user.avatar_url
-				: `${getBaseUrl()}/public/avatars/${user.avatar_url}`;
-
 			profilePicContainer.innerHTML = `
-				<img src="${avatarUrl}" alt="${user.name}" class="object-cover w-full h-full" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+				<img src="${user.avatar_url}" alt="${user.name}" class="object-cover w-full h-full" onerror="console.error('Avatar load failed:', '${user.avatar_url}'); this.style.display='none'; this.nextElementSibling.style.display='flex';">
 				<div class="w-full h-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-6xl font-bold text-white" style="display: none;">${user.name.charAt(0).toUpperCase()}</div>
 			`;
 		} else {
@@ -237,7 +232,7 @@ async function loadFriends(): Promise<void> {
 				<div class="flex items-center justify-between bg-[#383568] p-4 rounded-lg">
 					<div class="flex-shrink-0">
 						${friendUser.avatar_url
-							? `<img src="${friendUser.avatar_url}" alt="${displayName}" class="w-12 h-12 rounded-full object-cover" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+							? `<img src="${friendUser.avatar_url}" alt="${displayName}" class="w-12 h-12 rounded-full object-cover" onerror="console.error('Friend avatar load failed for ${displayName}:', '${friendUser.avatar_url}'); this.style.display='none'; this.nextElementSibling.style.display='flex';">
 							   <div class="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white font-bold" style="display: none;">${displayName.charAt(0).toUpperCase()}</div>`
 							: `<div class="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white font-bold">${displayName.charAt(0).toUpperCase()}</div>`
 						}
@@ -410,14 +405,12 @@ async function selectAvatar(avatarName: string): Promise<void> {
 			changePicBtn.disabled = true;
 		}
 
-		// Update the profile photo immediately
-		updateProfilePhoto(`${getBaseUrl()}/public/avatars/${avatarName}`);
-
-		// Save to backend
+		// Save to backend first
 		await saveAvatarUrl(avatarName);
 
-		// Update the profile photo after backend confirmation
-		updateProfilePhoto(`${getBaseUrl()}/public/avatars/${avatarName}`);
+		// Reload current user to get the updated avatar URL from backend
+		await loadCurrentUser();
+
 		// Close modal
 		const modal = document.getElementById('avatar-modal');
 		if (modal) {
@@ -456,19 +449,4 @@ async function saveAvatarUrl(avatarName: string): Promise<void> {
 		console.error('Error saving avatar URL:', error);
 		showErrorMessage('Failed to save avatar. Please try again.');
 	}
-}
-
-function updateProfilePhoto(avatarUrl: string): void {
-	const profilePicContainer = document.getElementById('profile-pic-container');
-	if (!profilePicContainer) return;
-
-	// Get current user name for the alt text
-	const nameInput = document.getElementById('nameInput') as HTMLInputElement;
-	const userName = nameInput?.value || 'User';
-
-	// Update the profile photo using the same pattern as users.ts
-	profilePicContainer.innerHTML = `
-		<img src="${avatarUrl}" alt="${userName}" class="object-cover w-full h-full" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-		<div class="w-full h-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-6xl font-bold text-white" style="display: none;">${userName.charAt(0).toUpperCase()}</div>
-	`;
 }
