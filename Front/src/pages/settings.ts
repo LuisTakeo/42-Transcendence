@@ -129,9 +129,8 @@ export default function SettingsPage(): void {
 
 async function loadCurrentUser(): Promise<void> {
 	try {
-		// For now, we'll use user ID 1 as the current user
-		// In a real app, you'd get this from authentication context
-		const currentUserId = 1;
+		// Retrieve the current user ID from the authentication context
+		const currentUserId = getCurrentUserId();
 
 		const userResponse = await usersService.getUserById(currentUserId);
 
