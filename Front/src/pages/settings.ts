@@ -155,11 +155,8 @@ function setupFriendDeleteHandlers(): void {
 						const response = await friendsService.deleteFriendship(parseInt(userId1, 10), parseInt(userId2, 10));
 						if (response.success) {
 							showSuccessMessage('Friend removed successfully!');
-							// Remove the friend element from the DOM
-							const friendElement = target.closest('.friend-entry');
-							if (friendElement) {
-								friendElement.remove();
-							}
+							// Reload the friends list to update the DOM
+							await loadFriends();
 						} else {
 							showErrorMessage('Failed to remove friend. Please try again.');
 						}
@@ -279,7 +276,7 @@ async function loadFriends(): Promise<void> {
 
 			if (!friendUser) {
 				return `
-					<div class="flex items-center justify-between bg-[#383568] p-4 rounded-lg">
+					<div class="flex items-center justify-between bg-[#383568] p-4 rounded-lg friend-entry">
 						<div class="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white font-bold">
 							?
 						</div>
@@ -292,7 +289,7 @@ async function loadFriends(): Promise<void> {
 			const displayName = friendUser.name || friendUser.username || 'Unknown User';
 
 			return `
-				<div class="flex items-center justify-between bg-[#383568] p-4 rounded-lg">
+				<div class="flex items-center justify-between bg-[#383568] p-4 rounded-lg friend-entry">
 					<div class="flex-shrink-0">
 						${friendUser.avatar_url
 							? `<img src="${friendUser.avatar_url}" alt="${displayName}" class="w-12 h-12 rounded-full object-cover" onerror="console.error('Friend avatar load failed for ${displayName}:', '${friendUser.avatar_url}'); this.style.display='none'; this.nextElementSibling.style.display='flex';">
