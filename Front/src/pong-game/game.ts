@@ -190,7 +190,7 @@ class MainGame {
                 break;
 
             case GameType.LOCAL_VS_AI:
-                this.instructionsText.text = "Use as setas para mover\nIA controla o paddle esquerdo";
+                this.instructionsText.text = "Use as setas para mover\nIA controla o paddle direito";
                 // 1 jogador contra IA
                 const playerController = new KeyboardController(
                     "player_keyboard",

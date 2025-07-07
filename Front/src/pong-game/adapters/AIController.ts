@@ -17,6 +17,8 @@ export class AIController implements IInputController {
     private tableWidth: number;
     private tableDepth: number;
     private paddleSize: { width: number; height: number; depth: number };
+    private lastDecisionTime: number = 0; // Tempo da última decisão
+    private difficultLevel: number = 0; // Contador de decisões dentro do intervalo
 
     /**
      * Cria um controlador de IA para paddle
@@ -93,13 +95,24 @@ export class AIController implements IInputController {
     public update(deltaTime: number): void {
         if (!this.paddle || !this.ball) return;
 
-        // Obtém as posições
+        const currentTime = Date.now();
+
+
+        if (currentTime - this.lastDecisionTime >= 1000) {
+            this.lastDecisionTime = currentTime;
+            this.difficultLevel = 0;
+        }
+
+        if (this.difficultLevel >= 20) {
+            return;
+        }
+
+        this.difficultLevel++;
+
         const ballPosition = this.ball.getMesh().position;
         const paddlePosition = this.paddle.getMesh().position;
 
-        // Decide se o paddle se move
         if (Math.random() > this.reactionSpeed) {
-            // Ocasionalmente não faz nada - simula tempo de reação humana
             return;
         }
 
@@ -109,17 +122,10 @@ export class AIController implements IInputController {
 
         const targetZ = ballPosition.z + randomError;
 
-        // Calcula e aplica o movimento
         const difference = targetZ - paddlePosition.z;
+        const moveLimit = (this.tableDepth / 2) - (this.paddleSize.depth - 3);
+        const moveAmount = difference * this.moveSpeed * deltaTime * 60;
 
-        // ✅ Calcular limite baseado no tamanho da mesa
-        // const margin = 5 + this.paddle.getSide().depth / 2; // Margem de segurança
-        const moveLimit = (this.tableDepth / 2) - (this.paddleSize.depth - 5); // Deixa uma margem de 5 unidades
-
-        // Aplica movimento suavizado pela dificuldade
-        const moveAmount = difference * this.moveSpeed * deltaTime * 60; // Normaliza com base em 60 FPS
-
-        // Limita o movimento para não ultrapassar os limites da mesa
         if (moveAmount > 0) {
             this.paddle.moveUp(moveLimit);
         } else if (moveAmount < 0) {

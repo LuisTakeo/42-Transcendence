@@ -12,7 +12,7 @@ class Paddle {
     private scene: Scene;
     private mesh: Mesh;
     private side: PaddleSide;
-    private speed: number = 0.5;
+    private speed: number = 0.65;
     private paddleSize: { width: number; height: number; depth: number };
 
     /**
