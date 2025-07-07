@@ -8,6 +8,7 @@ import { KeyboardController } from "./adapters/KeyboardController";
 import { AIController } from "./adapters/AIController";
 import { RemoteController } from "./adapters/RemoteController";
 import { TextBlock, AdvancedDynamicTexture, Control, Rectangle } from "@babylonjs/gui";
+import { IInputController } from "./ports/IInputController";
 
 /**
  * Tipos de jogo disponíveis
@@ -49,17 +50,16 @@ class MainGame {
      * @param gameType Tipo de jogo a ser iniciado
      * @param tableWidth Largura da mesa
      * @param tableDepth Profundidade da mesa
-     */    constructor(
+     */    
+    constructor(
         canvasId: string,
         gameType: GameType = GameType.LOCAL_TWO_PLAYERS,
         tableWidth: number = 100,
         tableDepth: number = 80
     ) {
-        // Get canvas reference
         this.canvas = document.getElementById(canvasId) as unknown as HTMLCanvasElement;
         if (!this.canvas) throw new Error(`Canvas with ID "${canvasId}" not found`);
 
-        // Armazena o tipo de jogo
         this.gameType = gameType;
         this.score = { player1: 0, player2: 0 };
 
@@ -84,25 +84,32 @@ class MainGame {
      * Initialize the scene with basic elements
      */
     private initializeScene(): void {
-        // Set background color
-        this.scene.clearColor.set(0, 0.7, 1, 1);
+        this.setupCamera();
+        this.setupLights();
+        this.setupEnvironment();
+        this.setupTable();
+        this.setupInput();
+    }
 
-        // Initialize components
+    private setupCamera(): void {
         this.cameraManager.createCamera(new Vector3(10, 80, -100));
-        this.lightManager.createLights();
-        this.environmentManager.createGround();
+    }
 
+    private setupLights(): void {
+        this.lightManager.createLights();
+    }
+
+    private setupEnvironment(): void {
+        this.environmentManager.createGround();
+    }
+
+    private setupTable(): void {
         this.tableManager.setShadowGenerator(this.lightManager.getShadowGenerator());
         this.tableManager.createTable();
+    }
 
-        // Configurar controladores de input com base no tipo de jogo
+    private setupInput(): void {
         this.setupInputBasedOnGameType();
-
-        // Configurar sombras no chão
-        const ground = this.environmentManager.getGround();
-        if (ground) {
-            ground.receiveShadows = true;
-        }
     }
 
     /**
@@ -160,67 +167,59 @@ class MainGame {
 
         switch (this.gameType) {
             case GameType.LOCAL_TWO_PLAYERS:
-                this.instructionsText.text = "Use W/S para Jogador 1\nSetas para Jogador 2";
-                // 2 jogadores locais no mesmo teclado
-                const player1Controller = new KeyboardController(
-                    "player1_keyboard",
-                    this.scene,
-                    "w",  // Tecla para cima
-                    "s",   // Tecla para baixo
-                    0.5,  // Velocidade de movimento
-                    this.tableManager.getTableWidth(),
-                    this.tableManager.getTableDepth()
+                this.registerControllers({
+                    info: "player1_keyboard", 
+                    controller: new KeyboardController(
+                        "player1_keyboard", this.scene, "w", "s", 0.5,
+                        this.tableManager.getTableWidth(),
+                        this.tableManager.getTableDepth()
+                    )
+                },
+                {
+                    info: "player2_keyboard", 
+                    controller: new KeyboardController(
+                        "player2_keyboard",  this.scene,  "ArrowUp",  "ArrowDown",  0.5,
+                        this.tableManager.getTableWidth(),
+                        this.tableManager.getTableDepth())
+                },
+                "Use W/S para Jogador 1\nSetas para Jogador 2"
                 );
-
-                const player2Controller = new KeyboardController(
-                    "player2_keyboard",
-                    this.scene,
-                    "ArrowUp",    // Tecla para cima
-                    "ArrowDown",
-                    0.5,  // Velocidade de movimento
-                    this.tableManager.getTableWidth(),
-                    this.tableManager.getTableDepth()
-                );
-
-                this.inputManager.registerController(player1Controller);
-                this.inputManager.registerController(player2Controller);
-
-                this.inputManager.connectControllerToPaddle("player1_keyboard", leftPaddle);
-                this.inputManager.connectControllerToPaddle("player2_keyboard", rightPaddle);
                 break;
 
             case GameType.LOCAL_VS_AI:
-                this.instructionsText.text = "Use as setas para mover\nIA controla o paddle direito";
-                // 1 jogador contra IA
-                const playerController = new KeyboardController(
-                    "player_keyboard",
-                    this.scene,
-                    "ArrowUp",
-                    "ArrowDown",
-                    0.5,  // Velocidade de movimento
-                    this.tableManager.getTableWidth(),
-                    this.tableManager.getTableDepth()
-                );
-
-                const aiController = new AIController(
-                    "ai_controller",
-                    this.scene,
-                    ball,                    // Passa a bola para a IA seguir
-                    0.8,                     // Dificuldade média
-                    0.5,                     // Velocidade de movimento
-                    this.tableManager.getTableWidth(),  // Largura da mesa
-                    this.tableManager.getTableDepth()   // Profundidade da mesa
-                );
-
-                this.inputManager.registerController(playerController);
-                this.inputManager.registerController(aiController);
-
-                // O jogador controla o paddle direito, a IA controla o esquerdo
-                this.inputManager.connectControllerToPaddle("player_keyboard", leftPaddle);
-                this.inputManager.connectControllerToPaddle("ai_controller", rightPaddle);
+                this.registerControllers({   
+                    info: "player_keyboard", 
+                    controller: new KeyboardController( "player_keyboard",
+                        this.scene, "ArrowUp", "ArrowDown", 0.5,
+                        this.tableManager.getTableWidth(),
+                        this.tableManager.getTableDepth()
+                    )}, 
+                    {   
+                        info: "ai_controller", 
+                    controller: new AIController(
+                        "ai_controller", this.scene, ball, 0.8, 0.5,
+                        this.tableManager.getTableWidth(),
+                        this.tableManager.getTableDepth()
+                    )}, 
+                    "Use as setas para mover\n"
+                )
                 break;
 
             case GameType.REMOTE:
+                this.registerControllers({
+                    info: "local_player", 
+                    controller: new KeyboardController(
+                        "local_player", this.scene, "ArrowUp", "ArrowDown", 0.5,
+                        this.tableManager.getTableWidth(),
+                        this.tableManager.getTableDepth()
+                    )
+                },
+                {
+                    info: "remote_player", 
+                    controller: new RemoteController("remote_player")
+                },
+                "Use as setas para mover\n"
+                )
                 this.instructionsText.text = "Use as setas para mover";
                 // Jogo remoto (online)
                 const localController = new KeyboardController(
@@ -241,7 +240,8 @@ class MainGame {
                 // Isso pode mudar dependendo da sua lógica de rede
                 this.inputManager.connectControllerToPaddle("local_player", rightPaddle);
                 this.inputManager.connectControllerToPaddle("remote_player", leftPaddle);
-                break;            default:
+                break;            
+            default:
                 console.warn(`Tipo de jogo desconhecido: ${this.gameType}, usando modo dois jogadores.`);
                 // Configuração padrão (dois jogadores)
                 this.gameType = GameType.LOCAL_TWO_PLAYERS;
@@ -268,33 +268,47 @@ class MainGame {
         }
     }
 
+    private registerControllers(
+        player1: {info: string, controller: IInputController}, 
+        player2: {info: string, controller: IInputController},
+        instructions: string): void {
+        this.instructionsText.text = instructions;
+        this.inputManager.registerController(player1.controller);
+        this.inputManager.registerController(player2.controller);
+        this.inputManager.connectControllerToPaddle(player1.info, this.tableManager.getPaddleLeft());
+        this.inputManager.connectControllerToPaddle(player2.info, this.tableManager.getPaddleRight());
+    }
+
     /**
      * Start the rendering loop
      */
     public run(): void {
-        // Initialize the scene
         this.initializeScene();
 
-        // Register the rendering loop
+        // Loop único para renderização e atualização
         this.engine.runRenderLoop(() => {
             this.update();
             this.scene.render();
         });
 
-        // Adjust canvas size when window is resized
+        // Ajustar tamanho do canvas ao redimensionar janela
         window.addEventListener('resize', () => {
             this.engine.resize();
         });
     }
+
+    // Refatoração do método update para simplificar lógica
     public update(): void {
-        // Calcular delta time para movimentos suaves
         const deltaTime = this.engine.getDeltaTime() / 1000;
 
-        // Atualizar controladores de input
+        // Atualizar todos os componentes
         this.inputManager.update(deltaTime);
-
-        // Atualizar componentes do jogo (bola e colisões)
         this.tableManager.update();
+        this.updateScore();
+    }
+
+    private updateScore(): void {
+        this.scoreText.text = `Score: ${this.score.player1} - ${this.score.player2}`;
     }
 
 

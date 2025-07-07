@@ -2,14 +2,13 @@ import { Scene } from "@babylonjs/core";
 import { IInputController } from "../ports/IInputController";
 import { Paddle } from "../objects/Paddle";
 import { Ball } from "../objects/Ball";
+import { BaseController } from "./BaseController";
 
 /**
  * Controlador de Inteligência Artificial para o paddle
  */
-export class AIController implements IInputController {
-    private id: string;
+export class AIController extends BaseController {
     private scene: Scene;
-    private paddle: Paddle | null = null;
     private ball: Ball | null = null;
     private reactionSpeed: number;
     private moveSpeed: number;
@@ -39,6 +38,7 @@ export class AIController implements IInputController {
         tableWidth: number = 100,
         tableDepth: number = 80
     ) {
+        super(id);
         this.id = id;
         this.scene = scene;
         this.ball = ball;

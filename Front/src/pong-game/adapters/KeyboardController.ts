@@ -1,14 +1,13 @@
 import { Scene } from "@babylonjs/core";
 import { IInputController } from "../ports/IInputController";
+import { BaseController } from "./BaseController";
 import { Paddle } from "../objects/Paddle";
 
 /**
  * Controlador de paddle baseado em teclado
  */
-export class KeyboardController implements IInputController {
-    private id: string;
+export class KeyboardController extends BaseController {
     private scene: Scene;
-    private paddle: Paddle | null = null;
     private upKey: string;
     private downKey: string;
     private keyStatus: { [key: string]: boolean } = {};
@@ -37,6 +36,7 @@ export class KeyboardController implements IInputController {
         moveSpeed: number = 0.5,
         tableWidth: number = 100,
         tableDepth: number = 80) {
+        super(id);
         this.id = id;
         this.scene = scene;
         this.upKey = upKey;
@@ -46,13 +46,7 @@ export class KeyboardController implements IInputController {
         this.tableDepth = tableDepth;
     }
 
-    /**
-     * Retorna o ID do controlador
-     */
-    public getId(): string {
-        return this.id;
-    }
-
+  
     /**
      * Retorna o paddle conectado
      */
