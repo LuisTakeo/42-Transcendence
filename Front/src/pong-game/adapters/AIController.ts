@@ -1,8 +1,9 @@
-import { Scene } from "@babylonjs/core";
+import { Scene, Vector3 } from "@babylonjs/core";
 import { IInputController } from "../ports/IInputController";
 import { Paddle } from "../objects/Paddle";
 import { Ball } from "../objects/Ball";
 import { BaseController } from "./BaseController";
+import { LevelAI } from "../game";
 
 /**
  * Controlador de Inteligência Artificial para o paddle
@@ -13,12 +14,12 @@ export class AIController extends BaseController {
     private reactionSpeed: number;
     private moveSpeed: number;
     private difficultyFactor: number; // 0 = fácil, 1 = difícil
-    private tableWidth: number;
     private tableDepth: number;
     private paddleSize: { width: number; height: number; depth: number };
     private lastDecisionTime: number = 0; // Tempo da última decisão
     private difficultLevel: number = 0; // Contador de decisões dentro do intervalo
-
+    private decisions: number = 0; // Contador de decisões
+    private lastBallPosition: Vector3 | null = null; // Última posição capturada da bolinha
     /**
      * Cria um controlador de IA para paddle
      * @param id Identificador único do controlador
@@ -36,7 +37,8 @@ export class AIController extends BaseController {
         difficulty: number = 0.2,
         moveSpeed: number = 0.5,
         tableWidth: number = 100,
-        tableDepth: number = 80
+        tableDepth: number = 80,
+        difficultLevel: LevelAI = LevelAI.EASY
     ) {
         super(id);
         this.id = id;
@@ -48,7 +50,7 @@ export class AIController extends BaseController {
         this.difficultyFactor = Math.max(0, Math.min(1, difficulty)); // Limita entre 0 e 1
         this.reactionSpeed = 1 - (0.7 * (1 - this.difficultyFactor)); // Mais lento em dificuldades mais baixas
         this.moveSpeed = moveSpeed * (0.3 + (0.7 * this.difficultyFactor)); // Mais lento em dificuldades mais baixas
-
+        this.difficultLevel = difficultLevel; // Define o nível de dificuldade da IA
     }
 
     /**
@@ -90,46 +92,40 @@ export class AIController extends BaseController {
 
     /**
      * Atualiza a posição do paddle baseada na posição da bola
-     * @param deltaTime Tempo desde o último frame
      */
-    public update(deltaTime: number): void {
+    public update(): void {
         if (!this.paddle || !this.ball) return;
 
         const currentTime = Date.now();
 
-
         if (currentTime - this.lastDecisionTime >= 1000) {
             this.lastDecisionTime = currentTime;
-            this.difficultLevel = 0;
+
+            // Capturar a posição atual da bolinha
+            this.lastBallPosition = this.ball.getMesh().position.clone();
+            this.decisions = 0; // Reseta o contador de decisões
         }
 
-        if (this.difficultLevel >= 20) {
-            return;
-        }
-
-        this.difficultLevel++;
-
-        const ballPosition = this.ball.getMesh().position;
+        if (!this.lastBallPosition) return;
+        if (this.decisions >= this.difficultLevel) return;
+        
+        this.decisions++;
         const paddlePosition = this.paddle.getMesh().position;
 
-        if (Math.random() > this.reactionSpeed) {
+        // Decidir movimento com base na última posição capturada
+        const targetZ = this.lastBallPosition.z;
+        
+        if (Math.abs(targetZ - paddlePosition.z) < 0.5) 
             return;
-        }
-
-        // Adiciona algum erro aleatório com base na dificuldade
-        const errorFactor = (1 - this.difficultyFactor) * 10;
-        const randomError = (Math.random() - 0.5) * errorFactor;
-
-        const targetZ = ballPosition.z + randomError;
-
+        
         const difference = targetZ - paddlePosition.z;
-        const moveLimit = (this.tableDepth / 2) - (this.paddleSize.depth - 3);
-        const moveAmount = difference * this.moveSpeed * deltaTime * 60;
+        const border = (this.tableDepth / 2) - (this.paddleSize.depth - 2.5);
+        
 
-        if (moveAmount > 0) {
-            this.paddle.moveUp(moveLimit);
-        } else if (moveAmount < 0) {
-            this.paddle.moveDown(moveLimit);
+        if (difference > 0) {
+            this.paddle.moveUp(border);
+        } else if (difference < 0) {
+            this.paddle.moveDown(border);
         }
     }
 
@@ -159,5 +155,21 @@ export class AIController extends BaseController {
     public updateTableSize(tableWidth: number, tableDepth: number): void {
         this.tableWidth = tableWidth;
         this.tableDepth = tableDepth;
+    }
+
+    public predictBallPosition(): Vector3 | null {
+        if (!this.ball) return null;
+
+        const currentPosition = this.ball.getMesh().position;
+        const velocity = this.ball.getVelocity(); // Usar método público getVelocity
+
+        // Simular bounces na mesa
+        let futurePosition = currentPosition.add(velocity.scale(1));
+        if (futurePosition.z > this.tableDepth / 2 || futurePosition.z < -this.tableDepth / 2) {
+            velocity.z *= -1; // Inverter direção no eixo Z
+            futurePosition = currentPosition.add(velocity.scale(1));
+        }
+
+        return futurePosition;
     }
 }

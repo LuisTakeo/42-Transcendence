@@ -15,3 +15,4 @@ export const GameConfig = {
         moveSpeed: 0.5,
     },
 };
+

@@ -25,7 +25,7 @@ class Paddle {
     constructor(scene: Scene, side: PaddleSide, tableWidth: number, tableDepth: number) {
         this.scene = scene;
         this.side = side;
-        this.paddleSize = { width: 2, height: 4, depth: 10 };
+        this.paddleSize = { width: 2.5, height: 4, depth: 15 };
         const xPos = side === 'left' ? -(tableWidth / 2) + 3 : (tableWidth / 2) - 3;
         this.createPaddle(new Vector3(xPos, 11, 0), tableDepth);
     }
@@ -43,8 +43,7 @@ class Paddle {
 
         const material = new StandardMaterial("paddleMaterial", this.scene);
         material.diffuseColor = this.side === 'left' ?
-            new Color3(1, 0.2, 0.2) :  // Vermelho para o jogador da esquerda
-            new Color3(0.2, 0.2, 1);   // Azul para o jogador da direita
+            new Color3(0.2, 0.2, 1) :  new Color3(1, 0.2, 0.2);  
         material.specularColor = new Color3(0.3, 0.3, 0.3);
         this.mesh.material = material;
     }

@@ -42,7 +42,7 @@ class TableManager {
         this.tableDepth = tableDepth;
 
         // Define a cor primária da mesa
-        this.colorPrimary = new Color3(0, 0.1, 0.9);
+        this.colorPrimary = new Color3(0.2, 0.2, 0.2);
         // Define a cor secundária da mesa
         this.colorSecondary = new Color3(1, 1, 1);
     }
@@ -73,12 +73,12 @@ class TableManager {
         // Exemplo: Criar uma arquibancada no lado direito
         const rightBleacher = new BleacherSection(
             this.scene,
-            new Vector3(tableHalfWidth + distanceFromTable, 0, 0),
-            this.tableDepth, // Largura alinhada com a profundidade da mesa
-            30, // Profundidade da arquibancada
-            6,  // Número de fileiras
-            15, // Assentos por fileira
-            90  // Rotação em graus
+            new Vector3(tableHalfWidth + distanceFromTable + 15, 0, 0),
+            this.tableDepth,    
+            30,
+            10,
+            15,
+            90  
         );
 
         this.bleachers.push(rightBleacher);
@@ -89,35 +89,77 @@ class TableManager {
         // Lado esquerdo (exemplo)
         const leftBleacher = new BleacherSection(
             this.scene,
-            new Vector3(-(tableHalfWidth + distanceFromTable), 0, 0),
+            new Vector3(-(tableHalfWidth + distanceFromTable + 15), 0, 0),
             this.tableDepth,
-            20,
-            5,
+            30,
             10,
+            15,
             -90
         );
         this.bleachers.push(leftBleacher);
 
         const frontBleacher1 = new BleacherSection(
             this.scene,
-            new Vector3(-50, 0, tableHalfDepth + distanceFromTable),
+            new Vector3(-80, 0, tableHalfDepth + distanceFromTable),
             this.tableWidth,
-            20,
-            5,
+            30,
             10,
+            15,
             0
         );
         const frontBleacher2 = new BleacherSection(
             this.scene,
-            new Vector3(50, 0, tableHalfDepth + distanceFromTable),
+            new Vector3(10, 0, tableHalfDepth + distanceFromTable),
             this.tableWidth,
-            20,
-            5,
+            30,
             10,
+            15,
             0
         );
+        const frontBleacher3 = new BleacherSection(
+            this.scene,
+            new Vector3(100, 0, tableHalfDepth + distanceFromTable),
+            this.tableWidth,
+            30,
+            10,
+            15,
+            0
+        );
+
         this.bleachers.push(frontBleacher1);
         this.bleachers.push(frontBleacher2);
+        this.bleachers.push(frontBleacher3);
+
+        const backBleacher1 = new BleacherSection(
+            this.scene,
+            new Vector3(-80, 0, -(tableHalfDepth + distanceFromTable)),
+            this.tableWidth,
+            30,
+            10,
+            15,
+            180
+        );
+        const backBleacher2 = new BleacherSection(
+            this.scene,
+            new Vector3(10, 0, -(tableHalfDepth + distanceFromTable)),
+            this.tableWidth,
+            30,
+            10,
+            15,
+            180
+        );
+        const backBleacher3 = new BleacherSection(
+            this.scene,
+            new Vector3(100, 0, -(tableHalfDepth + distanceFromTable)),
+            this.tableWidth,
+            30,
+            10,
+            15,
+            180
+        );
+        this.bleachers.push(backBleacher1);
+        this.bleachers.push(backBleacher2);
+        this.bleachers.push(backBleacher3);
     }
 
     public setShadowGenerator(shadowGenerator: ShadowGenerator): void {
@@ -165,7 +207,10 @@ class TableManager {
      */
 	private createGameElements(): void {
         // Cria a bola no centro da mesa
-        this.ball = new Ball(this.scene, new Vector3(0, 12, 0), this.ballSpeed);
+        this.ball = new Ball(this.scene, 
+            new Vector3(0, 12, 0), 
+            this.ballSpeed,
+            { width: this.tableWidth, depth: this.tableDepth });
 
         // Cria os paddles em cada extremidade da mesa
         this.paddleLeft = new Paddle(this.scene, 'left', this.tableWidth, this.tableDepth);
@@ -325,8 +370,6 @@ class TableManager {
             this.checkBallPaddleCollision();
         }
 
-        // Você pode adicionar controles para os paddles aqui
-        // this.updatePaddleControls();
 	}
 
 	private checkBallPaddleCollision(): void {
@@ -335,11 +378,8 @@ class TableManager {
         const paddleRightMesh = this.paddleRight.getMesh();
 
         let velocity = this.ball.getVelocity();
-        const ballRadius = 0.75; // Raio da bola
-        const paddleHeight = 10; // Altura aproximada do paddle
-        console.log(ballMesh);
-        console.log(paddleLeftMesh);
-        console.log(paddleRightMesh);
+        
+        const paddleHeight = 10; 
         // Colisão com paddle esquerdo
         if (ballMesh.intersectsMesh(paddleLeftMesh, false)) {
             if (velocity.x < 0) { // Se estiver se movendo para a esquerda
@@ -396,28 +436,7 @@ class TableManager {
         }
     }
 
-	/**
-     * Atualiza os controles dos paddles
-     */
-    private updatePaddleControls(): void {
-        // Esta é uma implementação básica para testes
-        // Você pode substituir por controles reais baseados em inputs do usuário
 
-        // Define o limite de movimento com base na mesa
-        const moveLimit = (this.tableDepth / 2) - 5;
-        console.log("depth limit:", moveLimit);
-        console.log("depth:", this.tableDepth);
-        // Exemplo de movimentação automatizada do paddle esquerdo (IA simples)
-        const ballPosition = this.ball.getMesh().position;
-        if (ballPosition.z > this.paddleLeft.getMesh().position.z + 2) {
-            this.paddleLeft.moveUp(moveLimit);
-        } else if (ballPosition.z < this.paddleLeft.getMesh().position.z - 2) {
-            this.paddleLeft.moveDown(moveLimit);
-        }
-
-        // Para o paddle direito, você pode implementar controles do jogador
-        // Aqui seria onde você conectaria inputs do teclado, por exemplo
-    }
 
     /**
      * Obtém a referência para o paddle esquerdo

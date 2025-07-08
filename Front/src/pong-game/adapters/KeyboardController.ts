@@ -115,7 +115,7 @@ export class KeyboardController extends BaseController {
         }
 
         if (direction !== 0) {
-            const moveLimit = (this.tableDepth / 2) - (this.paddleSize.depth - 3); // Deixa uma margem de 5 unidades
+            const moveLimit = (this.tableDepth / 2) - (this.paddleSize.depth - 2.5); // Deixa uma margem de 5 unidades
 
 
             if (direction < 0) {
