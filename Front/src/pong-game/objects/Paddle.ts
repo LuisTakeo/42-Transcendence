@@ -12,7 +12,8 @@ class Paddle {
     private scene: Scene;
     private mesh: Mesh;
     private side: PaddleSide;
-    private speed: number = 0.5;
+    private speed: number = 0.65;
+    private paddleSize: { width: number; height: number; depth: number };
 
     /**
      * Construtor do paddle
@@ -24,8 +25,7 @@ class Paddle {
     constructor(scene: Scene, side: PaddleSide, tableWidth: number, tableDepth: number) {
         this.scene = scene;
         this.side = side;
-
-        // Posição X baseada no lado do jogador
+        this.paddleSize = { width: 2.5, height: 4, depth: 15 };
         const xPos = side === 'left' ? -(tableWidth / 2) + 3 : (tableWidth / 2) - 3;
         this.createPaddle(new Vector3(xPos, 11, 0), tableDepth);
     }
@@ -37,18 +37,13 @@ class Paddle {
      */
     private createPaddle(position: Vector3, tableDepth: number): void {
         // Criar um paddle retangular
-        this.mesh = MeshBuilder.CreateBox("paddle_" + this.side, {
-            width: 2,
-            height: 4,
-            depth: 10
-        }, this.scene);
+        this.mesh = MeshBuilder.CreateBox("paddle_" + this.side, this.paddleSize, this.scene);
 
         this.mesh.position = position;
 
         const material = new StandardMaterial("paddleMaterial", this.scene);
         material.diffuseColor = this.side === 'left' ?
-            new Color3(1, 0.2, 0.2) :  // Vermelho para o jogador da esquerda
-            new Color3(0.2, 0.2, 1);   // Azul para o jogador da direita
+            new Color3(0.2, 0.2, 1) :  new Color3(1, 0.2, 0.2);  
         material.specularColor = new Color3(0.3, 0.3, 0.3);
         this.mesh.material = material;
     }
@@ -78,6 +73,10 @@ class Paddle {
      */
     public getMesh(): Mesh {
         return this.mesh;
+    }
+
+    public getPaddleSize(): {width: number; height: number; depth: number} {
+        return this.paddleSize;
     }
 
     /**

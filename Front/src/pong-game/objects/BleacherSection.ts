@@ -65,13 +65,13 @@ class BleacherSection {
         const seatMaterials = [
             new StandardMaterial("seatMat1", this.scene),
             new StandardMaterial("seatMat2", this.scene),
-            new StandardMaterial("seatMat3", this.scene),
+            // new StandardMaterial("seatMat3", this.scene),
         ];
 
         // Diferentes cores para os assentos
-        seatMaterials[0].diffuseColor = new Color3(0.9, 0.2, 0.2); // Vermelho
-        seatMaterials[1].diffuseColor = new Color3(0.2, 0.2, 0.9); // Azul
-        seatMaterials[2].diffuseColor = new Color3(0.9, 0.9, 0.2); // Amarelo
+        seatMaterials[1].diffuseColor = new Color3(0.1, 0.1, 0.1); // Vermelho
+        seatMaterials[0].diffuseColor = new Color3(.8, .8, .8); // Azul
+        // seatMaterials[2].diffuseColor = new Color3(0.9, 0.9, 0.2); // Amarelo
 
         // Criar fileiras e assentos
         for (let row = 0; row < this.rowCount; row++) {
