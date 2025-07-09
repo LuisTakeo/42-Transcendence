@@ -6,7 +6,10 @@ ENV FRONT_PORT=${FRONT_PORT}
 WORKDIR /frontend
 
 COPY package.json package-lock.json* ./
-RUN npm install
+
+RUN npm cache clean --force && \
+    rm -rf node_modules package-lock.json && \
+    npm install
 
 RUN npm install -g vite
 
