@@ -53,11 +53,8 @@ export async function getAllUsers(request: FastifyRequest, reply: FastifyReply) 
 			repository.getUsersCount(search)
 		]);
 
-		// Remove password_hash from response for security
-		const safeUsers = users.map(user => {
-			const { password_hash, ...safeUser } = user;
-			return safeUser;
-		});
+		// Users are already safe - no password data in repository
+		const safeUsers = users;
 
 		// Calculate pagination metadata
 		const totalPages = Math.ceil(totalCount / limitNum);
@@ -92,11 +89,8 @@ export async function getAllUsersSimple(request: FastifyRequest, reply: FastifyR
 	try {
 		const users = await repository.getAllUsersFromDb();
 
-		// Remove password_hash from response for security
-		const safeUsers = users.map(user => {
-			const { password_hash, ...safeUser } = user;
-			return safeUser;
-		});
+		// Users are already safe - no password data in repository
+		const safeUsers = users;
 
 		reply.send({
 			success: true,
@@ -134,8 +128,8 @@ export async function getUserById(request: FastifyRequest, reply: FastifyReply) 
 			});
 		}
 
-		// Remove password_hash from response
-		const { password_hash, ...safeUser } = user;
+		// User data is already safe - no password data in repository
+		const safeUser = user;
 
 		reply.send({
 			success: true,
@@ -153,14 +147,14 @@ export async function getUserById(request: FastifyRequest, reply: FastifyReply) 
 // Create new user
 export async function createUser(request: FastifyRequest, reply: FastifyReply) {
 	try {
-		const { name, username, email, password_hash, avatar_url } = request.body as CreateUserData;
+		const { name, username, email, avatar_url } = request.body as CreateUserData;
 
 		// Validation
-		if (!name || !username || !email || !password_hash) {
+		if (!name || !username || !email) {
 			return reply.status(400).send({
 				success: false,
 				error: 'Missing required fields',
-				required: ['name', 'username', 'email', 'password_hash']
+				required: ['name', 'username', 'email']
 			});
 		}
 
@@ -207,12 +201,11 @@ export async function createUser(request: FastifyRequest, reply: FastifyReply) {
 			name: name.trim(),
 			username: username.trim(),
 			email: email.trim().toLowerCase(),
-			password_hash,
 			avatar_url
 		});
 
-		// Remove password_hash from response
-		const { password_hash: _, ...safeUser } = newUser;
+		// User data is already safe - no password data in repository
+		const safeUser = newUser;
 
 		reply.status(201).send({
 			success: true,
@@ -291,7 +284,6 @@ export async function updateUser(request: FastifyRequest, reply: FastifyReply) {
 		if (updateData.name) cleanedData.name = updateData.name.trim();
 		if (updateData.username) cleanedData.username = updateData.username.trim();
 		if (updateData.email) cleanedData.email = updateData.email.trim().toLowerCase();
-		if (updateData.password_hash) cleanedData.password_hash = updateData.password_hash;
 		if (updateData.avatar_url !== undefined) cleanedData.avatar_url = updateData.avatar_url;
 		if (updateData.is_online !== undefined) cleanedData.is_online = updateData.is_online;
 		if (updateData.last_seen_at !== undefined) cleanedData.last_seen_at = updateData.last_seen_at;
@@ -305,8 +297,8 @@ export async function updateUser(request: FastifyRequest, reply: FastifyReply) {
 			});
 		}
 
-		// Remove password_hash from response
-		const { password_hash, ...safeUser } = updatedUser;
+		// User data is already safe - no password data in repository
+		const safeUser = updatedUser;
 
 		reply.send({
 			success: true,

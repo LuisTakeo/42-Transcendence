@@ -2,46 +2,46 @@
 # You can use this with VS Code REST Client extension or any HTTP client
 
 ### Get all messages (default pagination)
-GET http://localhost:3143/messages
+GET http://localhost:3142/messages
 
 ### Get messages with pagination (page 1, limit 5)
-GET http://localhost:3143/messages?page=1&limit=5
+GET http://localhost:3142/messages?page=1&limit=5
 
 ### Search messages by content
-GET http://localhost:3143/messages?search=oi
+GET http://localhost:3142/messages?search=oi
 
 ### Get all messages without pagination (simple list)
-GET http://localhost:3143/messages/all
+GET http://localhost:3142/messages/all
 
 ### Get message by ID
-GET http://localhost:3143/messages/1
+GET http://localhost:3142/messages/1
 
 ### Get messages by conversation ID (conversation 1)
-GET http://localhost:3143/messages/conversation/1
+GET http://localhost:3142/messages/conversation/1
 
 ### Get messages by conversation ID with pagination
-GET http://localhost:3143/messages/conversation/1?page=1&limit=10
+GET http://localhost:3142/messages/conversation/1?page=1&limit=10
 
 ### Get messages by user ID (Alice's messages)
-GET http://localhost:3143/messages/user/1
+GET http://localhost:3142/messages/user/1
 
 ### Get messages by user ID (Bob's messages)
-GET http://localhost:3143/messages/user/2
+GET http://localhost:3142/messages/user/2
 
 ### Get recent messages (activity feed)
-GET http://localhost:3143/messages/recent
+GET http://localhost:3142/messages/recent
 
 ### Get recent messages with limit
-GET http://localhost:3143/messages/recent?limit=10
+GET http://localhost:3142/messages/recent?limit=10
 
 ### Search messages by content
-GET http://localhost:3143/messages/search?q=oi
+GET http://localhost:3142/messages/search?q=oi
 
 ### Search messages with pagination
-GET http://localhost:3143/messages/search?q=bem&page=1&limit=5
+GET http://localhost:3142/messages/search?q=bem&page=1&limit=5
 
 ### Create a new message (Alice to Bob)
-POST http://localhost:3143/messages
+POST http://localhost:3142/messages
 Content-Type: application/json
 
 {
@@ -51,7 +51,7 @@ Content-Type: application/json
 }
 
 ### Create another message (Bob replies to Alice)
-POST http://localhost:3143/messages
+POST http://localhost:3142/messages
 Content-Type: application/json
 
 {
@@ -61,7 +61,7 @@ Content-Type: application/json
 }
 
 ### Create a message in a new conversation
-POST http://localhost:3143/messages
+POST http://localhost:3142/messages
 Content-Type: application/json
 
 {
@@ -71,7 +71,7 @@ Content-Type: application/json
 }
 
 ### Test validation - Empty content
-POST http://localhost:3143/messages
+POST http://localhost:3142/messages
 Content-Type: application/json
 
 {
@@ -81,7 +81,7 @@ Content-Type: application/json
 }
 
 ### Test validation - Missing required fields
-POST http://localhost:3143/messages
+POST http://localhost:3142/messages
 Content-Type: application/json
 
 {
@@ -90,7 +90,7 @@ Content-Type: application/json
 }
 
 ### Test validation - Invalid conversation_id
-POST http://localhost:3143/messages
+POST http://localhost:3142/messages
 Content-Type: application/json
 
 {
@@ -100,7 +100,7 @@ Content-Type: application/json
 }
 
 ### Test validation - Invalid sender_id
-POST http://localhost:3143/messages
+POST http://localhost:3142/messages
 Content-Type: application/json
 
 {
@@ -110,7 +110,7 @@ Content-Type: application/json
 }
 
 ### Test validation - Content too long (over 1000 characters)
-POST http://localhost:3143/messages
+POST http://localhost:3142/messages
 Content-Type: application/json
 
 {
@@ -120,7 +120,7 @@ Content-Type: application/json
 }
 
 ### Test validation - Invalid message ID
-GET http://localhost:3143/messages/abc
+GET http://localhost:3142/messages/abc
 
 ### Test validation - Search without query
-GET http://localhost:3143/messages/search
+GET http://localhost:3142/messages/search
