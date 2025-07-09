@@ -1,0 +1,87 @@
+### Create first user
+POST http://localhost:3143/users
+Content-Type: application/json
+
+{
+  "name": "Alice Johnson",
+  "username": "alice",
+  "email": "alice@example.com"
+}
+
+### Try to create user with duplicate username (should fail with 409)
+POST http://localhost:3143/users
+Content-Type: application/json
+
+{
+  "name": "Bob Smith",
+  "username": "alice",
+  "email": "bob@example.com"
+}
+
+### Try to create user with duplicate email (should fail with 409)
+POST http://localhost:3143/users
+Content-Type: application/json
+
+{
+  "name": "Charlie Brown",
+  "username": "charlie",
+  "email": "alice@example.com"
+}
+
+### Test case insensitive duplicates - username (should fail)
+POST http://localhost:3143/users
+Content-Type: application/json
+
+{
+  "name": "David Wilson",
+  "username": "ALICE",
+  "email": "david@example.com"
+}
+
+### Test case insensitive duplicates - email (should fail)
+POST http://localhost:3143/users
+Content-Type: application/json
+
+{
+  "name": "Eve Davis",
+  "username": "eve",
+  "email": "ALICE@EXAMPLE.COM"
+}
+
+### Create valid second user (should succeed)
+POST http://localhost:3143/users
+Content-Type: application/json
+
+{
+  "name": "Frank Miller",
+  "username": "frank",
+  "email": "frank@example.com"
+}
+
+### Get user ID 2 first
+GET http://localhost:3143/users/2
+
+### Test update with duplicate username (should fail with 409)
+PUT http://localhost:3143/users/2
+Content-Type: application/json
+
+{
+  "username": "alice"
+}
+
+### Test update with duplicate email (should fail with 409)
+PUT http://localhost:3143/users/2
+Content-Type: application/json
+
+{
+  "email": "alice@example.com"
+}
+
+### Test valid update (should succeed)
+PUT http://localhost:3143/users/2
+Content-Type: application/json
+
+{
+  "name": "Franklin Miller",
+  "avatar_url": "avatar2.png"
+}

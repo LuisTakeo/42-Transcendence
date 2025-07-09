@@ -33,7 +33,6 @@ export interface User {
 	name: string;
 	username: string;
 	email: string;
-	password_hash: string;
 	avatar_url?: string;
 	is_online?: number;
 	last_seen_at?: string;
@@ -44,7 +43,6 @@ export interface CreateUserData {
 	name: string;
 	username: string;
 	email: string;
-	password_hash: string;
 	avatar_url?: string;
 }
 
@@ -52,10 +50,33 @@ export interface UpdateUserData {
 	name?: string;
 	username?: string;
 	email?: string;
-	password_hash?: string;
 	avatar_url?: string;
 	is_online?: number;
 	last_seen_at?: string;
+}
+
+// NEW: Check if username exists (case-insensitive)
+export async function checkUsernameExists(username: string, excludeUserId?: number): Promise<boolean> {
+	const db = await openDb();
+	const query = excludeUserId
+		? 'SELECT id FROM users WHERE LOWER(username) = LOWER(?) AND id != ?'
+		: 'SELECT id FROM users WHERE LOWER(username) = LOWER(?)';
+	const params = excludeUserId ? [username, excludeUserId] : [username];
+
+	const user = await db.get(query, params);
+	return !!user;
+}
+
+// NEW: Check if email exists (case-insensitive)
+export async function checkEmailExists(email: string, excludeUserId?: number): Promise<boolean> {
+	const db = await openDb();
+	const query = excludeUserId
+		? 'SELECT id FROM users WHERE LOWER(email) = LOWER(?) AND id != ?'
+		: 'SELECT id FROM users WHERE LOWER(email) = LOWER(?)';
+	const params = excludeUserId ? [email, excludeUserId] : [email];
+
+	const user = await db.get(query, params);
+	return !!user;
 }
 
 // Get all users with pagination and optional search
@@ -90,35 +111,44 @@ export async function getUsersFromDb(limit?: number, offset?: number, search?: s
 
 export async function findOrCreateUserDb(email: string, name: string, googleId: string) {
 	const db = await openDb();
-	let user = await db.get('SELECT * FROM users WHERE email = ?', email);
+	let user = await db.get('SELECT * FROM users WHERE LOWER(email) = LOWER(?)', email);
 	if (!user) {
+		// Generate unique username from email
+		const emailPrefix = email.split('@')[0];
+		let username = emailPrefix;
+		let counter = 1;
 
-	  const username = email.split('@')[0];
-	  const result = await db.run(
-		`INSERT INTO users (email, username, name, google_id) VALUES (?, ?, ?, ?)`,
-		email,
-		username,
-		name,
-		googleId
-	  );
+		// Ensure username is unique
+		while (await checkUsernameExists(username)) {
+			username = `${emailPrefix}${counter}`;
+			counter++;
+		}
 
-	  user = await db.get('SELECT * FROM users WHERE id = ?', result.lastID);
+		const result = await db.run(
+			`INSERT INTO users (email, username, name, google_id, created_at) VALUES (?, ?, ?, ?, datetime('now'))`,
+			email,
+			username,
+			name,
+			googleId
+		);
+
+		user = await db.get('SELECT * FROM users WHERE id = ?', result.lastID);
 	} else if (!user.google_id || user.google_id !== googleId) {
 		await db.run(
 			`UPDATE users SET google_id = ? WHERE id = ?`,
 			googleId,
 			user.id
-		  );
+		);
 
-		  user = await db.get('SELECT * FROM users WHERE id = ?', user.id);
+		user = await db.get('SELECT * FROM users WHERE id = ?', user.id);
 	}
-	return user;
-  }
+	return processUserData(user);
+}
 
   export async function saveSecret(email: string, secret: string) {
 	const db = await openDb();
 	await db.run(
-	  `UPDATE users SET two_factor_secret = ? WHERE email = ?`,
+	  `UPDATE users SET two_factor_secret = ? WHERE LOWER(email) = LOWER(?)`,
 	  secret,
 	  email
 	);
@@ -126,14 +156,14 @@ export async function findOrCreateUserDb(email: string, name: string, googleId: 
 
   export async function getSecret(email: string): Promise<string | undefined> {
 	const db = await openDb();
-	const user = await db.get(`SELECT two_factor_secret FROM users WHERE email = ?`, email);
+	const user = await db.get(`SELECT two_factor_secret FROM users WHERE LOWER(email) = LOWER(?)`, email);
 	return user?.two_factor_secret;
   }
 
   export async function enableTwoFactor(email: string) {
 	const db = await openDb();
 	await db.run(
-	  `UPDATE users SET two_factor_enabled = 1 WHERE email = ?`,
+	  `UPDATE users SET two_factor_enabled = 1 WHERE LOWER(email) = LOWER(?)`,
 	  email
 	);
   }
@@ -172,35 +202,85 @@ export async function getUserById(id: number): Promise<User | null> {
 // Get user by username
 export async function getUserByUsername(username: string): Promise<User | null> {
 	const db = await openDb();
-	const user = await db.get('SELECT * FROM users WHERE username = ?', [username]);
+	const user = await db.get('SELECT * FROM users WHERE LOWER(username) = LOWER(?)', [username]);
 	return processUserData(user);
 }
 
 // Get user by email
 export async function getUserByEmail(email: string): Promise<User | null> {
 	const db = await openDb();
-	const user = await db.get('SELECT * FROM users WHERE email = ?', [email]);
+	const user = await db.get('SELECT * FROM users WHERE LOWER(email) = LOWER(?)', [email]);
 	return processUserData(user);
 }
 
 // Create new user
 export async function createUser(userData: CreateUserData): Promise<User> {
-	const db = await openDb();
-	const result = await db.run(
-		`INSERT INTO users (name, username, email, password_hash, avatar_url, created_at)
-		 VALUES (?, ?, ?, ?, ?, datetime('now'))`,
-		[userData.name, userData.username, userData.email, userData.password_hash, userData.avatar_url || null]
-	);
-
-	const newUser = await getUserById(result.lastID!);
-	if (!newUser) {
-		throw new Error('Failed to create user');
+	// Validate input
+	if (!userData.username || !userData.email || !userData.name) {
+		throw new Error('Name, username and email are required');
 	}
-	return newUser;
+
+	// Check for duplicates before attempting to create
+	const usernameExists = await checkUsernameExists(userData.username);
+	if (usernameExists) {
+		throw new Error('Username already exists');
+	}
+
+	const emailExists = await checkEmailExists(userData.email);
+	if (emailExists) {
+		throw new Error('Email already exists');
+	}
+
+	const db = await openDb();
+	try {
+		const result = await db.run(
+			`INSERT INTO users (name, username, email, avatar_url, created_at)
+			 VALUES (?, ?, ?, ?, datetime('now'))`,
+			[userData.name, userData.username, userData.email, userData.avatar_url || null]
+		);
+
+		const newUser = await getUserById(result.lastID!);
+		if (!newUser) {
+			throw new Error('Failed to create user');
+		}
+		return newUser;
+	} catch (error: any) {
+		// Handle any remaining database constraint errors
+		if (error.message.includes('UNIQUE constraint failed')) {
+			if (error.message.includes('username')) {
+				throw new Error('Username already exists');
+			}
+			if (error.message.includes('email')) {
+				throw new Error('Email already exists');
+			}
+		}
+		throw error;
+	}
 }
 
 // Update user
 export async function updateUser(id: number, userData: UpdateUserData): Promise<User | null> {
+	// Check if user exists
+	const existingUser = await getUserById(id);
+	if (!existingUser) {
+		throw new Error('User not found');
+	}
+
+	// Check for duplicates if username or email is being updated
+	if (userData.username) {
+		const usernameExists = await checkUsernameExists(userData.username, id);
+		if (usernameExists) {
+			throw new Error('Username already exists');
+		}
+	}
+
+	if (userData.email) {
+		const emailExists = await checkEmailExists(userData.email, id);
+		if (emailExists) {
+			throw new Error('Email already exists');
+		}
+	}
+
 	const db = await openDb();
 
 	// Build dynamic update query
@@ -218,10 +298,6 @@ export async function updateUser(id: number, userData: UpdateUserData): Promise<
 	if (userData.email !== undefined) {
 		updateFields.push('email = ?');
 		values.push(userData.email);
-	}
-	if (userData.password_hash !== undefined) {
-		updateFields.push('password_hash = ?');
-		values.push(userData.password_hash);
 	}
 	if (userData.avatar_url !== undefined) {
 		updateFields.push('avatar_url = ?');
@@ -242,14 +318,27 @@ export async function updateUser(id: number, userData: UpdateUserData): Promise<
 
 	values.push(id); // Add ID for WHERE clause
 
-	const query = `UPDATE users SET ${updateFields.join(', ')} WHERE id = ?`;
-	const result = await db.run(query, values);
+	try {
+		const query = `UPDATE users SET ${updateFields.join(', ')} WHERE id = ?`;
+		const result = await db.run(query, values);
 
-	if (result.changes === 0) {
-		return null; // User not found
+		if (result.changes === 0) {
+			return null; // User not found
+		}
+
+		return getUserById(id);
+	} catch (error: any) {
+		// Handle database constraint errors
+		if (error.message.includes('UNIQUE constraint failed')) {
+			if (error.message.includes('username')) {
+				throw new Error('Username already exists');
+			}
+			if (error.message.includes('email')) {
+				throw new Error('Email already exists');
+			}
+		}
+		throw error;
 	}
-
-	return getUserById(id);
 }
 
 // Delete user
