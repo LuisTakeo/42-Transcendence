@@ -9,7 +9,7 @@ export default function ProfilePage(userId?: number): void {
   app.innerHTML = ""; // Clear existing content
 
   const main = document.createElement("main");
-  main.className = "p-4 box-border min-h-screen flex flex-col gap-2";
+  main.className = "p-4 box-border min-h-screen flex flex-col gap-2 container mx-auto";
   main.innerHTML = `
 	  <div class="flex flex-col md:flex-row gap-10 w-full p-8">
 		<div class="flex-1 bg-[#1E1B4B] rounded-[5px] min-h-[350px] flex flex-col items-center justify-center">
