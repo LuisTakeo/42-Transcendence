@@ -114,12 +114,13 @@ export async function findOrCreateUserDb(email: string, name: string, googleId: 
 	let user = await db.get('SELECT * FROM users WHERE LOWER(email) = LOWER(?)', email);
 	if (!user) {
 		// Generate unique username from email
-		let username = email.split('@')[0];
+		const emailPrefix = email.split('@')[0];
+		let username = emailPrefix;
 		let counter = 1;
 
 		// Ensure username is unique
 		while (await checkUsernameExists(username)) {
-			username = `${email.split('@')[0]}${counter}`;
+			username = `${emailPrefix}${counter}`;
 			counter++;
 		}
 
