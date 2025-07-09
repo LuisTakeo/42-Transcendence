@@ -4,7 +4,7 @@ This document describes the complete CRUD operations for the Users resource.
 
 ## Base URL
 ```
-http://localhost:3143/users
+http://localhost:3142/users
 ```
 
 ## Endpoints
@@ -122,7 +122,6 @@ Creates a new user.
   "name": "John Doe",
   "username": "johndoe",
   "email": "john.doe@example.com",
-  "password_hash": "hashed_password_here",
   "avatar_url": "https://example.com/avatar.jpg" // optional
 }
 ```
@@ -131,7 +130,6 @@ Creates a new user.
 - `name`: Required, minimum 2 characters
 - `username`: Required, 3-20 characters, alphanumeric and underscores only, must be unique
 - `email`: Required, valid email format, must be unique
-- `password_hash`: Required
 - `avatar_url`: Optional
 
 **Response (201 Created):**
@@ -163,7 +161,6 @@ Updates an existing user. All fields are optional.
   "name": "John Updated",
   "username": "johnupdated",
   "email": "john.updated@example.com",
-  "password_hash": "new_hashed_password",
   "avatar_url": "https://example.com/new-avatar.jpg",
   "is_online": 1,
   "last_seen_at": "2025-06-28T10:00:00Z"
@@ -280,7 +277,6 @@ CREATE TABLE users (
     name TEXT NOT NULL,
     username TEXT UNIQUE NOT NULL,
     email TEXT UNIQUE NOT NULL,
-    password_hash TEXT NOT NULL,
     avatar_url TEXT,
     is_online INTEGER DEFAULT 0,
     last_seen_at DATETIME,
