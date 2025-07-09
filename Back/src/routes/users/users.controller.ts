@@ -53,11 +53,8 @@ export async function getAllUsers(request: FastifyRequest, reply: FastifyReply) 
 			repository.getUsersCount(search)
 		]);
 
-		// Remove password_hash from response for security
-		const safeUsers = users.map(user => {
-			const { password_hash, ...safeUser } = user;
-			return safeUser;
-		});
+		// Users are already safe to return (no password field in current schema)
+		const safeUsers = users;
 
 		// Calculate pagination metadata
 		const totalPages = Math.ceil(totalCount / limitNum);
@@ -92,11 +89,8 @@ export async function getAllUsersSimple(request: FastifyRequest, reply: FastifyR
 	try {
 		const users = await repository.getAllUsersFromDb();
 
-		// Remove password_hash from response for security
-		const safeUsers = users.map(user => {
-			const { password_hash, ...safeUser } = user;
-			return safeUser;
-		});
+		// Users are already safe to return (no password field in current schema)
+		const safeUsers = users;
 
 		reply.send({
 			success: true,
@@ -134,8 +128,8 @@ export async function getUserById(request: FastifyRequest, reply: FastifyReply) 
 			});
 		}
 
-		// Remove password_hash from response
-		const { password_hash, ...safeUser } = user;
+		// User is already safe to return (no password field in current schema)
+		const safeUser = user;
 
 		reply.send({
 			success: true,
@@ -153,14 +147,14 @@ export async function getUserById(request: FastifyRequest, reply: FastifyReply) 
 // Create new user
 export async function createUser(request: FastifyRequest, reply: FastifyReply) {
 	try {
-		const { name, username, email, password_hash, avatar_url } = request.body as CreateUserData;
+		const { name, username, email, avatar_url } = request.body as CreateUserData;
 
 		// Validation
-		if (!name || !username || !email || !password_hash) {
+		if (!name || !username || !email) {
 			return reply.status(400).send({
 				success: false,
 				error: 'Missing required fields',
-				required: ['name', 'username', 'email', 'password_hash']
+				required: ['name', 'username', 'email']
 			});
 		}
 
@@ -207,12 +201,11 @@ export async function createUser(request: FastifyRequest, reply: FastifyReply) {
 			name: name.trim(),
 			username: username.trim(),
 			email: email.trim().toLowerCase(),
-			password_hash,
 			avatar_url
 		});
 
-		// Remove password_hash from response
-		const { password_hash: _, ...safeUser } = newUser;
+		// User is already safe to return (no password field in current schema)
+		const safeUser = newUser;
 
 		reply.status(201).send({
 			success: true,
@@ -291,10 +284,11 @@ export async function updateUser(request: FastifyRequest, reply: FastifyReply) {
 		if (updateData.name) cleanedData.name = updateData.name.trim();
 		if (updateData.username) cleanedData.username = updateData.username.trim();
 		if (updateData.email) cleanedData.email = updateData.email.trim().toLowerCase();
-		if (updateData.password_hash) cleanedData.password_hash = updateData.password_hash;
 		if (updateData.avatar_url !== undefined) cleanedData.avatar_url = updateData.avatar_url;
 		if (updateData.is_online !== undefined) cleanedData.is_online = updateData.is_online;
 		if (updateData.last_seen_at !== undefined) cleanedData.last_seen_at = updateData.last_seen_at;
+		if (updateData.two_factor_enabled !== undefined) cleanedData.two_factor_enabled = updateData.two_factor_enabled;
+		if (updateData.two_factor_secret !== undefined) cleanedData.two_factor_secret = updateData.two_factor_secret;
 
 		const updatedUser = await repository.updateUser(userId, cleanedData);
 
@@ -305,8 +299,8 @@ export async function updateUser(request: FastifyRequest, reply: FastifyReply) {
 			});
 		}
 
-		// Remove password_hash from response
-		const { password_hash, ...safeUser } = updatedUser;
+		// User is already safe to return (no password field in current schema)
+		const safeUser = updatedUser;
 
 		reply.send({
 			success: true,
@@ -435,6 +429,154 @@ export async function getAvailableAvatars(request: FastifyRequest, reply: Fastif
 			success: false,
 			error: 'Failed to get available avatars',
 			message: error instanceof Error ? error.message : 'Unknown error'
+		});
+	}
+}
+
+// Get current authenticated user
+export async function getCurrentUser(request: FastifyRequest, reply: FastifyReply) {
+	try {
+		// Verify JWT token
+		await request.jwtVerify();
+
+		// Get user from token payload
+		const user = request.user as any;
+		if (!user || !user.id) {
+			return reply.status(401).send({
+				error: 'Unauthorized',
+				message: 'Invalid token payload'
+			});
+		}
+
+		// Get full user data from database
+		const userData = await repository.getUserById(user.id);
+		if (!userData) {
+			return reply.status(404).send({
+				error: 'User not found',
+				message: 'User does not exist'
+			});
+		}
+
+		// Return user data
+		return reply.status(200).send(userData);
+	} catch (err: any) {
+		// If JWT verification fails, return 401
+		if (err.code === 'FST_JWT_NO_AUTHORIZATION_IN_HEADER' ||
+			err.code === 'FST_JWT_AUTHORIZATION_TOKEN_INVALID' ||
+			err.message?.includes('jwt') ||
+			err.message?.includes('token')) {
+			return reply.status(401).send({
+				error: 'Unauthorized',
+				message: 'Invalid or missing authentication token'
+			});
+		}
+
+		// Other errors
+		return reply.status(500).send({
+			error: 'Internal server error',
+			message: err.message || 'Unknown error'
+		});
+	}
+}
+
+// Update current authenticated user
+export async function updateCurrentUser(request: FastifyRequest, reply: FastifyReply) {
+	try {
+		// Verify JWT token
+		await request.jwtVerify();
+
+		// Get user from token payload
+		const user = request.user as any;
+		if (!user || !user.id) {
+			return reply.status(401).send({
+				error: 'Unauthorized',
+				message: 'Invalid token payload'
+			});
+		}
+
+		const updateData = request.body as UpdateUserData;
+
+		// Validation for fields being updated
+		if (updateData.email && !isValidEmail(updateData.email)) {
+			return reply.status(400).send({
+				success: false,
+				error: 'Invalid email format'
+			});
+		}
+
+		if (updateData.username && !isValidUsername(updateData.username)) {
+			return reply.status(400).send({
+				success: false,
+				error: 'Username must be 3-20 characters long and contain only letters, numbers, and underscores'
+			});
+		}
+
+		if (updateData.name && updateData.name.trim().length < 2) {
+			return reply.status(400).send({
+				success: false,
+				error: 'Name must be at least 2 characters long'
+			});
+		}
+
+		// Check for existing username/email if being updated
+		if (updateData.username) {
+			const existingUser = await repository.getUserByUsername(updateData.username);
+			if (existingUser && existingUser.id !== user.id) {
+				return reply.status(409).send({
+					success: false,
+					error: 'Username already exists'
+				});
+			}
+		}
+
+		if (updateData.email) {
+			const existingUser = await repository.getUserByEmail(updateData.email);
+			if (existingUser && existingUser.id !== user.id) {
+				return reply.status(409).send({
+					success: false,
+					error: 'Email already exists'
+				});
+			}
+		}
+
+		// Clean data
+		const cleanedData: UpdateUserData = {};
+		if (updateData.name) cleanedData.name = updateData.name.trim();
+		if (updateData.username) cleanedData.username = updateData.username.trim();
+		if (updateData.email) cleanedData.email = updateData.email.trim().toLowerCase();
+		if (updateData.avatar_url !== undefined) cleanedData.avatar_url = updateData.avatar_url;
+		if (updateData.is_online !== undefined) cleanedData.is_online = updateData.is_online;
+		if (updateData.last_seen_at !== undefined) cleanedData.last_seen_at = updateData.last_seen_at;
+		if (updateData.two_factor_enabled !== undefined) cleanedData.two_factor_enabled = updateData.two_factor_enabled;
+		if (updateData.two_factor_secret !== undefined) cleanedData.two_factor_secret = updateData.two_factor_secret;
+
+		const updatedUser = await repository.updateUser(user.id, cleanedData);
+
+		if (!updatedUser) {
+			return reply.status(404).send({
+				success: false,
+				error: 'User not found'
+			});
+		}
+
+		// User is already safe to return (no password field in current schema)
+		return reply.send(updatedUser);
+	} catch (err: any) {
+		// If JWT verification fails, return 401
+		if (err.code === 'FST_JWT_NO_AUTHORIZATION_IN_HEADER' ||
+			err.code === 'FST_JWT_AUTHORIZATION_TOKEN_INVALID' ||
+			err.message?.includes('jwt') ||
+			err.message?.includes('token')) {
+			return reply.status(401).send({
+				error: 'Unauthorized',
+				message: 'Invalid or missing authentication token'
+			});
+		}
+
+		// Other errors
+		return reply.status(500).send({
+			error: 'Internal server error',
+			message: err.message || 'Unknown error'
 		});
 	}
 }

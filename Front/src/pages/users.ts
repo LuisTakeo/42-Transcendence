@@ -1,5 +1,6 @@
 import { initializeSearchButton } from "./button.ts";
 import { usersService, User } from "../services/users.service.ts";
+import { userService } from "../services/user.service.ts";
 import { showErrorMessage } from './notification.ts';
 
 export default function UsersPage(): void {
@@ -136,10 +137,19 @@ export default function UsersPage(): void {
         </div>
       `;
 
+      // Get current user to filter them out
+      const currentUser = await userService.getCurrentUser();
+
       const response = await usersService.getUsers(page, 10, search);
 
       if (response.success) {
-        renderUsers(response.data);
+        // Filter out the current user from the results
+        let usersToShow = response.data;
+        if (currentUser) {
+          usersToShow = response.data.filter(user => user.id !== currentUser.id);
+        }
+
+        renderUsers(usersToShow);
         updatePagination(response.pagination.currentPage, response.pagination.totalPages);
         currentPage = response.pagination.currentPage;
         totalPages = response.pagination.totalPages;

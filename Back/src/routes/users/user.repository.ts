@@ -36,6 +36,9 @@ export interface User {
 	avatar_url?: string;
 	is_online?: number;
 	last_seen_at?: string;
+	two_factor_enabled?: number;
+	two_factor_secret?: string;
+	google_id?: string;
 	created_at?: string;
 }
 
@@ -53,6 +56,8 @@ export interface UpdateUserData {
 	avatar_url?: string;
 	is_online?: number;
 	last_seen_at?: string;
+	two_factor_enabled?: number;
+	two_factor_secret?: string | null;
 }
 
 // NEW: Check if username exists (case-insensitive)

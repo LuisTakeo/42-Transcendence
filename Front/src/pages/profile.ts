@@ -1,10 +1,19 @@
-import { usersService } from "../services/users.service.ts";
-import { matchesService } from "../services/matches.service.ts";
+import { userService } from "../services/user.service.ts";
 import { showErrorMessage } from './notification.ts';
 
-export default function ProfilePage(userId?: number): void {
+export default async function ProfilePage(userId?: number): Promise<void> {
   const app = document.getElementById("app");
   if (!app) return;
+
+  // Check authentication and get current user
+  const currentUser = await userService.requireAuth();
+  if (!currentUser) {
+    return; // User will be redirected to login
+  }
+
+  // Determine which user to show - if no userId provided, show current user
+  const targetUserId = userId || currentUser.id;
+  const isOwnProfile = targetUserId === currentUser.id;
 
   app.innerHTML = ""; // Clear existing content
 
@@ -80,132 +89,88 @@ export default function ProfilePage(userId?: number): void {
 
   app.appendChild(main);
 
-  // Load user data if userId is provided
-  if (userId !== undefined && !isNaN(userId)) {
-    loadUserProfile(userId);
-  } else {
-    // Show current user's profile (you can implement this later)
-    const userName = document.getElementById("user-name") as HTMLParagraphElement;
-    const userUsername = document.getElementById("user-username") as HTMLParagraphElement;
-    if (userName) userName.textContent = "My Profile";
-    if (userUsername) userUsername.textContent = "@myprofile";
-  }
-
-  // Show a button to return to users page
-  const returnButtonContainer = document.createElement('div');
-  returnButtonContainer.className = 'flex flex-col items-center mt-8';
-  returnButtonContainer.innerHTML = `
-    <button id='back-to-users' class='mt-4 px-6 py-3 bg-purple-600 text-white rounded hover:bg-purple-700 transition text-lg'>
-      Return to Users
-    </button>
-  `;
-  app.appendChild(returnButtonContainer);
-
-  const backBtn = document.getElementById('back-to-users');
-  if (backBtn) {
-    backBtn.addEventListener('click', () => {
-      window.history.pushState({}, '', '/users');
-      window.dispatchEvent(new Event('popstate'));
-    });
-  }
+  // Load user data - if no userId provided, show current user
+  const userToLoad = targetUserId || currentUser.id;
+  await loadUserProfile(userToLoad, currentUser);
 }
 
-async function loadUserProfile(userId: number): Promise<void> {
+async function loadUserProfile(userId: number, currentUser: any): Promise<void> {
   try {
-    const [userResponse, statsResponse, matchesResponse] = await Promise.all([
-      usersService.getUserById(userId),
-      matchesService.getPlayerStats(userId),
-      matchesService.getPlayerMatches(userId)
-    ]);
+    // Get user data
+    const user = (userId === currentUser.id)
+      ? currentUser
+      : await userService.getUserById(userId);
 
-    if (userResponse.success && userResponse.data) {
-      const user = userResponse.data;
+    if (!user) {
+      throw new Error('User not found');
+    }
 
-      // Update user information
-      const userName = document.getElementById("user-name") as HTMLParagraphElement;
-      const userUsername = document.getElementById("user-username") as HTMLParagraphElement;
-      const userAvatar = document.getElementById("user-avatar") as HTMLImageElement;
+    // Update user information
+    const userName = document.getElementById("user-name") as HTMLParagraphElement;
+    const userUsername = document.getElementById("user-username") as HTMLParagraphElement;
+    const userAvatar = document.getElementById("user-avatar") as HTMLImageElement;
 
-      if (userName) userName.textContent = user.name;
-      if (userUsername) userUsername.textContent = `@${user.username}`;
+    if (userName) userName.textContent = user.name || user.username || 'User';
+    if (userUsername) userUsername.textContent = `@${user.username || 'user'}`;
 
-      if (user.avatar_url && userAvatar) {
-        userAvatar.src = user.avatar_url;
-        userAvatar.alt = user.name;
-        userAvatar.style.display = '';
+    if (user.avatar_url && userAvatar) {
+      userAvatar.src = user.avatar_url;
+      userAvatar.alt = user.username || 'User';
+      userAvatar.style.display = '';
 
-        // Add error handler for failed avatar loads
-        userAvatar.onerror = () => {
-          userAvatar.style.display = 'none';
-          const avatarContainer = userAvatar.parentElement;
-          if (avatarContainer) {
-            avatarContainer.innerHTML = `
-              <div class="w-36 h-36 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-4xl font-bold text-white">
-                ${user.name.charAt(0).toUpperCase()}
-              </div>
-            `;
-          }
-        };
-      } else if (userAvatar) {
+      // Add error handler for failed avatar loads
+      userAvatar.onerror = () => {
         userAvatar.style.display = 'none';
         const avatarContainer = userAvatar.parentElement;
         if (avatarContainer) {
           avatarContainer.innerHTML = `
             <div class="w-36 h-36 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-4xl font-bold text-white">
-              ${user.name.charAt(0).toUpperCase()}
+              ${(user.username || user.email || '?')[0].toUpperCase()}
             </div>
           `;
         }
+      };
+    } else if (userAvatar) {
+      userAvatar.style.display = 'none';
+      const avatarContainer = userAvatar.parentElement;
+      if (avatarContainer) {
+        avatarContainer.innerHTML = `
+          <div class="w-36 h-36 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-4xl font-bold text-white">
+            ${(user.username || user.email || '?')[0].toUpperCase()}
+          </div>
+        `;
       }
-    } else {
-      throw new Error('Failed to load user profile');
     }
 
-    // Update match statistics
-    if (statsResponse.success && statsResponse.data) {
-      const stats = statsResponse.data;
-
+    // Get and update user stats
+    const stats = await userService.getUserStats(userId);
+    if (stats) {
       const totalMatches = document.getElementById("total-matches") as HTMLParagraphElement;
       const totalWins = document.getElementById("total-wins") as HTMLParagraphElement;
       const winRate = document.getElementById("win-rate") as HTMLParagraphElement;
 
-      if (totalMatches) totalMatches.textContent = stats.totalMatches.toString();
-      if (totalWins) totalWins.textContent = stats.wins.toString();
-      if (winRate) winRate.textContent = `${Math.round(stats.winRate)}%`;
-        } else {
-      // If no stats available, show zeros
-      const totalMatches = document.getElementById("total-matches") as HTMLParagraphElement;
-      const totalWins = document.getElementById("total-wins") as HTMLParagraphElement;
-      const winRate = document.getElementById("win-rate") as HTMLParagraphElement;
+      if (totalMatches) totalMatches.textContent = ((stats.wins || 0) + (stats.losses || 0)).toString();
+      if (totalWins) totalWins.textContent = (stats.wins || 0).toString();
+      if (winRate) {
+        const total = (stats.wins || 0) + (stats.losses || 0);
+        const rate = total > 0 ? Math.round((stats.wins || 0) / total * 100) : 0;
+        winRate.textContent = `${rate}%`;
+      }
 
-      if (totalMatches) totalMatches.textContent = "0";
-      if (totalWins) totalWins.textContent = "0";
-      if (winRate) winRate.textContent = "0%";
-    }
-
-        // Update matches list
-    const matchesContainer = document.getElementById("matches-container") as HTMLDivElement;
-    if (matchesResponse.success && matchesResponse.data && matchesResponse.data.length > 0) {
-      const matches = matchesResponse.data;
-
-      if (matchesContainer) {
+      // Update matches list
+      const matchesContainer = document.getElementById("matches-container") as HTMLDivElement;
+      if (stats.recentMatches && stats.recentMatches.length > 0 && matchesContainer) {
         const table = document.createElement("table");
         table.className = "w-full border-separate border-spacing-y-4";
 
         const tbody = document.createElement("tbody");
-        matches.forEach(match => {
-          const isPlayer1 = match.player1_id === userId;
-          const playerName = isPlayer1 ? match.player1_name : match.player2_name;
-          const opponentName = isPlayer1 ? match.player2_name : match.player1_name;
-          const playerScore = isPlayer1 ? match.player1_score : match.player2_score;
-          const opponentScore = isPlayer1 ? match.player2_score : match.player1_score;
-
+        stats.recentMatches.forEach((match: any) => {
           const row = document.createElement("tr");
           row.className = "bg-[#383568] text-xl md:text-2xl rounded-[5px]";
 
           const cell = document.createElement("td");
           cell.className = "py-4 px-3 text-center rounded-[5px]";
-          cell.textContent = `${playerName} ${playerScore} x ${opponentScore} ${opponentName}`;
+          cell.textContent = `vs ${match.opponent || 'Unknown'} - ${match.won ? 'WIN' : 'LOSS'} (${match.playerScore || 0}-${match.opponentScore || 0})`;
 
           row.appendChild(cell);
           tbody.appendChild(row);
@@ -214,9 +179,30 @@ async function loadUserProfile(userId: number): Promise<void> {
         table.appendChild(tbody);
         matchesContainer.innerHTML = ""; // Clear existing content
         matchesContainer.appendChild(table);
+      } else {
+        // No matches found
+        const matchesContainer = document.getElementById("matches-container") as HTMLDivElement;
+        if (matchesContainer) {
+          matchesContainer.innerHTML = `
+            <div class="text-center text-gray-400 text-lg py-8">
+              <p>No matches played yet.</p>
+              <p class="text-sm mt-2">Start playing to see your battle history!</p>
+            </div>
+          `;
+        }
       }
     } else {
-      // No matches found
+      // If no stats available, show zeros
+      const totalMatches = document.getElementById("total-matches") as HTMLParagraphElement;
+      const totalWins = document.getElementById("total-wins") as HTMLParagraphElement;
+      const winRate = document.getElementById("win-rate") as HTMLParagraphElement;
+
+      if (totalMatches) totalMatches.textContent = "0";
+      if (totalWins) totalWins.textContent = "0";
+      if (winRate) winRate.textContent = "0%";
+
+      // Show no matches message
+      const matchesContainer = document.getElementById("matches-container") as HTMLDivElement;
       if (matchesContainer) {
         matchesContainer.innerHTML = `
           <div class="text-center text-gray-400 text-lg py-8">
@@ -226,14 +212,15 @@ async function loadUserProfile(userId: number): Promise<void> {
         `;
       }
     }
+
   } catch (error) {
     console.error('Error loading user profile:', error);
-    showErrorMessage('Failed to load user profile. Redirecting to users list.');
+    showErrorMessage('Failed to load user profile.');
+
+    // Set fallback values
     const userName = document.getElementById("user-name") as HTMLParagraphElement;
-    if (userName) userName.textContent = "User not found";
-    setTimeout(() => {
-      window.history.pushState({}, '', '/users');
-      window.dispatchEvent(new Event('popstate'));
-    }, 3000); // Delay redirection by 3 seconds
+    const userUsername = document.getElementById("user-username") as HTMLParagraphElement;
+    if (userName) userName.textContent = "Profile Error";
+    if (userUsername) userUsername.textContent = "@error";
   }
-  }
+}

@@ -2,6 +2,7 @@ import { initializeEditField } from "./editField.ts";
 import { initializeTwoFactor } from "./twoFactor.ts";
 import { friendsService } from "../services/friends.service.ts";
 import { usersService } from "../services/users.service.ts";
+import { userService } from "../services/user.service.ts";
 import { getBaseUrl } from "../services/base-api.ts";
 import { showSuccessMessage, showErrorMessage } from './notification.ts';
 
@@ -174,29 +175,48 @@ function setupFriendDeleteHandlers(): void {
 	});
 }
 
-// Helper function to get current user ID - in a real app this would come from auth/session
-function getCurrentUserId(): number | null {
-  // For testing purposes, return user ID 1
-  // In a real app, this would check localStorage, sessionStorage, or auth context
-  return 1; // Testing as user ID 1
+// Function to update 2FA status UI based on user's current state
+function update2FAStatus(isEnabled: boolean): void {
+	const statusElement = document.getElementById('2fa-status');
+	const enableButton = document.getElementById('activate-2fa-btn');
+	const inputSection = document.getElementById('2fa-input-section');
+
+	if (!statusElement || !enableButton || !inputSection) return;
+
+	if (isEnabled) {
+		// User has 2FA enabled
+		statusElement.textContent = 'Two-factor authentication is enabled.';
+		statusElement.className = 'mb-4 text-lg text-green-400';
+		enableButton.textContent = 'Disable two-factor authentication';
+		enableButton.className = 'bg-red-600 hover:bg-red-700 transition px-4 py-2 rounded-md text-white font-medium shadow-sm hover:shadow-lg';
+		inputSection.classList.add('hidden');
+	} else {
+		// User doesn't have 2FA enabled
+		statusElement.textContent = 'Two-factor authentication is not enabled.';
+		statusElement.className = 'mb-4 text-lg text-gray-300';
+		enableButton.textContent = 'Enable two-factor authentication';
+		enableButton.className = 'bg-[#383568] hover:bg-[#4a4480] transition px-4 py-2 rounded-md text-white font-medium shadow-sm hover:shadow-lg';
+		inputSection.classList.add('hidden');
+	}
+}
+
+// Helper function to get current user ID - checks authentication and returns user ID or null
+async function getCurrentUserId(): Promise<number | null> {
+	const currentUser = await userService.requireAuth();
+	if (!currentUser) {
+		return null; // User will be redirected to login if not authenticated
+	}
+	return currentUser.id;
 }
 
 async function loadCurrentUser(): Promise<void> {
 	try {
-		// Retrieve the current user ID from the authentication context
-		const currentUserId = getCurrentUserId();
+		// Get the current user directly from the user service
+		const user = await userService.getCurrentUser();
 
-		if (!currentUserId) {
-			throw new Error('No user ID found');
+		if (!user) {
+			throw new Error('No authenticated user found');
 		}
-
-		const userResponse = await usersService.getUserById(currentUserId);
-
-		if (!userResponse.success || !userResponse.data) {
-			throw new Error('Failed to load user data');
-		}
-
-		const user = userResponse.data;
 		const profilePicContainer = document.getElementById('profile-pic-container');
 		const nameInput = document.getElementById('nameInput') as HTMLInputElement;
 		const usernameInput = document.getElementById('usernameInput') as HTMLInputElement;
@@ -221,6 +241,9 @@ async function loadCurrentUser(): Promise<void> {
 		usernameInput.value = user.username;
 		usernameInput.dataset.originalValue = user.username;
 
+		// Update 2FA status based on user data
+		update2FAStatus(user.two_factor_enabled === 1);
+
 	} catch (error) {
 		console.error('Error loading current user:', error);
 		showErrorMessage('Failed to load user data. Please try again.');
@@ -230,7 +253,7 @@ async function loadCurrentUser(): Promise<void> {
 async function loadFriends(): Promise<void> {
 	try {
 		// Get current user ID using the helper function
-		const currentUserId = getCurrentUserId();
+		const currentUserId = await getCurrentUserId();
 
 		if (!currentUserId) {
 			throw new Error('No user ID found');
@@ -259,10 +282,10 @@ async function loadFriends(): Promise<void> {
 
 		// Get all unique user IDs from friends
 		const userIds = new Set<number>();
-		friends.forEach(friend => {
+		for (const friend of friends) {
 			if (friend.user1_id !== currentUserId) userIds.add(friend.user1_id);
 			if (friend.user2_id !== currentUserId) userIds.add(friend.user2_id);
-		});
+		}
 
 		// Get user details for all friends
 		const usersResponse = await usersService.getAllUsers();
@@ -479,19 +502,12 @@ async function selectAvatar(avatarName: string): Promise<void> {
 
 async function saveAvatarUrl(avatarName: string): Promise<void> {
 	try {
-		// Get current user ID using the helper function
-		const currentUserId = getCurrentUserId();
-
-		if (!currentUserId) {
-			throw new Error('No user ID found');
-		}
-
-		// Update user's avatar_url in the backend
-		const response = await usersService.updateUser(currentUserId, {
+		// Update user's avatar_url using the user service
+		const updatedUser = await userService.updateProfile({
 			avatar_url: avatarName
 		});
 
-		if (!response.success) {
+		if (!updatedUser) {
 			throw new Error('Failed to save avatar URL');
 		}
 	} catch (error) {

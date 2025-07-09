@@ -27,9 +27,9 @@ export const startServer = async () => {
 
 	const host = '0.0.0.0';
 
-	// app.register(fastifyJwt, {
-	//   secret: process.env.FASTIFY_SECRET,
-	// });
+	app.register(fastifyJwt, {
+	  secret: process.env.FASTIFY_SECRET,
+	});
 
 	app.register(registerRoutes);
 
