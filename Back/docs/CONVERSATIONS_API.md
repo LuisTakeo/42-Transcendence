@@ -4,7 +4,7 @@ This document describes the CRUD operations for the Conversations resource.
 
 ## Base URL
 ```
-http://localhost:3143/conversations
+http://localhost:3142/conversations
 ```
 
 ## Endpoints

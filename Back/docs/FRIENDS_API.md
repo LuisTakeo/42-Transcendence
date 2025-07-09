@@ -4,7 +4,7 @@ This document describes the complete CRUD operations for the Friends resource.
 
 ## Base URL
 ```
-http://localhost:3143/friends
+http://localhost:3142/friends
 ```
 
 ## Endpoints

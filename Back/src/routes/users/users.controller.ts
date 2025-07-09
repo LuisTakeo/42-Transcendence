@@ -89,7 +89,7 @@ export async function getAllUsersSimple(request: FastifyRequest, reply: FastifyR
 	try {
 		const users = await repository.getAllUsersFromDb();
 
-		// Users are already safe to return (no password field in current schema)
+		// Users are already safe - no password data in repository
 		const safeUsers = users;
 
 		reply.send({
@@ -128,7 +128,7 @@ export async function getUserById(request: FastifyRequest, reply: FastifyReply) 
 			});
 		}
 
-		// User is already safe to return (no password field in current schema)
+		// User data is already safe - no password data in repository
 		const safeUser = user;
 
 		reply.send({
@@ -204,7 +204,7 @@ export async function createUser(request: FastifyRequest, reply: FastifyReply) {
 			avatar_url
 		});
 
-		// User is already safe to return (no password field in current schema)
+		// User data is already safe - no password data in repository
 		const safeUser = newUser;
 
 		reply.status(201).send({
@@ -299,7 +299,7 @@ export async function updateUser(request: FastifyRequest, reply: FastifyReply) {
 			});
 		}
 
-		// User is already safe to return (no password field in current schema)
+		// User data is already safe - no password data in repository
 		const safeUser = updatedUser;
 
 		reply.send({
