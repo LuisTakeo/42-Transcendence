@@ -32,6 +32,14 @@ export class MatchesService extends BaseApiService {
     return this.request<SingleResponse<MatchStats>>(`/matches/player/${playerId}/stats`);
   }
 
+  // Get bulk user statistics for multiple users
+  async getBulkUserStats(userIds: number[]): Promise<SingleResponse<Record<number, MatchStats>>> {
+    return this.request<SingleResponse<Record<number, MatchStats>>>('/matches/bulk-stats', {
+      method: 'POST',
+      body: JSON.stringify({ userIds })
+    });
+  }
+
   // Get matches for a specific player
   async getPlayerMatches(playerId: number): Promise<SingleResponse<Match[]>> {
     return this.request<SingleResponse<Match[]>>(`/matches/player/${playerId}`);

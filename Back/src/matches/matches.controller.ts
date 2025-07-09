@@ -188,6 +188,57 @@ export async function getPlayerStats(request: FastifyRequest, reply: FastifyRepl
 	}
 }
 
+// Get bulk user statistics for multiple users
+export async function getBulkUserStats(request: FastifyRequest, reply: FastifyReply) {
+	try {
+		const { userIds } = request.body as { userIds: number[] };
+
+		if (!userIds || !Array.isArray(userIds)) {
+			return reply.status(400).send({
+				success: false,
+				error: 'userIds must be an array of user IDs'
+			});
+		}
+
+		// Validate all user IDs are positive integers
+		const invalidIds = userIds.filter(id => !Number.isInteger(id) || id <= 0);
+		if (invalidIds.length > 0) {
+			return reply.status(400).send({
+				success: false,
+				error: 'All user IDs must be positive integers',
+				invalidIds
+			});
+		}
+
+		// Limit the number of users to prevent abuse
+		if (userIds.length > 100) {
+			return reply.status(400).send({
+				success: false,
+				error: 'Maximum 100 users can be requested at once'
+			});
+		}
+
+		const statsMap = await repository.getBulkUserStats(userIds);
+
+		// Convert Map to object for JSON response
+		const statsObject: Record<number, any> = {};
+		statsMap.forEach((stats, userId) => {
+			statsObject[userId] = stats;
+		});
+
+		reply.send({
+			success: true,
+			data: statsObject
+		});
+	} catch (error) {
+		reply.status(500).send({
+			success: false,
+			error: 'Failed to retrieve bulk user statistics',
+			message: error instanceof Error ? error.message : 'Unknown error'
+		});
+	}
+}
+
 // Create new match
 export async function createMatch(request: FastifyRequest, reply: FastifyReply) {
 	try {

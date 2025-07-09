@@ -6,6 +6,7 @@ import {
 	getMatchById,
 	getMatchesByPlayer,
 	getPlayerStats,
+	getBulkUserStats,
 	createMatch,
 	updateMatch
 } from './matches.controller';
@@ -25,6 +26,9 @@ export default async function matchesRoutes(server: FastifyInstance) {
 
 	// GET /matches/player/:playerId/stats - Get player statistics
 	server.get('/player/:playerId/stats', getPlayerStats);
+
+	// POST /matches/bulk-stats - Get bulk user statistics
+	server.post('/bulk-stats', getBulkUserStats);
 
 	// POST /matches - Create new match
 	server.post('/', createMatch);
