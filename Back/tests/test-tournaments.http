@@ -1,6 +1,6 @@
 ### TOURNAMENTS API TESTS
 
-@baseUrl = http://localhost:3143
+@baseUrl = http://localhost:3142
 @contentType = application/json
 
 ### Get all tournaments

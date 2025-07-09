@@ -4,7 +4,7 @@ This document describes the CRUD operations for the Messages resource.
 
 ## Base URL
 ```
-http://localhost:3143/messages
+http://localhost:3142/messages
 ```
 
 ## Endpoints

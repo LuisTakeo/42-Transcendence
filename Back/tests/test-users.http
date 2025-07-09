@@ -2,40 +2,39 @@
 # You can use this with VS Code REST Client extension or any HTTP client
 
 ### Get all users (default pagination)
-GET http://localhost:3143/users
+GET http://localhost:3142/users
 
 ### Get users with pagination (page 1, limit 5)
-GET http://localhost:3143/users?page=1&limit=5
+GET http://localhost:3142/users?page=1&limit=5
 
 ### Get users with pagination (page 2, limit 5)
-GET http://localhost:3143/users?page=2&limit=5
+GET http://localhost:3142/users?page=2&limit=5
 
 ### Search users by name/username/email
-GET http://localhost:3143/users?search=john
+GET http://localhost:3142/users?search=john
 
 ### Search users with pagination
-GET http://localhost:3143/users?search=john&page=1&limit=3
+GET http://localhost:3142/users?search=john&page=1&limit=3
 
 ### Get all users without pagination (simple list)
-GET http://localhost:3143/users/all
+GET http://localhost:3142/users/all
 
 ### Get user by ID
-GET http://localhost:3143/users/1
+GET http://localhost:3142/users/1
 
 ### Create a new user
-POST http://localhost:3143/users
+POST http://localhost:3142/users
 Content-Type: application/json
 
 {
   "name": "teste John Doe",
   "username": "tjohndoe",
   "email": "tjohn.doe@example.com",
-  "password_hash": "hashed_password_here",
   "avatar_url": "https://example.com/avatar.jpg"
 }
 
 ### Update user
-PUT http://localhost:3143/users/1
+PUT http://localhost:3142/users/1
 Content-Type: application/json
 
 {
@@ -44,7 +43,7 @@ Content-Type: application/json
 }
 
 ### Update user online status
-PATCH http://localhost:3143/users/1/status
+PATCH http://localhost:3142/users/1/status
 Content-Type: application/json
 
 {
@@ -52,26 +51,24 @@ Content-Type: application/json
 }
 
 ### Delete user
-DELETE http://localhost:3143/users/3
+DELETE http://localhost:3142/users/3
 
 ### Test validation - Create user with invalid email
-POST http://localhost:3143/users
+POST http://localhost:3142/users
 Content-Type: application/json
 
 {
   "name": "Jane Doe",
   "username": "janedoe",
   "email": "invalid-email",
-  "password_hash": "hashed_password_here"
 }
 
 ### Test validation - Create user with invalid username
-POST http://localhost:3143/users
+POST http://localhost:3142/users
 Content-Type: application/json
 
 {
   "name": "Bob Smith",
   "username": "a",
   "email": "bob@example.com",
-  "password_hash": "hashed_password_here"
 }
