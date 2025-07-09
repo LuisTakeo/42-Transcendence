@@ -4,6 +4,8 @@ import fastifyJwt from '@fastify/jwt';
 import cors from '@fastify/cors';
 import websocket from '@fastify/websocket';
 import fastifyStatic from '@fastify/static';
+import helmet from '@fastify/helmet';
+import rateLimit from '@fastify/rate-limit';
 import dotenv from 'dotenv';
 import path from 'path';
 
@@ -19,13 +21,33 @@ import websocketRoutes from './websockets/websocket.routes';
 import { registerRoutes } from './routes/routes-controller'
 import { runMigrations } from './database/database';
 
+// Security middleware imports
+import {
+  rateLimitConfig,
+  helmetConfig,
+  sanitizeInputMiddleware,
+  validateRequestMiddleware,
+  securityHeadersMiddleware,
+  sqlInjectionDetectionMiddleware
+} from './middleware/security';
+
 dotenv.config();
 
 export const startServer = async () => {
 	const app = fastify({ logger: true });
-	const port = process.env.BACK_PORT;
+	const port = parseInt(process.env.BACK_PORT || '3142', 10);
 
 	const host = '0.0.0.0';
+
+	// Register security middleware first
+	await app.register(helmet, helmetConfig);
+	await app.register(rateLimit, rateLimitConfig);
+
+	// Add custom security middleware hooks
+	app.addHook('onRequest', securityHeadersMiddleware);
+	app.addHook('onRequest', validateRequestMiddleware);
+	app.addHook('onRequest', sqlInjectionDetectionMiddleware);
+	app.addHook('preHandler', sanitizeInputMiddleware);
 
 	// app.register(fastifyJwt, {
 	//   secret: process.env.FASTIFY_SECRET,

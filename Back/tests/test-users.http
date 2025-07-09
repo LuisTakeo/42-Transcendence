@@ -30,7 +30,6 @@ Content-Type: application/json
   "name": "teste John Doe",
   "username": "tjohndoe",
   "email": "tjohn.doe@example.com",
-  "password_hash": "hashed_password_here",
   "avatar_url": "https://example.com/avatar.jpg"
 }
 
@@ -61,8 +60,7 @@ Content-Type: application/json
 {
   "name": "Jane Doe",
   "username": "janedoe",
-  "email": "invalid-email",
-  "password_hash": "hashed_password_here"
+  "email": "invalid-email"
 }
 
 ### Test validation - Create user with invalid username
@@ -72,6 +70,5 @@ Content-Type: application/json
 {
   "name": "Bob Smith",
   "username": "a",
-  "email": "bob@example.com",
-  "password_hash": "hashed_password_here"
+  "email": "bob@example.com"
 }

@@ -1,7 +1,12 @@
-// src/users/users.controller.ts
+// src/routes/users/users.controller.ts
 import { FastifyRequest, FastifyReply } from 'fastify';
-import * as repository from './user.repository';
-import { CreateUserData, UpdateUserData } from './user.repository';
+import {
+  SecureUserRepository,
+  CreateUserData,
+  UpdateUserData,
+  User
+} from '../../repositories/secure-user.repository';
+import { InputValidator, XSSSanitizer } from '../../utils/security';
 import path from 'path';
 import { promises as fs } from 'fs';
 
@@ -30,59 +35,52 @@ export async function getAllUsers(request: FastifyRequest, reply: FastifyReply) 
 		const pageNum = parseInt(page, 10);
 		const limitNum = parseInt(limit, 10);
 
-		// Validation
+		// Validate pagination parameters
 		if (isNaN(pageNum) || pageNum < 1) {
 			return reply.status(400).send({
 				success: false,
-				error: 'Page must be a positive integer'
+				error: 'Invalid page number'
 			});
 		}
 
 		if (isNaN(limitNum) || limitNum < 1 || limitNum > 100) {
 			return reply.status(400).send({
 				success: false,
-				error: 'Limit must be between 1 and 100'
+				error: 'Invalid limit (must be between 1 and 100)'
 			});
 		}
 
 		const offset = (pageNum - 1) * limitNum;
 
-		// Get users and total count
-		const [users, totalCount] = await Promise.all([
-			repository.getUsersFromDb(limitNum, offset, search),
-			repository.getUsersCount(search)
-		]);
+		// Sanitize search parameter if provided
+		const sanitizedSearch = search ? XSSSanitizer.sanitizeInput(search) : undefined;
 
-		// Remove password_hash from response for security
-		const safeUsers = users.map(user => {
-			const { password_hash, ...safeUser } = user;
-			return safeUser;
-		});
+		// Get users using secure repository
+		const users = await SecureUserRepository.getUsersFromDb(limitNum, offset, sanitizedSearch);
+		const totalUsers = await SecureUserRepository.getUsersCount(sanitizedSearch);
 
-		// Calculate pagination metadata
-		const totalPages = Math.ceil(totalCount / limitNum);
-		const hasNextPage = pageNum < totalPages;
-		const hasPrevPage = pageNum > 1;
+		const totalPages = Math.ceil(totalUsers / limitNum);
 
-		reply.send({
+		return reply.send({
 			success: true,
-			data: safeUsers,
-			pagination: {
-				currentPage: pageNum,
-				totalPages,
-				totalCount,
-				limit: limitNum,
-				hasNextPage,
-				hasPrevPage,
-				nextPage: hasNextPage ? pageNum + 1 : null,
-				prevPage: hasPrevPage ? pageNum - 1 : null
+			data: {
+				users,
+				pagination: {
+					page: pageNum,
+					limit: limitNum,
+					total: totalUsers,
+					totalPages,
+					hasNext: pageNum < totalPages,
+					hasPrev: pageNum > 1
+				}
 			}
 		});
+
 	} catch (error) {
-		reply.status(500).send({
+		console.error('Error getting users:', error);
+		return reply.status(500).send({
 			success: false,
-			error: 'Failed to retrieve users',
-			message: error instanceof Error ? error.message : 'Unknown error'
+			error: 'Internal server error'
 		});
 	}
 }
@@ -90,24 +88,17 @@ export async function getAllUsers(request: FastifyRequest, reply: FastifyReply) 
 // Get all users without pagination (for simple lists)
 export async function getAllUsersSimple(request: FastifyRequest, reply: FastifyReply) {
 	try {
-		const users = await repository.getAllUsersFromDb();
+		const users = await SecureUserRepository.getUsersFromDb();
 
-		// Remove password_hash from response for security
-		const safeUsers = users.map(user => {
-			const { password_hash, ...safeUser } = user;
-			return safeUser;
-		});
-
-		reply.send({
+		return reply.send({
 			success: true,
-			data: safeUsers,
-			count: safeUsers.length
+			data: users
 		});
 	} catch (error) {
-		reply.status(500).send({
+		console.error('Error getting users:', error);
+		return reply.status(500).send({
 			success: false,
-			error: 'Failed to retrieve users',
-			message: error instanceof Error ? error.message : 'Unknown error'
+			error: 'Internal server error'
 		});
 	}
 }
@@ -125,7 +116,7 @@ export async function getUserById(request: FastifyRequest, reply: FastifyReply) 
 			});
 		}
 
-		const user = await repository.getUserById(userId);
+		const user = await SecureUserRepository.getUserById(userId);
 
 		if (!user) {
 			return reply.status(404).send({
@@ -134,18 +125,61 @@ export async function getUserById(request: FastifyRequest, reply: FastifyReply) 
 			});
 		}
 
-		// Remove password_hash from response
-		const { password_hash, ...safeUser } = user;
-
-		reply.send({
+		return reply.send({
 			success: true,
-			data: safeUser
+			data: user
 		});
+
 	} catch (error) {
-		reply.status(500).send({
+		console.error('Error getting user by ID:', error);
+		return reply.status(500).send({
 			success: false,
-			error: 'Failed to retrieve user',
-			message: error instanceof Error ? error.message : 'Unknown error'
+			error: 'Internal server error'
+		});
+	}
+}
+
+// Get user by username
+export async function getUserByUsername(request: FastifyRequest, reply: FastifyReply) {
+	try {
+		const { username } = request.params as { username: string };
+
+		if (!username) {
+			return reply.status(400).send({
+				success: false,
+				error: 'Username is required'
+			});
+		}
+
+		// Sanitize username input
+		const sanitizedUsername = XSSSanitizer.sanitizeInput(username);
+
+		if (!isValidUsername(sanitizedUsername)) {
+			return reply.status(400).send({
+				success: false,
+				error: 'Invalid username format'
+			});
+		}
+
+		const user = await SecureUserRepository.getUserByUsername(sanitizedUsername);
+
+		if (!user) {
+			return reply.status(404).send({
+				success: false,
+				error: 'User not found'
+			});
+		}
+
+		return reply.send({
+			success: true,
+			data: user
+		});
+
+	} catch (error) {
+		console.error('Error getting user by username:', error);
+		return reply.status(500).send({
+			success: false,
+			error: 'Internal server error'
 		});
 	}
 }
@@ -153,14 +187,14 @@ export async function getUserById(request: FastifyRequest, reply: FastifyReply) 
 // Create new user
 export async function createUser(request: FastifyRequest, reply: FastifyReply) {
 	try {
-		const { name, username, email, password_hash, avatar_url } = request.body as CreateUserData;
+		const { name, username, email, avatar_url } = request.body as CreateUserData;
 
 		// Validation
-		if (!name || !username || !email || !password_hash) {
+		if (!name || !username || !email) {
 			return reply.status(400).send({
 				success: false,
 				error: 'Missing required fields',
-				required: ['name', 'username', 'email', 'password_hash']
+				required: ['name', 'username', 'email']
 			});
 		}
 
@@ -174,56 +208,56 @@ export async function createUser(request: FastifyRequest, reply: FastifyReply) {
 		if (!isValidUsername(username)) {
 			return reply.status(400).send({
 				success: false,
-				error: 'Username must be 3-20 characters long and contain only letters, numbers, and underscores'
+				error: 'Invalid username format (3-20 characters, alphanumeric and underscores only)'
 			});
 		}
 
-		if (name.trim().length < 2) {
+		// Sanitize input data
+		const sanitizedData: CreateUserData = {
+			name: XSSSanitizer.sanitizeInput(name.trim()),
+			username: XSSSanitizer.sanitizeInput(username.trim()),
+			email: XSSSanitizer.sanitizeInput(email.trim().toLowerCase()),
+			avatar_url: avatar_url ? XSSSanitizer.sanitizeInput(avatar_url.trim()) : undefined
+		};
+
+		// Additional validation
+		if (!InputValidator.isValidName(sanitizedData.name)) {
 			return reply.status(400).send({
 				success: false,
-				error: 'Name must be at least 2 characters long'
+				error: 'Invalid name format'
 			});
 		}
 
-		// Check if username already exists
-		const existingUserByUsername = await repository.getUserByUsername(username);
-		if (existingUserByUsername) {
+		// Check for existing user
+		const existingUser = await SecureUserRepository.getUserByUsername(sanitizedData.username);
+		if (existingUser) {
 			return reply.status(409).send({
 				success: false,
 				error: 'Username already exists'
 			});
 		}
 
-		// Check if email already exists
-		const existingUserByEmail = await repository.getUserByEmail(email);
-		if (existingUserByEmail) {
+		const existingEmail = await SecureUserRepository.getUserByEmail(sanitizedData.email);
+		if (existingEmail) {
 			return reply.status(409).send({
 				success: false,
 				error: 'Email already exists'
 			});
 		}
 
-		const newUser = await repository.createUser({
-			name: name.trim(),
-			username: username.trim(),
-			email: email.trim().toLowerCase(),
-			password_hash,
-			avatar_url
-		});
+		// Create user using secure repository
+		const newUser = await SecureUserRepository.createUser(sanitizedData);
 
-		// Remove password_hash from response
-		const { password_hash: _, ...safeUser } = newUser;
-
-		reply.status(201).send({
+		return reply.status(201).send({
 			success: true,
-			data: safeUser,
-			message: 'User created successfully'
+			data: newUser
 		});
+
 	} catch (error) {
-		reply.status(500).send({
+		console.error('Error creating user:', error);
+		return reply.status(500).send({
 			success: false,
-			error: 'Failed to create user',
-			message: error instanceof Error ? error.message : 'Unknown error'
+			error: 'Internal server error'
 		});
 	}
 }
@@ -243,31 +277,64 @@ export async function updateUser(request: FastifyRequest, reply: FastifyReply) {
 
 		const updateData = request.body as UpdateUserData;
 
-		// Validation for fields being updated
-		if (updateData.email && !isValidEmail(updateData.email)) {
+		if (!updateData || Object.keys(updateData).length === 0) {
 			return reply.status(400).send({
 				success: false,
-				error: 'Invalid email format'
+				error: 'No update data provided'
 			});
 		}
 
-		if (updateData.username && !isValidUsername(updateData.username)) {
-			return reply.status(400).send({
-				success: false,
-				error: 'Username must be 3-20 characters long and contain only letters, numbers, and underscores'
-			});
+		// Validate and sanitize update data
+		const cleanedData: UpdateUserData = {};
+
+		if (updateData.name) {
+			const sanitizedName = XSSSanitizer.sanitizeInput(updateData.name.trim());
+			if (!InputValidator.isValidName(sanitizedName)) {
+				return reply.status(400).send({
+					success: false,
+					error: 'Invalid name format'
+				});
+			}
+			cleanedData.name = sanitizedName;
 		}
 
-		if (updateData.name && updateData.name.trim().length < 2) {
-			return reply.status(400).send({
-				success: false,
-				error: 'Name must be at least 2 characters long'
-			});
-		}
-
-		// Check for existing username/email if being updated
 		if (updateData.username) {
-			const existingUser = await repository.getUserByUsername(updateData.username);
+			const sanitizedUsername = XSSSanitizer.sanitizeInput(updateData.username.trim());
+			if (!isValidUsername(sanitizedUsername)) {
+				return reply.status(400).send({
+					success: false,
+					error: 'Invalid username format (3-20 characters, alphanumeric and underscores only)'
+				});
+			}
+			cleanedData.username = sanitizedUsername;
+		}
+
+		if (updateData.email) {
+			const sanitizedEmail = XSSSanitizer.sanitizeInput(updateData.email.trim().toLowerCase());
+			if (!isValidEmail(sanitizedEmail)) {
+				return reply.status(400).send({
+					success: false,
+					error: 'Invalid email format'
+				});
+			}
+			cleanedData.email = sanitizedEmail;
+		}
+
+		if (updateData.avatar_url) {
+			cleanedData.avatar_url = XSSSanitizer.sanitizeInput(updateData.avatar_url.trim());
+		}
+
+		if (updateData.is_online !== undefined) {
+			cleanedData.is_online = updateData.is_online;
+		}
+
+		if (updateData.last_seen_at) {
+			cleanedData.last_seen_at = updateData.last_seen_at;
+		}
+
+		// Check for conflicting username/email if being updated
+		if (cleanedData.username) {
+			const existingUser = await SecureUserRepository.getUserByUsername(cleanedData.username);
 			if (existingUser && existingUser.id !== userId) {
 				return reply.status(409).send({
 					success: false,
@@ -276,9 +343,9 @@ export async function updateUser(request: FastifyRequest, reply: FastifyReply) {
 			}
 		}
 
-		if (updateData.email) {
-			const existingUser = await repository.getUserByEmail(updateData.email);
-			if (existingUser && existingUser.id !== userId) {
+		if (cleanedData.email) {
+			const existingEmail = await SecureUserRepository.getUserByEmail(cleanedData.email);
+			if (existingEmail && existingEmail.id !== userId) {
 				return reply.status(409).send({
 					success: false,
 					error: 'Email already exists'
@@ -286,17 +353,8 @@ export async function updateUser(request: FastifyRequest, reply: FastifyReply) {
 			}
 		}
 
-		// Clean data
-		const cleanedData: UpdateUserData = {};
-		if (updateData.name) cleanedData.name = updateData.name.trim();
-		if (updateData.username) cleanedData.username = updateData.username.trim();
-		if (updateData.email) cleanedData.email = updateData.email.trim().toLowerCase();
-		if (updateData.password_hash) cleanedData.password_hash = updateData.password_hash;
-		if (updateData.avatar_url !== undefined) cleanedData.avatar_url = updateData.avatar_url;
-		if (updateData.is_online !== undefined) cleanedData.is_online = updateData.is_online;
-		if (updateData.last_seen_at !== undefined) cleanedData.last_seen_at = updateData.last_seen_at;
-
-		const updatedUser = await repository.updateUser(userId, cleanedData);
+		// Update user using secure repository
+		const updatedUser = await SecureUserRepository.updateUser(userId, cleanedData);
 
 		if (!updatedUser) {
 			return reply.status(404).send({
@@ -305,19 +363,16 @@ export async function updateUser(request: FastifyRequest, reply: FastifyReply) {
 			});
 		}
 
-		// Remove password_hash from response
-		const { password_hash, ...safeUser } = updatedUser;
-
-		reply.send({
+		return reply.send({
 			success: true,
-			data: safeUser,
-			message: 'User updated successfully'
+			data: updatedUser
 		});
+
 	} catch (error) {
-		reply.status(500).send({
+		console.error('Error updating user:', error);
+		return reply.status(500).send({
 			success: false,
-			error: 'Failed to update user',
-			message: error instanceof Error ? error.message : 'Unknown error'
+			error: 'Internal server error'
 		});
 	}
 }
@@ -335,43 +390,34 @@ export async function deleteUser(request: FastifyRequest, reply: FastifyReply) {
 			});
 		}
 
-		// Check if user exists first
-		const existingUser = await repository.getUserById(userId);
-		if (!existingUser) {
+		const deleted = await SecureUserRepository.deleteUser(userId);
+
+		if (!deleted) {
 			return reply.status(404).send({
 				success: false,
 				error: 'User not found'
 			});
 		}
 
-		const deleted = await repository.deleteUser(userId);
-
-		if (!deleted) {
-			return reply.status(500).send({
-				success: false,
-				error: 'Failed to delete user'
-			});
-		}
-
-		reply.send({
+		return reply.send({
 			success: true,
 			message: 'User deleted successfully'
 		});
+
 	} catch (error) {
-		reply.status(500).send({
+		console.error('Error deleting user:', error);
+		return reply.status(500).send({
 			success: false,
-			error: 'Failed to delete user',
-			message: error instanceof Error ? error.message : 'Unknown error'
+			error: 'Internal server error'
 		});
 	}
 }
 
-// Update user online status
-export async function updateUserOnlineStatus(request: FastifyRequest, reply: FastifyReply) {
+// Update user avatar
+export async function updateUserAvatar(request: FastifyRequest, reply: FastifyReply) {
 	try {
 		const { id } = request.params as { id: string };
 		const userId = parseInt(id, 10);
-		const { is_online } = request.body as { is_online: boolean | number };
 
 		if (isNaN(userId)) {
 			return reply.status(400).send({
@@ -380,34 +426,91 @@ export async function updateUserOnlineStatus(request: FastifyRequest, reply: Fas
 			});
 		}
 
-		if (typeof is_online !== 'boolean' && typeof is_online !== 'number') {
-			return reply.status(400).send({
-				success: false,
-				error: 'is_online must be a boolean or number (0/1)'
-			});
-		}
-
 		// Check if user exists
-		const existingUser = await repository.getUserById(userId);
-		if (!existingUser) {
+		const user = await SecureUserRepository.getUserById(userId);
+		if (!user) {
 			return reply.status(404).send({
 				success: false,
 				error: 'User not found'
 			});
 		}
 
-		const isOnline = Boolean(is_online);
-		await repository.updateUserOnlineStatus(userId, isOnline);
+		// For now, we'll expect avatar_url in the request body
+		const { avatar_url } = request.body as { avatar_url: string };
 
-		reply.send({
+		if (!avatar_url) {
+			return reply.status(400).send({
+				success: false,
+				error: 'Avatar URL is required'
+			});
+		}
+
+		// Sanitize avatar URL
+		const sanitizedAvatarUrl = XSSSanitizer.sanitizeInput(avatar_url.trim());
+
+		// Update user with new avatar URL
+		const updatedUser = await SecureUserRepository.updateUser(userId, { avatar_url: sanitizedAvatarUrl });
+
+		return reply.send({
 			success: true,
-			message: `User ${isOnline ? 'online' : 'offline'} status updated successfully`
+			data: updatedUser,
+			message: 'Avatar updated successfully'
 		});
+
 	} catch (error) {
-		reply.status(500).send({
+		console.error('Error updating user avatar:', error);
+		return reply.status(500).send({
 			success: false,
-			error: 'Failed to update user online status',
-			message: error instanceof Error ? error.message : 'Unknown error'
+			error: 'Internal server error'
+		});
+	}
+}
+
+// Set user as online/offline
+export async function setUserOnlineStatus(request: FastifyRequest, reply: FastifyReply) {
+	try {
+		const { id } = request.params as { id: string };
+		const { is_online } = request.body as { is_online: boolean };
+		const userId = parseInt(id, 10);
+
+		if (isNaN(userId)) {
+			return reply.status(400).send({
+				success: false,
+				error: 'Invalid user ID'
+			});
+		}
+
+		if (typeof is_online !== 'boolean') {
+			return reply.status(400).send({
+				success: false,
+				error: 'is_online must be a boolean'
+			});
+		}
+
+		const updateData: UpdateUserData = {
+			is_online: is_online ? 1 : 0,
+			last_seen_at: new Date().toISOString()
+		};
+
+		const updatedUser = await SecureUserRepository.updateUser(userId, updateData);
+
+		if (!updatedUser) {
+			return reply.status(404).send({
+				success: false,
+				error: 'User not found'
+			});
+		}
+
+		return reply.send({
+			success: true,
+			data: updatedUser
+		});
+
+	} catch (error) {
+		console.error('Error setting user online status:', error);
+		return reply.status(500).send({
+			success: false,
+			error: 'Internal server error'
 		});
 	}
 }
@@ -416,7 +519,7 @@ export async function updateUserOnlineStatus(request: FastifyRequest, reply: Fas
 export async function getAvailableAvatars(request: FastifyRequest, reply: FastifyReply) {
 	try {
 		// Path to avatars folder in backend public directory
-		const avatarsPath = path.join(__dirname, '../../../public/avatars');
+		const avatarsPath = path.join(process.cwd(), 'public', 'avatars');
 
 		// Read all files in the avatars directory
 		const files = await fs.readdir(avatarsPath);
@@ -426,15 +529,15 @@ export async function getAvailableAvatars(request: FastifyRequest, reply: Fastif
 			.filter(file => /\.(png|jpg|jpeg|gif|webp)$/i.test(file))
 			.sort();
 
-		reply.send({
+		return reply.send({
 			success: true,
 			data: avatarFiles
 		});
 	} catch (error) {
-		reply.status(500).send({
+		console.error('Error getting available avatars:', error);
+		return reply.status(500).send({
 			success: false,
-			error: 'Failed to get available avatars',
-			message: error instanceof Error ? error.message : 'Unknown error'
+			error: 'Internal server error'
 		});
 	}
 }
