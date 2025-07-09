@@ -26,7 +26,7 @@ export default function SettingsPage(): void {
 			  </button>
 			</div>
 
-			!--<input id="file-input" type="file" accept="image/*" class="hidden" />-- ver se isso esta usando e para que
+			<!--<input id="file-input" type="file" accept="image/*" class="hidden" />-- ver se isso esta usando e para que -->
 		  </div>
 
       <div class="w-full mb-2 px-2 md:px-6">
@@ -49,11 +49,11 @@ export default function SettingsPage(): void {
 				class="w-full px-4 py-2 rounded-[5px] bg-[#383568] text-white placeholder-white focus:outline-none focus:ring-2 focus:ring-purple-500"
 				disabled />
 
-			//  <button data-id="usernameInput"
-			//	class="edit-btn w-10 h-10 p-1 bg-[#4A4580] rounded-[5px] hover:bg-[#5C5599] transition flex items-center justify-center">
-			//	<img src="../../assets/lapis.png" alt="Editar" class="w-6 h-6" />
-			//  </button>
-			//</div>
+			<!-- <button data-id="usernameInput"
+				class="edit-btn w-10 h-10 p-1 bg-[#4A4580] rounded-[5px] hover:bg-[#5C5599] transition flex items-center justify-center">
+				<img src="../../assets/lapis.png" alt="Editar" class="w-6 h-6" />
+			  </button>
+			</div> -->
 		  </div>
 
       <div id="two-factor-section" class="bg-[#1E1B4B] p-6 rounded-lg w-full max-w-md mx-auto">
