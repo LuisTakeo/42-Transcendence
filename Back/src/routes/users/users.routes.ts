@@ -8,7 +8,8 @@ import {
   updateUser,
   deleteUser,
   updateUserOnlineStatus,
-  getAvailableAvatars
+  getAvailableAvatars,
+  getUserStats
 } from './users.controller';
 
 export default async function usersRoutes(app: FastifyInstance) {
@@ -20,4 +21,5 @@ export default async function usersRoutes(app: FastifyInstance) {
   app.delete('/:id', deleteUser);
   app.patch('/:id/online-status', updateUserOnlineStatus);
   app.get('/avatars/list', getAvailableAvatars);
+  app.get('/:id/stats', getUserStats);
 }
