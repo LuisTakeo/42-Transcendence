@@ -152,9 +152,7 @@ const modalHTML = `
       <h2 id="2fa-modal-title" class="text-2xl font-bold text-white mb-4">Setup Two-Factor Authentication</h2>
       <p id="2fa-modal-description" class="text-gray-300 mb-6">Scan this QR code with your authenticator app:</p>
 
-      <div id="setup-instructions" class="mb-4 p-3 bg-yellow-900 bg-opacity-30 border border-yellow-600 rounded text-yellow-200 text-sm">
-        <strong>Important:</strong> If you previously had 2FA enabled, please remove the old Transcendence entry from your authenticator app before scanning this new QR code.
-      </div>
+
 
       <div class="bg-white p-4 rounded-lg mb-6 inline-block">
         <img id="qr-code-img" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==" alt="QR Code" class="w-48 h-48" />
