@@ -64,8 +64,10 @@ class UserService {
    * Get user by ID (with caching)
    */
   async getUserById(userId: number): Promise<User | null> {
-    // Clear cache for this user to get fresh data
-    this.clearUserCache(userId);
+    // Check if the user is already in the cache
+    if (this.userCache.has(userId)) {
+      return this.userCache.get(userId) || null;
+    }
 
     try {
       const url = `http://localhost:3142/users/${userId}`;
