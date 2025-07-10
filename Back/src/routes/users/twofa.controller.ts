@@ -39,7 +39,7 @@ export async function generate2FAQRCode(request: FastifyRequest, reply: FastifyR
 
         // Generate new secret
     const newSecret = speakeasy.generateSecret({
-      name: ` 42 Transcendence  (${userData.email})`,
+      name: '⭐ Transcendence ⭐',
     });
 
     const secret = newSecret.base32;
