@@ -78,7 +78,7 @@ export function show2FAModal(qrCode: string | null, secret: string, isLoginMode:
         }
       } else {
         // Handle login verification
-        const response = await authService.completeGoogleLogin(secret, code); // secret contains the idToken in login mode
+        const response = await authService.completeGoogleLogin(idToken, code); // idToken is used in login mode
 
         if (response.token) {
           // Close modal
