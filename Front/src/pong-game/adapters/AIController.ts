@@ -1,5 +1,4 @@
 import { Scene, Vector3 } from "@babylonjs/core";
-import { IInputController } from "../ports/IInputController";
 import { Paddle } from "../objects/Paddle";
 import { Ball } from "../objects/Ball";
 import { BaseController } from "./BaseController";
@@ -36,7 +35,6 @@ export class AIController extends BaseController {
         ball: Ball,
         difficulty: number = 0.2,
         moveSpeed: number = 0.5,
-        tableWidth: number = 100,
         tableDepth: number = 80,
         difficultLevel: LevelAI = LevelAI.EASY
     ) {
@@ -44,7 +42,6 @@ export class AIController extends BaseController {
         this.id = id;
         this.scene = scene;
         this.ball = ball;
-        this.tableWidth = tableWidth;
         this.tableDepth = tableDepth;
         this.paddleSize = { width: 1, height: 4, depth: 10 }; // Tamanho padrão do paddle
         this.difficultyFactor = Math.max(0, Math.min(1, difficulty)); // Limita entre 0 e 1
@@ -108,19 +105,18 @@ export class AIController extends BaseController {
 
         if (!this.lastBallPosition) return;
         if (this.decisions >= this.difficultLevel) return;
-        
+
         this.decisions++;
         const paddlePosition = this.paddle.getMesh().position;
 
-        // Decidir movimento com base na última posição capturada
         const targetZ = this.lastBallPosition.z;
-        
-        if (Math.abs(targetZ - paddlePosition.z) < 0.5) 
+
+        if (Math.abs(targetZ - paddlePosition.z) < 0.5)
             return;
-        
+
         const difference = targetZ - paddlePosition.z;
         const border = (this.tableDepth / 2) - (this.paddleSize.depth - 2.5);
-        
+
 
         if (difference > 0) {
             this.paddle.moveUp(border);
@@ -134,42 +130,8 @@ export class AIController extends BaseController {
      */
     public dispose(): void {
         this.paddle = null;
-    }
-
-    /**
-     * Atualiza a dificuldade da IA
-     * @param difficulty Novo fator de dificuldade (0 = fácil, 1 = difícil)
-     */
-    public setDifficulty(difficulty: number): void {
-        this.difficultyFactor = Math.max(0, Math.min(1, difficulty));
-
-        // Recalcula reactionSpeed e moveSpeed com base na nova dificuldade
-        this.reactionSpeed = 1 - (0.7 * (1 - this.difficultyFactor));
-        this.moveSpeed = 0.5 * (0.3 + (0.7 * this.difficultyFactor));
-
-        console.log(`Dificuldade atualizada: ${this.difficultyFactor}`);
-        console.log(`Velocidade de reação: ${this.reactionSpeed}, Velocidade de movimento: ${this.moveSpeed}`);
-    }
-
-    // ✅ Método para atualizar tamanho da mesa se necessário
-    public updateTableSize(tableWidth: number, tableDepth: number): void {
-        this.tableWidth = tableWidth;
-        this.tableDepth = tableDepth;
-    }
-
-    public predictBallPosition(): Vector3 | null {
-        if (!this.ball) return null;
-
-        const currentPosition = this.ball.getMesh().position;
-        const velocity = this.ball.getVelocity(); // Usar método público getVelocity
-
-        // Simular bounces na mesa
-        let futurePosition = currentPosition.add(velocity.scale(1));
-        if (futurePosition.z > this.tableDepth / 2 || futurePosition.z < -this.tableDepth / 2) {
-            velocity.z *= -1; // Inverter direção no eixo Z
-            futurePosition = currentPosition.add(velocity.scale(1));
-        }
-
-        return futurePosition;
+        this.ball = null;
+        this.scene = null as any;
+        this.lastBallPosition = null;
     }
 }

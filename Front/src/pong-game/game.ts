@@ -58,20 +58,20 @@ class MainGame {
      * @param gameType Tipo de jogo a ser iniciado
      * @param tableWidth Largura da mesa
      * @param tableDepth Profundidade da mesa
-     */    
+     */
     constructor(
         canvasId: string,
         gameType: GameType = GameType.LOCAL_TWO_PLAYERS,
         tableWidth: number = 100,
         tableDepth: number = 80,
-        maxScore: number = 10 
+        maxScore: number = 10
     ) {
         this.canvas = document.getElementById(canvasId) as unknown as HTMLCanvasElement;
         if (!this.canvas) throw new Error(`Canvas with ID "${canvasId}" not found`);
 
         this.gameType = gameType;
         this.score = { player1: 0, player2: 0 };
-        this.maxScore = maxScore; 
+        this.maxScore = maxScore;
 
         // Initialize Babylon engine
         this.engine = new Engine(this.canvas, true);
@@ -87,7 +87,7 @@ class MainGame {
         this.inputManager = new InputManager();
         // Inicializa a textura avançada para GUI
         this.advancedTexture = AdvancedDynamicTexture.CreateFullscreenUI("UI");
-        
+
         this.scoreText = new TextBlock("scoreText", "Score: 0 - 0");
         this.instructionsText = new TextBlock("instructionsText", "Use as setas para mover!");
 
@@ -181,7 +181,7 @@ class MainGame {
         switch (this.gameType) {
             case GameType.LOCAL_TWO_PLAYERS:
                 this.registerControllers({
-                    info: "player1_keyboard", 
+                    info: "player1_keyboard",
                     controller: new KeyboardController(
                         "player1_keyboard", this.scene, "w", "s", 0.5,
                         this.tableManager.getTableWidth(),
@@ -189,7 +189,7 @@ class MainGame {
                     )
                 },
                 {
-                    info: "player2_keyboard", 
+                    info: "player2_keyboard",
                     controller: new KeyboardController(
                         "player2_keyboard",  this.scene,  "ArrowUp",  "ArrowDown",  0.5,
                         this.tableManager.getTableWidth(),
@@ -200,28 +200,27 @@ class MainGame {
                 break;
 
             case GameType.LOCAL_VS_AI:
-                this.registerControllers({   
-                    info: "player_keyboard", 
+                this.registerControllers({
+                    info: "player_keyboard",
                     controller: new KeyboardController( "player_keyboard",
                         this.scene, "ArrowUp", "ArrowDown", 0.5,
                         this.tableManager.getTableWidth(),
                         this.tableManager.getTableDepth()
-                    )}, 
-                    {   
-                        info: "ai_controller", 
+                    )},
+                    {
+                        info: "ai_controller",
                     controller: new AIController(
                         "ai_controller", this.scene, ball, 0.8, 0.5,
-                        this.tableManager.getTableWidth(),
                         this.tableManager.getTableDepth(),
                         LevelAI.EXPERT
-                    )}, 
+                    )},
                     "Use as setas para mover\n"
                 )
                 break;
 
             case GameType.REMOTE:
                 this.registerControllers({
-                    info: "local_player", 
+                    info: "local_player",
                     controller: new KeyboardController(
                         "local_player", this.scene, "ArrowUp", "ArrowDown", 0.5,
                         this.tableManager.getTableWidth(),
@@ -229,7 +228,7 @@ class MainGame {
                     )
                 },
                 {
-                    info: "remote_player", 
+                    info: "remote_player",
                     controller: new RemoteController("remote_player")
                 },
                 "Use as setas para mover\n"
@@ -254,7 +253,7 @@ class MainGame {
                 // Isso pode mudar dependendo da sua lógica de rede
                 this.inputManager.connectControllerToPaddle("local_player", rightPaddle);
                 this.inputManager.connectControllerToPaddle("remote_player", leftPaddle);
-                break;            
+                break;
             default:
                 console.warn(`Tipo de jogo desconhecido: ${this.gameType}, usando modo dois jogadores.`);
                 // Configuração padrão (dois jogadores)
@@ -283,7 +282,7 @@ class MainGame {
     }
 
     private registerControllers(
-        player1: {info: string, controller: IInputController}, 
+        player1: {info: string, controller: IInputController},
         player2: {info: string, controller: IInputController},
         instructions: string): void {
         this.instructionsText.text = instructions;
@@ -323,7 +322,7 @@ class MainGame {
         }
 
         this.scene.render();
-    } 
+    }
 
     private endGame(): void {
         const winner = this.score.player1 >= this.maxScore ? "Player 1" : "Player 2";

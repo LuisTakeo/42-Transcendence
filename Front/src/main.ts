@@ -1,4 +1,5 @@
 // Imports
+import { GamePage } from './pages/gamePage.ts';
 import HomePage from './pages/home.ts';
 import LoginPage from './pages/login.ts';
 import ProfilePage from './pages/profile.ts';
@@ -20,6 +21,7 @@ const routesWithSidebar = [
   '/ranking',
   '/settings',
   '/users',
+  '/game/classic'
 ];
 
 // Função que renderiza a página correta e controla a sidebar
@@ -59,6 +61,9 @@ function renderRoute(path: string) {
         break;
       case '/users':
         UsersPage();
+        break;
+      case '/game/classic':
+        GamePage('classic');
         break;
       default:
         console.log('Route not found in switch:', path); // Debug
