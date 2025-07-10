@@ -129,7 +129,7 @@ export async function initializeUsersPage(): Promise<void> {
                 <span class="text-sm">${user.is_online ? 'Online' : 'Offline'}</span>
               </span>
               ${user.last_seen_at ?
-                `<span class="text-sm text-gray-400">Last seen: ${formatLastSeen(user.last_seen_at)}</span>` :
+                `<span class="text-sm text-gray-400">Last seen: ${formatLastSeen(user.last_seen_at as string)}</span>` :
                 ''
               }
             </div>
