@@ -40,7 +40,7 @@ async function renderRoute(path: string) {
     setupLogoutButton(); // Setup logout functionality
     const userId = path.split('/')[2];
     if (userId) {
-      ProfilePage(parseInt(userId));
+      await ProfilePage(parseInt(userId));
     } else {
       app.innerHTML = '<h1>Invalid Profile</h1>';
     }
@@ -148,23 +148,7 @@ window.addEventListener('beforeunload', () => {
 // Handle online status updates
 async function updateOnlineStatus(isOnline: boolean): Promise<void> {
   try {
-    const token = localStorage.getItem('authToken');
-    if (!token) return;
-
-    // Decode JWT to get user ID
-    const payload = JSON.parse(atob(token.split('.')[1]));
-    const userId = payload.id;
-
-    if (userId) {
-      await fetch(`http://localhost:3142/users/${userId}/online-status`, {
-        method: 'PATCH',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ is_online: isOnline })
-      });
-    }
+    await authService.updateOnlineStatus(isOnline);
   } catch (error) {
     console.error('Failed to update online status:', error);
   }

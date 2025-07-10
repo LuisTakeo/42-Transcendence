@@ -86,7 +86,6 @@ export class AuthService extends BaseApiService {
     this.updateOnlineStatus(false).catch(console.error);
 
     localStorage.removeItem('authToken');
-    this.token = null;
     localStorage.removeItem('currentUserId');
     // Clear user cache
     import('./user.service.ts').then(({ userService }) => {

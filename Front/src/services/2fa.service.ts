@@ -1,5 +1,5 @@
 // 2fa.service.ts
-import { BaseApiService } from './base-api';
+import { BaseApiService } from './base-api.ts';
 import { authService } from './auth.service';
 
 interface TwoFactorResponse {
