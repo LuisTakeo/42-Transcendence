@@ -3,7 +3,7 @@ import { twoFactorService } from '../services/2fa.service.ts';
 import { showSuccessMessage, showErrorMessage } from './notification.ts';
 import { userService } from '../services/user.service.ts';
 
-export function show2FAModal(qrCode: string | null, secret: string, isLoginMode: boolean = false, isSetupMode: boolean = false) {
+export function show2FAModal(qrCode: string | null, secret: string, isLoginMode: boolean = false, isSetupMode: boolean = false, idToken?: string) {
   // Add modal to page
   document.body.insertAdjacentHTML('beforeend', modalHTML);
 
@@ -18,7 +18,9 @@ export function show2FAModal(qrCode: string | null, secret: string, isLoginMode:
   const modalDescription = document.getElementById('2fa-modal-description') as HTMLParagraphElement;
 
   // Set QR code image
-  qrCodeImg.src = qrCode;
+  if (qrCode) {
+    qrCodeImg.src = qrCode;
+  }
 
   // Set modal content based on mode
   if (isLoginMode) {
@@ -78,6 +80,9 @@ export function show2FAModal(qrCode: string | null, secret: string, isLoginMode:
         }
       } else {
         // Handle login verification
+        if (!idToken) {
+          throw new Error('ID token is required for login verification');
+        }
         const response = await authService.completeGoogleLogin(idToken, code); // idToken is used in login mode
 
         if (response.token) {

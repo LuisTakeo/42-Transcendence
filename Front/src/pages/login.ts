@@ -77,7 +77,7 @@ export async function initializeLoginPage(): Promise<void> {
 
       if (loginResponse.needTwoFactorCode) {
         // User already has 2FA set up, show code input modal
-        show2FAModal(null, idToken, true); // true indicates this is for code input, not setup
+        show2FAModal(null, '', true, false, idToken); // true indicates this is for code input, not setup
       } else if (loginResponse.token) {
         // Direct login successful (user doesn't have 2FA enabled)
         authService.setAuthToken(loginResponse.token);
@@ -101,7 +101,7 @@ export async function initializeLoginPage(): Promise<void> {
   // Initialize Google Sign-In
   const initializeGoogle = () => {
     if (window.google && window.google.accounts && window.google.accounts.id) {
-      const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || '37535858373-lu8vc124lg3mfcs0j2e36ubg7l4as8ff.apps.googleusercontent.com';
+      const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
       window.google.accounts.id.initialize({
         client_id: clientId,

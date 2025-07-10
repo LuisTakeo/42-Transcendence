@@ -40,25 +40,24 @@ export async function generate2FAQRCode(request: FastifyRequest, reply: FastifyR
         // Generate new secret
     const newSecret = speakeasy.generateSecret({
       name: '⭐ Transcendence ⭐',
+      length: 20, // Generate 20 bytes = 32 base32 characters
     });
 
     const secret = newSecret.base32;
 
-    // Generate QR code first to get the encoded secret
+    // Generate QR code with exact same parameters as verification
     const otpauthUrl = speakeasy.otpauthURL({
       secret: secret,
       label: userData.email,
-      issuer: 'Transcendence',
+      issuer: '⭐ Transcendence ⭐',
       algorithm: 'sha1',
       digits: 6,
       period: 30,
+      encoding: 'base32'
     });
 
-    // Extract the encoded secret from the URL
-    const encodedSecret = otpauthUrl.split('secret=')[1]?.split('&')[0];
-
-    // Save the ENCODED secret to the database
-    await saveSecret(userData.email, encodedSecret);
+        // Save the raw base32 secret to the database (not the encoded one)
+    await saveSecret(userData.email, secret);
 
     const qrCode = await qrcode.toDataURL(otpauthUrl);
 
@@ -117,12 +116,17 @@ export async function enable2FA(request: FastifyRequest, reply: FastifyReply) {
       return reply.status(400).send({ error: 'No 2FA secret found. Please generate QR code first.' });
     }
 
-    // Verify the code
+
+
+    // Verify the code with exact same parameters
     const isCodeValid = speakeasy.totp.verify({
       secret: secret,
       encoding: 'base32',
       token: code,
       window: 2, // Allow 2 time windows for timing issues
+      algorithm: 'sha1',
+      digits: 6,
+      period: 30
     });
 
     if (!isCodeValid) {
@@ -196,7 +200,7 @@ export async function disable2FA(request: FastifyRequest, reply: FastifyReply) {
   }
 }
 
-// Verify 2FA code placeholder
+// Verify 2FA code
 export async function verify2FACode(request: FastifyRequest, reply: FastifyReply) {
   try {
     // Verify JWT token
@@ -215,8 +219,29 @@ export async function verify2FACode(request: FastifyRequest, reply: FastifyReply
       return reply.status(400).send({ error: 'Valid 6-digit code required' });
     }
 
-    // For now, accept any 6-digit code for demonstration
-    const verified = code === '123456'; // Placeholder verification
+    // Get user data to check if 2FA is enabled
+    const userData = await repository.getUserById(user.id);
+    if (!userData) {
+      return reply.status(404).send({ error: 'User not found' });
+    }
+
+    if (!userData.two_factor_enabled) {
+      return reply.status(400).send({ error: 'Two-factor authentication is not enabled for this user' });
+    }
+
+    // Get the secret for verification
+    const secret = await getSecret(userData.email);
+    if (!secret) {
+      return reply.status(400).send({ error: 'No 2FA secret found' });
+    }
+
+    // Verify the code using TOTP
+    const verified = speakeasy.totp.verify({
+      secret: secret,
+      encoding: 'base32',
+      token: code,
+      window: 2, // Allow 2 time windows for timing issues
+    });
 
     return reply.send({
       success: true,
