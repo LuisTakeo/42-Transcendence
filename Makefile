@@ -25,7 +25,7 @@ clean:
 
 # Start in development mode
 dev:
-	FRONT_PORT=3043 BACK_PORT=3143 docker compose up -d --build
+	FRONT_PORT=3042 BACK_PORT=3143 docker compose up -d --build
 
 # Start in production mode
 prod:
@@ -48,6 +48,7 @@ backend-logs:
 # Restart backend
 backend-restart:
 	docker compose restart backend
+
 
 # Main commands
 .PHONY: up down build restart logs clean dev prod

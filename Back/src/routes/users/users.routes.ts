@@ -10,7 +10,8 @@ import {
   updateUser,
   deleteUser,
   updateUserOnlineStatus,
-  getAvailableAvatars
+  getAvailableAvatars,
+  getUserStats
 } from './users.controller';
 import {
   enable2FA,
@@ -30,6 +31,7 @@ export default async function usersRoutes(app: FastifyInstance) {
   app.delete('/:id', deleteUser);
   app.patch('/:id/online-status', updateUserOnlineStatus);
   app.get('/avatars/list', getAvailableAvatars);
+  app.get('/:id/stats', getUserStats);
 
   // 2FA endpoints
   app.get('/2fa/generate-qr', generate2FAQRCode);

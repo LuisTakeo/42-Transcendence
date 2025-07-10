@@ -580,3 +580,16 @@ export async function updateCurrentUser(request: FastifyRequest, reply: FastifyR
 		});
 	}
 }
+
+export async function getUserStats(request: FastifyRequest, reply: FastifyReply) {
+
+	reply.send({
+		success: true,
+		data: {
+			twoFactorEnabled: false,
+			friendsCount: 3,
+			totalWins: 2,
+			topRanked: 2,
+		}
+	});
+}
