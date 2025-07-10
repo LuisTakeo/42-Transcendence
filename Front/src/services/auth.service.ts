@@ -22,13 +22,22 @@ export class AuthService extends BaseApiService {
   // Initial Google login - returns QR code for 2FA setup if needed
   async loginWithGoogle(idToken: string): Promise<GoogleLoginResponse> {
     try {
-      return await this.request<GoogleLoginResponse>('/login-google', {
+      const response = await this.request<GoogleLoginResponse>('/login-google', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ idToken }),
       });
+
+      if (response.token) {
+        this.setAuthToken(response.token);
+
+        // Set user as online after successful login
+        await this.updateOnlineStatus(true);
+      }
+
+      return response;
     } catch (error: any) {
       // Handle 2FA required case specifically
       if (error.message && error.message.includes('Two-factor authentication code required')) {
@@ -73,7 +82,11 @@ export class AuthService extends BaseApiService {
 
   // Remove authentication token (logout)
   removeAuthToken(): void {
+    // Set user as offline before removing token
+    this.updateOnlineStatus(false).catch(console.error);
+
     localStorage.removeItem('authToken');
+    this.token = null;
     localStorage.removeItem('currentUserId');
     // Clear user cache
     import('./user.service.ts').then(({ userService }) => {
@@ -95,6 +108,30 @@ export class AuthService extends BaseApiService {
   getCurrentUserId(): number | null {
     const userId = localStorage.getItem('currentUserId');
     return userId ? parseInt(userId, 10) : null;
+  }
+
+  private async updateOnlineStatus(isOnline: boolean): Promise<void> {
+    try {
+      const token = this.getAuthToken();
+      if (!token) return;
+
+      // Decode JWT to get user ID
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      const userId = payload.id;
+
+      if (userId) {
+        await fetch(`http://localhost:3142/users/${userId}/online-status`, {
+          method: 'PATCH',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ is_online: isOnline })
+        });
+      }
+    } catch (error) {
+      console.error('Failed to update online status:', error);
+    }
   }
 }
 

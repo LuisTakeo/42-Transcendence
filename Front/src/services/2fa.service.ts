@@ -11,14 +11,14 @@ interface TwoFactorResponse {
   };
 }
 
-interface VerifyCodeResponse {
+interface SimpleResponse {
   success: boolean;
-  valid?: boolean;
   message?: string;
 }
 
-interface SimpleResponse {
+interface VerifyCodeResponse {
   success: boolean;
+  valid: boolean;
   message?: string;
 }
 
@@ -63,5 +63,4 @@ class TwoFactorService extends BaseApiService {
   }
 }
 
-// Export a singleton instance
 export const twoFactorService = new TwoFactorService();

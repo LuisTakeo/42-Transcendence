@@ -1,57 +1,88 @@
-import { initializeSearchButton } from "./button.ts";
-import { usersService, User } from "../services/users.service.ts";
-import { userService } from "../services/user.service.ts";
-import { showErrorMessage } from './notification.ts';
+import { usersService, User } from '../services/users.service.ts';
+import { userService } from '../services/user.service.ts';
 
-export default function UsersPage(): void {
-  const app = document.getElementById("app");
-  if (!app) return;
+export default function UsersPage(): string {
+  return `
+    <main class="ml-24 p-[50px] flex justify-center items-center min-h-screen">
+      <div class="w-full max-w-6xl bg-[#1E1B4B] rounded-lg p-8">
+        <!-- Título -->
+        <h1 class="text-5xl font-bold mb-6 text-center">Looking for users?</h1>
 
-  app.innerHTML = ""; // Limpa o conteúdo
+        <span class="block h-4"></span>
 
-  const main = document.createElement("main");
-  main.className = "main-content p-[2cm] flex justify-center items-center min-h-screen";
-  main.innerHTML = `
-    <div class="w-full max-w-6xl bg-[#1E1B4B] rounded-lg p-8">
-      <h1 class="text-5xl font-bold mb-6 text-center">Looking for users?</h1>
-      <span class="block h-4"></span>
+        <!-- Campo de pesquisa -->
+        <div class="flex justify-center mb-8">
+          <input
+            type="text"
+            id="searchUsers"
+            placeholder="Search..."
+            class="w-80 px-6 py-3 rounded-l-[5px] border border-[#383568] bg-[#1E1B4B] text-white placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-purple-500 focus:border-transparent text-2xl"
+          />
+          <button class="px-6 py-3 bg-[#383568] text-white font-semibold rounded-r-[5px] hover:bg-[#4E4A72] transition duration-200 ease-in-out"
+            id="searchUsersButton"
+          >
+            <img src="../../assets/find.png" alt="search">
+          </button>
+        </div>
+        <span class="block h-4"></span>
 
-      <div class="flex justify-center mb-8">
-        <div class="flex focus-within:ring-2 focus-within:ring-purple-500 focus-within:border-transparent rounded-[5px] transition-all duration-200">
-          <input type="text" id="searchUsers" placeholder="Search by name, username, or email..."
-            class="w-80 px-6 py-3 rounded-l-[5px] border border-[#383568] bg-[#383568] text-white placeholder-gray-400 focus:outline-none text-2xl [&:-webkit-autofill]:bg-[#383568] [&:-webkit-autofill]:text-white [&:-webkit-autofill]:shadow-[0_0_0_1000px_#383568_inset] [&:-webkit-autofill]:[-webkit-text-fill-color:white]" />
-          <button class="px-6 py-3 bg-[#383568] text-white font-semibold rounded-r-[5px] hover:bg-[#4E4A72] transition duration-200 ease-in-out border-l-0 border border-[#383568]"
-          id="searchUsersButton">
-          <img src="../../assets/find.png" alt="find">
-        </button>
+        <!-- Resultados da pesquisa -->
+        <div id="results" class="grid grid-cols-1 gap-6">
+          <!-- Users will be loaded here -->
+        </div>
+
+        <!-- Pagination -->
+        <div id="pagination" class="flex items-center justify-center mt-8 space-x-4">
+          <button
+            id="prevPage"
+            class="px-4 py-2 bg-[#383568] text-white rounded hover:bg-[#4E4A72] transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Previous
+          </button>
+          <span id="pageInfo" class="text-white"></span>
+          <button
+            id="nextPage"
+            class="px-4 py-2 bg-[#383568] text-white rounded hover:bg-[#4E4A72] transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Next
+          </button>
         </div>
       </div>
-
-      <span class="block h-4"></span>
-
-      <div class="grid grid-cols-1 gap-6" id="results">
-        <div class="text-center text-white text-xl">
-          <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500 mx-auto mb-4"></div>
-          Loading users...
-        </div>
-          </div>
-
-      <div class="flex justify-center mt-8 space-x-4" id="pagination" style="display: none;">
-        <button id="prevPage" class="px-4 py-2 bg-[#383568] text-white rounded hover:bg-[#4E4A72] transition disabled:opacity-50 disabled:cursor-not-allowed">
-          Previous
-        </button>
-        <span id="pageInfo" class="px-4 py-2 text-white"></span>
-        <button id="nextPage" class="px-4 py-2 bg-[#383568] text-white rounded hover:bg-[#4E4A72] transition disabled:opacity-50 disabled:cursor-not-allowed">
-          Next
-        </button>
-      </div>
-    </div>
+    </main>
   `;
+}
 
-  app.appendChild(main);
+// Initialize users page with functionality
+export async function initializeUsersPage(): Promise<void> {
+  // Check authentication
+  const user = await userService.requireAuth();
+  if (!user) {
+    return; // User will be redirected to login
+  }
 
-  // Inicializa os event listeners após o HTML ser renderizado
-  initializeSearchButton();
+  function formatLastSeen(lastSeenAt: string): string {
+    const now = new Date();
+    const lastSeen = new Date(lastSeenAt);
+    const diffInSeconds = Math.floor((now.getTime() - lastSeen.getTime()) / 1000);
+
+    if (diffInSeconds < 60) {
+      return 'Just now';
+    } else if (diffInSeconds < 3600) {
+      const minutes = Math.floor(diffInSeconds / 60);
+      return `${minutes} minute${minutes > 1 ? 's' : ''} ago`;
+    } else if (diffInSeconds < 86400) {
+      const hours = Math.floor(diffInSeconds / 3600);
+      return `${hours} hour${hours > 1 ? 's' : ''} ago`;
+    } else {
+      const days = Math.floor(diffInSeconds / 86400);
+      return `${days} day${days > 1 ? 's' : ''} ago`;
+    }
+  }
+
+  function showErrorMessage(message: string): void {
+    // You can implement a toast notification here if needed
+    console.error(message);
+  }
 
   // State management
   let currentPage = 1;
@@ -66,7 +97,7 @@ export default function UsersPage(): void {
   const nextButton = document.getElementById("nextPage") as HTMLButtonElement;
   const pageInfo = document.getElementById("pageInfo") as HTMLSpanElement;
 
-    // Function to render user cards
+  // Function to render user cards
   function renderUsers(users: User[]): void {
     if (users.length === 0) {
       resultsContainer.innerHTML = `
@@ -79,7 +110,7 @@ export default function UsersPage(): void {
     }
 
     resultsContainer.innerHTML = users.map(user => `
-      <div class="p-6 bg-[#383568] rounded-lg text-white shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-[1.02]">
+      <div class="p-4 bg-[#383568] rounded-lg text-white shadow-lg hover:shadow-2xl transition">
         <div class="flex items-center space-x-4">
           <div class="flex-shrink-0">
             ${user.avatar_url
@@ -98,7 +129,7 @@ export default function UsersPage(): void {
                 <span class="text-sm">${user.is_online ? 'Online' : 'Offline'}</span>
               </span>
               ${user.last_seen_at ?
-                `<span class="text-sm text-gray-400">Last seen: ${new Date(user.last_seen_at).toLocaleDateString()}</span>` :
+                `<span class="text-sm text-gray-400">Last seen: ${formatLastSeen(user.last_seen_at)}</span>` :
                 ''
               }
             </div>
@@ -163,7 +194,7 @@ export default function UsersPage(): void {
         <div class="text-center text-white text-xl py-8">
           <p class="text-red-400 mb-2">Error loading users</p>
           <p class="text-gray-400 text-sm">Please try again later.</p>
-          <button id="retry-button" class="mt-4 px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 transition">
+          <button id="retry-button" class="mt-4 px-4 py-2 bg-[#383568] text-white rounded hover:bg-[#4E4A72] transition">
             Retry
           </button>
         </div>
@@ -229,25 +260,22 @@ export default function UsersPage(): void {
   });
 
   // Add event delegation for View Profile buttons
-  const mainContainer = document.querySelector('.main-content');
-  if (mainContainer) {
-    mainContainer.addEventListener('click', (e) => {
-      const target = e.target as HTMLElement;
+  document.addEventListener('click', (e) => {
+    const target = e.target as HTMLElement;
 
-      // Check if the clicked element or its parent has the view-profile-btn class
-      let buttonElement = target;
-      if (!buttonElement.classList.contains('view-profile-btn')) {
-        buttonElement = target.closest('.view-profile-btn') as HTMLElement;
-      }
+    // Check if the clicked element or its parent has the view-profile-btn class
+    let buttonElement = target;
+    if (!buttonElement.classList.contains('view-profile-btn')) {
+      buttonElement = target.closest('.view-profile-btn') as HTMLElement;
+    }
 
-      if (buttonElement && buttonElement.classList.contains('view-profile-btn')) {
-        const userId = buttonElement.getAttribute('data-user-id');
-        if (userId) {
-          usersService.navigateToProfile(parseInt(userId));
-        }
+    if (buttonElement && buttonElement.classList.contains('view-profile-btn')) {
+      const userId = buttonElement.getAttribute('data-user-id');
+      if (userId) {
+        usersService.navigateToProfile(parseInt(userId));
       }
-    });
-  }
+    }
+  });
 
   // Load initial users
   loadUsers();

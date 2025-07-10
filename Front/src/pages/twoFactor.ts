@@ -1,6 +1,7 @@
 import { showSuccessMessage, showErrorMessage } from './notification.ts';
 import { userService } from '../services/user.service.ts';
 import { twoFactorService } from '../services/2fa.service.ts';
+import { show2FAModal } from './twofa-modal.ts';
 
 export function initializeTwoFactor() {
   const activateBtn = document.getElementById('activate-2fa-btn') as HTMLButtonElement;
@@ -18,9 +19,30 @@ export function initializeTwoFactor() {
     const buttonText = activateBtn.textContent?.trim();
 
     if (buttonText === 'Enable two-factor authentication') {
-      // User wants to enable 2FA - show input section
-      activateBtn.classList.add('hidden');
-      inputSection.classList.remove('hidden');
+      // User wants to enable 2FA - generate QR code and show modal
+      try {
+        const response = await twoFactorService.generateQRCode();
+
+        if (response.success && response.data?.qrCode) {
+          // Show the 2FA setup modal with QR code
+          show2FAModal(response.data.qrCode, '', false, true); // true = setup mode from Settings page
+        } else {
+          throw new Error(response.message || 'Failed to generate QR code');
+        }
+      } catch (error: any) {
+        console.error('Error generating QR code:', error);
+
+        // Check if the error is because 2FA is already enabled
+        if (error.message && error.message.includes('already enabled')) {
+          showErrorMessage('Two-factor authentication is already enabled.');
+          // Refresh the page to update the UI state
+          setTimeout(() => {
+            window.location.reload();
+          }, 1000);
+        } else {
+          showErrorMessage('Failed to generate QR code. Please try again.');
+        }
+      }
     } else if (buttonText === 'Disable two-factor authentication') {
       // User wants to disable 2FA - confirm and disable
       if (confirm('Are you sure you want to disable two-factor authentication? This will make your account less secure.')) {
@@ -34,20 +56,10 @@ export function initializeTwoFactor() {
     }
   });
 
+  // Remove the old confirm button logic since we're using the modal now
   confirmBtn.addEventListener('click', async () => {
-    const code = codeInput.value.trim();
-
-    if (!code || code.length !== 6) {
-      showErrorMessage('Please enter a valid 6-digit code.');
-      return;
-    }
-
-    try {
-      await enable2FA(code);
-    } catch (error) {
-      console.error('Error enabling 2FA:', error);
-      showErrorMessage('Failed to enable two-factor authentication. Please try again.');
-    }
+    // This is now handled by the modal
+    console.log('Confirm button clicked - this should be handled by the modal');
   });
 }
 

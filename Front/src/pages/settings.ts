@@ -84,7 +84,7 @@ export default function SettingsPage(): void {
 
 		<!-- Caixa 2 -->
 		<div class="w-full md:flex-1 bg-[#1E1B4B] rounded-[5px] p-6">
-		  <h1 class="text-4xl md:text-5xl text-white font-bold text-center mb-6">Friends</h1>
+		  <h1 class="text-5xl text-white font-bold flex justify-center mb-6">Friends</h1>
 
 		  <div id="friends-container" class="space-y-2">
 			<div class="text-center text-white text-xl">
@@ -222,6 +222,7 @@ async function loadCurrentUser(): Promise<void> {
 		if (!user) {
 			throw new Error('No authenticated user found');
 		}
+
 		const profilePicContainer = document.getElementById('profile-pic-container');
 		const nameInput = document.getElementById('nameInput') as HTMLInputElement;
 		const usernameInput = document.getElementById('usernameInput') as HTMLInputElement;

@@ -75,14 +75,11 @@ export async function initializeLoginPage(): Promise<void> {
       // Call backend login endpoint
       const loginResponse = await authService.loginWithGoogle(idToken);
 
-      if (loginResponse.needTwoFactorSetup && loginResponse.qrCode) {
-        // Show 2FA setup modal
-        show2FAModal(loginResponse.qrCode, idToken);
-      } else if (loginResponse.needTwoFactorCode) {
+      if (loginResponse.needTwoFactorCode) {
         // User already has 2FA set up, show code input modal
         show2FAModal(null, idToken, true); // true indicates this is for code input, not setup
       } else if (loginResponse.token) {
-        // Direct login successful
+        // Direct login successful (user doesn't have 2FA enabled)
         authService.setAuthToken(loginResponse.token);
         showSuccessMessage('Login successful! Redirecting...');
 

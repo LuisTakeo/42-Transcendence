@@ -1,8 +1,91 @@
 // twofa.controller.ts
 import { FastifyRequest, FastifyReply } from 'fastify';
 import * as repository from './user.repository';
+import qrcode from 'qrcode';
+import speakeasy from 'speakeasy';
+import { getSecret, saveSecret } from './user.repository';
 
-// Enable 2FA for user (simplified version for now)
+// Generate QR code for 2FA setup
+export async function generate2FAQRCode(request: FastifyRequest, reply: FastifyReply) {
+  try {
+    // Verify JWT token
+    await request.jwtVerify();
+
+    // Get user from token payload
+    const user = request.user as any;
+    if (!user || !user.id) {
+      return reply.status(401).send({ error: 'Unauthorized' });
+    }
+
+    // Get user data
+    const userData = await repository.getUserById(user.id);
+    if (!userData) {
+      return reply.status(404).send({ error: 'User not found' });
+    }
+
+    // ALWAYS clear any existing secret and create a new one
+    await repository.updateUser(user.id, {
+      two_factor_enabled: 0,
+      two_factor_secret: null
+    });
+
+    // Check if user already has 2FA enabled
+    if (userData.two_factor_enabled) {
+      return reply.status(400).send({
+        success: false,
+        error: 'Two-factor authentication is already enabled'
+      });
+    }
+
+        // Generate new secret
+    const newSecret = speakeasy.generateSecret({
+      name: ` 42 Transcendence  (${userData.email})`,
+    });
+
+    const secret = newSecret.base32;
+
+    // Generate QR code first to get the encoded secret
+    const otpauthUrl = speakeasy.otpauthURL({
+      secret: secret,
+      label: userData.email,
+      issuer: 'Transcendence',
+      algorithm: 'sha1',
+      digits: 6,
+      period: 30,
+    });
+
+    // Extract the encoded secret from the URL
+    const encodedSecret = otpauthUrl.split('secret=')[1]?.split('&')[0];
+
+    // Save the ENCODED secret to the database
+    await saveSecret(userData.email, encodedSecret);
+
+    const qrCode = await qrcode.toDataURL(otpauthUrl);
+
+    return reply.send({
+      success: true,
+      data: {
+        qrCode,
+        secret
+      },
+      message: 'QR code generated successfully'
+    });
+
+  } catch (err: any) {
+    // If JWT verification fails, return 401
+    if (err.code === 'FST_JWT_NO_AUTHORIZATION_IN_HEADER' ||
+        err.code === 'FST_JWT_AUTHORIZATION_TOKEN_INVALID' ||
+        err.message?.includes('jwt') ||
+        err.message?.includes('token')) {
+      return reply.status(401).send({ error: 'Unauthorized' });
+    }
+
+    console.error('Error generating 2FA QR code:', err);
+    return reply.status(500).send({ error: 'Internal server error' });
+  }
+}
+
+// Enable 2FA for user
 export async function enable2FA(request: FastifyRequest, reply: FastifyReply) {
   try {
     // Verify JWT token
@@ -22,8 +105,29 @@ export async function enable2FA(request: FastifyRequest, reply: FastifyReply) {
       return reply.status(400).send({ error: 'Valid 6-digit code required' });
     }
 
-    // For now, accept any 6-digit code for demonstration
-    // In production, this would verify against the actual 2FA secret
+    // Get user data
+    const userData = await repository.getUserById(userId);
+    if (!userData) {
+      return reply.status(404).send({ error: 'User not found' });
+    }
+
+    // Get the secret for verification
+    const secret = await getSecret(userData.email);
+    if (!secret) {
+      return reply.status(400).send({ error: 'No 2FA secret found. Please generate QR code first.' });
+    }
+
+    // Verify the code
+    const isCodeValid = speakeasy.totp.verify({
+      secret: secret,
+      encoding: 'base32',
+      token: code,
+      window: 2, // Allow 2 time windows for timing issues
+    });
+
+    if (!isCodeValid) {
+      return reply.status(400).send({ error: 'Invalid 2FA code' });
+    }
 
     // Enable 2FA for the user
     await repository.updateUser(userId, { two_factor_enabled: 1 });
@@ -61,7 +165,13 @@ export async function disable2FA(request: FastifyRequest, reply: FastifyReply) {
 
     const userId = user.id;
 
-    // Disable 2FA for the user
+    // Get user data to check if they have a secret
+    const userData = await repository.getUserById(userId);
+    if (!userData) {
+      return reply.status(404).send({ error: 'User not found' });
+    }
+
+    // Disable 2FA for the user and clear the secret
     await repository.updateUser(userId, {
       two_factor_enabled: 0,
       two_factor_secret: null
@@ -82,42 +192,6 @@ export async function disable2FA(request: FastifyRequest, reply: FastifyReply) {
     }
 
     console.error('Error disabling 2FA:', err);
-    return reply.status(500).send({ error: 'Internal server error' });
-  }
-}
-
-// Generate QR code placeholder (simplified)
-export async function generate2FAQRCode(request: FastifyRequest, reply: FastifyReply) {
-  try {
-    // Verify JWT token
-    await request.jwtVerify();
-
-    // Get user from token payload
-    const user = request.user as any;
-    if (!user || !user.id) {
-      return reply.status(401).send({ error: 'Unauthorized' });
-    }
-
-    // For now, return a placeholder response
-    // In production, this would generate a real QR code
-    return reply.send({
-      success: true,
-      data: {
-        qrCode: 'data:image/png;base64,placeholder',
-        message: 'QR code generation not fully implemented yet'
-      }
-    });
-
-  } catch (err: any) {
-    // If JWT verification fails, return 401
-    if (err.code === 'FST_JWT_NO_AUTHORIZATION_IN_HEADER' ||
-        err.code === 'FST_JWT_AUTHORIZATION_TOKEN_INVALID' ||
-        err.message?.includes('jwt') ||
-        err.message?.includes('token')) {
-      return reply.status(401).send({ error: 'Unauthorized' });
-    }
-
-    console.error('Error generating 2FA QR code:', err);
     return reply.status(500).send({ error: 'Internal server error' });
   }
 }

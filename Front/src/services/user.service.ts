@@ -21,21 +21,18 @@ class UserService {
   private userCache: Map<number, User> = new Map();
 
   /**
-   * Get the current authenticated user
+   * Get current authenticated user
    */
   async getCurrentUser(): Promise<User | null> {
     if (!authService.isAuthenticated()) {
-      this.currentUser = null;
       return null;
     }
 
-    // Return cached user if available
-    if (this.currentUser) {
-      return this.currentUser;
-    }
-
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/users/me`, {
+      // Clear cache to get fresh data
+      this.currentUser = null;
+
+      const response = await fetch('http://localhost:3142/users/me', {
         headers: {
           'Authorization': `Bearer ${authService.getAuthToken()}`,
           'Content-Type': 'application/json'
@@ -46,7 +43,6 @@ class UserService {
         if (response.status === 401) {
           // Token is invalid, clear auth
           authService.removeAuthToken();
-          this.currentUser = null;
           return null;
         }
         throw new Error(`Failed to fetch user: ${response.status}`);
@@ -68,13 +64,13 @@ class UserService {
    * Get user by ID (with caching)
    */
   async getUserById(userId: number): Promise<User | null> {
-    // Check cache first
-    if (this.userCache.has(userId)) {
-      return this.userCache.get(userId)!;
-    }
+    // Clear cache for this user to get fresh data
+    this.clearUserCache(userId);
 
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/users/${userId}`, {
+      const url = `http://localhost:3142/users/${userId}`;
+
+      const response = await fetch(url, {
         headers: {
           'Authorization': `Bearer ${authService.getAuthToken()}`,
           'Content-Type': 'application/json'
@@ -85,7 +81,11 @@ class UserService {
         throw new Error(`Failed to fetch user ${userId}: ${response.status}`);
       }
 
-      const user = await response.json();
+      const responseData = await response.json();
+
+      // Extract user data from response if it's wrapped in a success/data structure
+      const user = responseData.data || responseData;
+
       this.userCache.set(userId, user);
       return user;
 
@@ -104,7 +104,7 @@ class UserService {
     }
 
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/users/me`, {
+      const response = await fetch(`http://localhost:3142/users/me`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${authService.getAuthToken()}`,
@@ -140,7 +140,7 @@ class UserService {
       const formData = new FormData();
       formData.append('avatar', file);
 
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/users/me/avatar`, {
+      const response = await fetch(`http://localhost:3142/users/me/avatar`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${authService.getAuthToken()}`
@@ -173,12 +173,15 @@ class UserService {
    */
   async getUserStats(userId?: number): Promise<any> {
     const targetUserId = userId || this.currentUser?.id;
+
     if (!targetUserId || !authService.isAuthenticated()) {
       return null;
     }
 
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/matches/player/${targetUserId}/stats`, {
+      const url = `http://localhost:3142/matches/player/${targetUserId}/stats`;
+
+      const response = await fetch(url, {
         headers: {
           'Authorization': `Bearer ${authService.getAuthToken()}`,
           'Content-Type': 'application/json'
@@ -189,10 +192,14 @@ class UserService {
         throw new Error(`Failed to fetch user stats: ${response.status}`);
       }
 
-      return await response.json();
+      const responseData = await response.json();
+
+      // Extract stats data from response if it's wrapped in a success/data structure
+      const stats = responseData.data || responseData;
+      return stats;
 
     } catch (error) {
-      console.error('Error fetching user stats:', error);
+      console.error('❌ Error fetching user stats:', error);
       return null;
     }
   }
@@ -203,6 +210,13 @@ class UserService {
   clearCache(): void {
     this.currentUser = null;
     this.userCache.clear();
+  }
+
+  /**
+   * Clear cache for a specific user
+   */
+  clearUserCache(userId: number): void {
+    this.userCache.delete(userId);
   }
 
   /**

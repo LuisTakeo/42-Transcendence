@@ -3,10 +3,13 @@ import { showErrorMessage } from './notification.ts';
 
 export default async function ProfilePage(userId?: number): Promise<void> {
   const app = document.getElementById("app");
-  if (!app) return;
+  if (!app) {
+    return;
+  }
 
   // Check authentication and get current user
   const currentUser = await userService.requireAuth();
+
   if (!currentUser) {
     return; // User will be redirected to login
   }
@@ -21,7 +24,7 @@ export default async function ProfilePage(userId?: number): Promise<void> {
   main.className = "p-4 box-border min-h-screen flex flex-col gap-2 container mx-auto";
   main.innerHTML = `
 	  <div class="flex flex-col md:flex-row gap-10 w-full p-8">
-		<div class="flex-1 bg-[#1E1B4B] rounded-[5px] min-h-[350px] flex flex-col items-center justify-center">
+		<div class="flex-1 bg-[#1E1B4B] rounded-[5px] h-[400px] flex flex-col items-center justify-center">
 		  <div class="w-36 h-36 rounded-full overflow-hidden mt-6 mb-6">
           <img id="user-avatar" src="../../assets/minecraft.jpg" alt="User" class="object-cover w-full h-full" />
 		  </div>
@@ -48,9 +51,9 @@ export default async function ProfilePage(userId?: number): Promise<void> {
 		  </div>
 		</div>
 
-		<div class="flex-1 bg-[#1E1B4B] rounded-[5px] min-h-[350px] p-4 flex flex-col">
+		<div class="flex-1 bg-[#1E1B4B] rounded-[5px] h-[400px] p-4 flex flex-col">
 		  <h1 class="text-4xl font-bold text-center p-2">Battles</h1>
-		  <div class="max-h-[40vh] overflow-y-auto p-2 custom-scrollbar">
+		  <div class="flex-1 overflow-y-auto p-2 custom-scrollbar" style="height: calc(400px - 120px);">
           <div id="matches-container">
             <div class="text-center text-white text-xl">
               <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500 mx-auto mb-4"></div>
@@ -110,8 +113,12 @@ async function loadUserProfile(userId: number, currentUser: any): Promise<void> 
     const userUsername = document.getElementById("user-username") as HTMLParagraphElement;
     const userAvatar = document.getElementById("user-avatar") as HTMLImageElement;
 
-    if (userName) userName.textContent = user.name || user.username || 'User';
-    if (userUsername) userUsername.textContent = `@${user.username || 'user'}`;
+    if (userName) {
+      userName.textContent = user.name || user.username || 'User';
+    }
+    if (userUsername) {
+      userUsername.textContent = `@${user.username || 'user'}`;
+    }
 
     if (user.avatar_url && userAvatar) {
       userAvatar.src = user.avatar_url;
@@ -142,35 +149,40 @@ async function loadUserProfile(userId: number, currentUser: any): Promise<void> 
       }
     }
 
-    // Get and update user stats
+        // Get and update user stats
     const stats = await userService.getUserStats(userId);
+
     if (stats) {
       const totalMatches = document.getElementById("total-matches") as HTMLParagraphElement;
       const totalWins = document.getElementById("total-wins") as HTMLParagraphElement;
       const winRate = document.getElementById("win-rate") as HTMLParagraphElement;
 
-      if (totalMatches) totalMatches.textContent = ((stats.wins || 0) + (stats.losses || 0)).toString();
-      if (totalWins) totalWins.textContent = (stats.wins || 0).toString();
+      if (totalMatches) {
+        totalMatches.textContent = ((stats.wins || 0) + (stats.losses || 0)).toString();
+      }
+      if (totalWins) {
+        totalWins.textContent = (stats.wins || 0).toString();
+      }
       if (winRate) {
         const total = (stats.wins || 0) + (stats.losses || 0);
         const rate = total > 0 ? Math.round((stats.wins || 0) / total * 100) : 0;
         winRate.textContent = `${rate}%`;
       }
 
-      // Update matches list
+            // Update matches list
       const matchesContainer = document.getElementById("matches-container") as HTMLDivElement;
       if (stats.recentMatches && stats.recentMatches.length > 0 && matchesContainer) {
         const table = document.createElement("table");
-        table.className = "w-full border-separate border-spacing-y-4";
+        table.className = "w-full border-separate border-spacing-y-2";
 
         const tbody = document.createElement("tbody");
-        stats.recentMatches.forEach((match: any) => {
+        stats.recentMatches.forEach((match: any, index: number) => {
           const row = document.createElement("tr");
-          row.className = "bg-[#383568] text-xl md:text-2xl rounded-[5px]";
+          row.className = "bg-[#383568] text-lg md:text-xl rounded-[5px]";
 
           const cell = document.createElement("td");
-          cell.className = "py-4 px-3 text-center rounded-[5px]";
-          cell.textContent = `vs ${match.opponent || 'Unknown'} - ${match.won ? 'WIN' : 'LOSS'} (${match.playerScore || 0}-${match.opponentScore || 0})`;
+          cell.className = "py-3 px-3 text-center rounded-[5px] text-white";
+          cell.textContent = `@${match.playerUsername || '@user'} vs @${match.opponentUsername || '@unknown'} - ( ${match.playerScore || 0}-${match.opponentScore || 0} )`;
 
           row.appendChild(cell);
           tbody.appendChild(row);

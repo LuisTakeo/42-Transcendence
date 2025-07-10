@@ -4,7 +4,7 @@ import LoginPage, { initializeLoginPage } from './pages/login.ts';
 import ProfilePage from './pages/profile.ts';
 import RankingPage from './pages/ranking.ts';
 import SettingsPage from './pages/settings.ts';
-import UsersPage from './pages/users.ts';
+import UsersPage, { initializeUsersPage } from './pages/users.ts';
 import { authService } from './services/auth.service.ts';
 import { userService } from './services/user.service.ts';
 // import ClassicGamePage from './pages/classicGame.ts';
@@ -26,7 +26,6 @@ const routesWithSidebar = [
 
 // Função que renderiza a página correta e controla a sidebar
 async function renderRoute(path: string) {
-  console.log('Rendering route:', path); // Debug
 
   if (path === '/login') {
     sidebar.style.display = 'none';
@@ -65,24 +64,22 @@ async function renderRoute(path: string) {
         RankingPage();
         break;
       case '/users':
-        UsersPage();
+        app.innerHTML = UsersPage();
+        initializeUsersPage();
         break;
       default:
-        console.log('Route not found in switch:', path); // Debug
-        app.innerHTML = '<h1>Page Not Found</h1>';
+        window.history.replaceState(null, '', '/home');
+        await renderRoute('/home');
     }
   } else {
-    console.log('Route not in sidebar routes:', path); // Debug
-    sidebar.style.display = 'none';
-    app.style.marginLeft = '0';
-    app.innerHTML = '<h1>Page Not Found</h1>';
+    window.history.replaceState(null, '', '/home');
+    await renderRoute('/home');
   }
 }
 
 // Controla a navegação sem reload
 async function onRouteChange() {
   const path = window.location.pathname;
-  console.log('Current path:', path); // Debug
 
   // Se estiver na raiz, redireciona para /home
   if (path === '/' || path === '') {
@@ -131,6 +128,91 @@ function setupLogoutButton() {
 window.addEventListener('routeChange', () => {
   onRouteChange();
 });
+
+// Handle page visibility changes for online status
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'hidden') {
+    // User switched tabs or minimized browser - set offline
+    updateOnlineStatus(false);
+  } else if (document.visibilityState === 'visible') {
+    // User returned to tab - set online
+    updateOnlineStatus(true);
+  }
+});
+
+// Handle page unload (user closes tab/browser)
+window.addEventListener('beforeunload', () => {
+  updateOnlineStatus(false);
+});
+
+// Handle online status updates
+async function updateOnlineStatus(isOnline: boolean): Promise<void> {
+  try {
+    const token = localStorage.getItem('authToken');
+    if (!token) return;
+
+    // Decode JWT to get user ID
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    const userId = payload.id;
+
+    if (userId) {
+      await fetch(`http://localhost:3142/users/${userId}/online-status`, {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ is_online: isOnline })
+      });
+    }
+  } catch (error) {
+    console.error('Failed to update online status:', error);
+  }
+}
+
+// Update last seen timestamp for user activity
+async function updateLastSeen(): Promise<void> {
+  try {
+    const token = localStorage.getItem('authToken');
+    if (!token) return;
+
+    // Decode JWT to get user ID
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    const userId = payload.id;
+
+    if (userId) {
+      await fetch(`http://localhost:3142/users/${userId}`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ last_seen_at: new Date().toISOString() })
+      });
+    }
+  } catch (error) {
+    console.error('Failed to update last seen:', error);
+  }
+}
+
+// Track user activity to update last_seen_at
+let activityTimeout: ReturnType<typeof setTimeout>;
+
+function resetActivityTimer(): void {
+  clearTimeout(activityTimeout);
+  activityTimeout = setTimeout(() => {
+    updateLastSeen();
+  }, 30000); // Update every 30 seconds of activity
+}
+
+// Listen for user activity
+document.addEventListener('mousemove', resetActivityTimer);
+document.addEventListener('keydown', resetActivityTimer);
+document.addEventListener('click', resetActivityTimer);
+document.addEventListener('scroll', resetActivityTimer);
+
+// Start activity tracking when page loads
+resetActivityTimer();
 
 // Inicializa a aplicação com a rota atual
 onRouteChange();
