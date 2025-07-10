@@ -40,7 +40,7 @@ async function renderRoute(path: string) {
     setupLogoutButton(); // Setup logout functionality
     const userId = path.split('/')[2];
     if (userId) {
-      ProfilePage(parseInt(userId));
+      await ProfilePage(parseInt(userId));
     } else {
       app.innerHTML = '<h1>Invalid Profile</h1>';
     }
