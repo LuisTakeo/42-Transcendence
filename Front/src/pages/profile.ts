@@ -65,26 +65,31 @@ export default async function ProfilePage(userId?: number): Promise<void> {
 	  </div>
 
 	  <div class="flex flex-col w-full p-6 bg-[#383568] max-h-[50vh] overflow-hidden rounded-[5px]">
-		<div class="bg-[#383568] rounded-[5px] w-full h-[38vh] flex flex-col md:flex-row flex-wrap gap-4 p-1 overflow-auto">
-		  <div class="bg-[#1E1B4B] md:flex-1 rounded-[5px] flex flex-col items-center justify-center p-4">
+		<div class="bg-[#383568] rounded-[5px] w-full h-[38vh] flex flex-col md:flex-row flex-wrap gap-4 p-1 overflow-auto" id="achievements-container">
+		  <div class="bg-[#1E1B4B] md:flex-1 rounded-[5px] flex flex-col items-center justify-center p-4" id="achievement-2fa">
 			<img src="../../assets/padlock.png" alt="padlock" class="w-full max-w-[100px] h-auto object-contain" />
 			<p class="text-center text-white text-2xl mt-4">two-factor authentication.</p>
+			<p class="text-center text-green-400 text-lg mt-2 hidden" id="achievement-2fa-status">Achieved!</p>
 		  </div>
-		  <div class="bg-[#1E1B4B] md:flex-1 rounded-[5px] flex flex-col items-center justify-center p-4">
+		  <div class="bg-[#1E1B4B] md:flex-1 rounded-[5px] flex flex-col items-center justify-center p-4" id="achievement-friend">
 			<img src="../../assets/friend-big.png" alt="people" class="w-full max-w-[100px] h-auto object-contain" />
 			<p class="text-center text-white text-2xl mt-4">Make a friend.</p>
+			<p class="text-center text-green-400 text-lg mt-2 hidden" id="achievement-friend-status">Achieved!</p>
 		  </div>
-		  <div class="bg-[#1E1B4B] md:flex-1 rounded-[5px] flex flex-col items-center justify-center p-4">
+		  <div class="bg-[#1E1B4B] md:flex-1 rounded-[5px] flex flex-col items-center justify-center p-4" id="achievement-wins">
 			<img src="../../assets/reward.png" alt="reward" class="w-full max-w-[100px] h-auto object-contain" />
 			<p class="text-center text-white text-2xl mt-4">Win 3 matches.</p>
+			<p class="text-center text-green-400 text-lg mt-2 hidden" id="achievement-wins-status">Achieved!</p>
 		  </div>
-		  <div class="bg-[#1E1B4B] md:flex-1 rounded-[5px] flex flex-col items-center justify-center p-4">
+		  <div class="bg-[#1E1B4B] md:flex-1 rounded-[5px] flex flex-col items-center justify-center p-4" id="achievement-rank">
 			<img src="../../assets/podio-big.png" alt="rank" class="w-full max-w-[100px] h-auto object-contain" />
 			<p class="text-center text-white text-2xl mt-4">Be among the top ranked.</p>
+			<p class="text-center text-green-400 text-lg mt-2 hidden" id="achievement-rank-status">Achieved!</p>
 		  </div>
-		  <div class="bg-[#1E1B4B] md:flex-1 rounded-[5px] flex flex-col items-center justify-center p-4">
+		  <div class="bg-[#1E1B4B] md:flex-1 rounded-[5px] flex flex-col items-center justify-center p-4" id="achievement-friends">
 			<img src="../../assets/people-big.png" alt="people" class="w-full max-w-[100px] h-auto object-contain" />
 			<p class="text-center text-white text-2xl mt-4">Make more than 3 friends.</p>
+			<p class="text-center text-green-400 text-lg mt-2 hidden" id="achievement-friends-status">Achieved!</p>
 		  </div>
 		</div>
 	  </div>
@@ -169,6 +174,9 @@ async function loadUserProfile(userId: number, currentUser: any): Promise<void> 
         winRate.textContent = `${rate}%`;
       }
 
+      // Check and update achievements
+      await updateAchievements(user, stats);
+
             // Update matches list
       const matchesContainer = document.getElementById("matches-container") as HTMLDivElement;
       if (stats.recentMatches && stats.recentMatches.length > 0 && matchesContainer) {
@@ -234,5 +242,55 @@ async function loadUserProfile(userId: number, currentUser: any): Promise<void> 
     const userUsername = document.getElementById("user-username") as HTMLParagraphElement;
     if (userName) userName.textContent = "Profile Error";
     if (userUsername) userUsername.textContent = "@error";
+  }
+}
+
+async function updateAchievements(user: any, stats: any): Promise<void> {
+  try {
+    // Import friends service
+    const { friendsService } = await import('../services/friends.service.ts');
+
+    // Check 2FA achievement
+    const twoFactorEnabled = user.two_factor_enabled === 1;
+    updateAchievementCard('achievement-2fa', 'achievement-2fa-status', twoFactorEnabled);
+
+    // Check friend count achievements
+    const friendCountResponse = await friendsService.getUserFriendCount(user.id);
+    const friendCount = friendCountResponse?.data?.friend_count || 0;
+
+    // "Make a friend" achievement
+    updateAchievementCard('achievement-friend', 'achievement-friend-status', friendCount >= 1);
+
+    // "Make more than 3 friends" achievement
+    updateAchievementCard('achievement-friends', 'achievement-friends-status', friendCount > 3);
+
+    // Check wins achievement
+    const wins = stats.wins || 0;
+    updateAchievementCard('achievement-wins', 'achievement-wins-status', wins >= 3);
+
+    // Check ranking achievement (top 10)
+    const rank = stats.rank || 999;
+    updateAchievementCard('achievement-rank', 'achievement-rank-status', rank <= 10);
+
+  } catch (error) {
+    console.error('Error updating achievements:', error);
+  }
+}
+
+function updateAchievementCard(cardId: string, statusId: string, isAchieved: boolean): void {
+  const card = document.getElementById(cardId) as HTMLDivElement;
+  const status = document.getElementById(statusId) as HTMLParagraphElement;
+
+  if (card && status) {
+    if (isAchieved) {
+      // Achievement completed - keep dark background, show green status
+      card.className = card.className.replace('bg-opacity-50', '');
+      card.className = card.className.replace('bg-[#1E1B4B]/50', 'bg-[#1E1B4B]');
+      status.classList.remove('hidden');
+    } else {
+      // Achievement not completed - make background more transparent
+      card.className = card.className.replace('bg-[#1E1B4B]', 'bg-[#1E1B4B]/50');
+      status.classList.add('hidden');
+    }
   }
 }
