@@ -66,30 +66,40 @@ export default async function ProfilePage(userId?: number): Promise<void> {
 
 	  <div class="flex flex-col w-full p-6 bg-[#383568] max-h-[50vh] overflow-hidden rounded-[5px]">
 		<div class="bg-[#383568] rounded-[5px] w-full h-[38vh] flex flex-col md:flex-row flex-wrap gap-4 p-1 overflow-auto" id="achievements-container">
-		  <div class="bg-[#1E1B4B] md:flex-1 rounded-[5px] flex flex-col items-center justify-center p-4" id="achievement-2fa">
-			<img src="../../assets/padlock.png" alt="padlock" class="w-full max-w-[100px] h-auto object-contain" />
-			<p class="text-center text-white text-2xl mt-4">two-factor authentication.</p>
-			<p class="text-center text-green-400 text-lg mt-2 hidden" id="achievement-2fa-status">Achieved!</p>
+		  <div class="bg-[#1E1B4B] md:flex-1 rounded-[5px] flex flex-col items-center justify-between p-4 h-full" id="achievement-2fa">
+			<div class="flex flex-col items-center">
+			  <img src="../../assets/padlock.png" alt="padlock" class="w-full max-w-[100px] h-auto object-contain" />
+			  <p class="text-center text-white text-2xl mt-4">two-factor authentication.</p>
+			</div>
+			<p class="text-center text-green-400 text-lg hidden" id="achievement-2fa-status">Achieved!</p>
 		  </div>
-		  <div class="bg-[#1E1B4B] md:flex-1 rounded-[5px] flex flex-col items-center justify-center p-4" id="achievement-friend">
-			<img src="../../assets/friend-big.png" alt="people" class="w-full max-w-[100px] h-auto object-contain" />
-			<p class="text-center text-white text-2xl mt-4">Make a friend.</p>
-			<p class="text-center text-green-400 text-lg mt-2 hidden" id="achievement-friend-status">Achieved!</p>
+		  <div class="bg-[#1E1B4B] md:flex-1 rounded-[5px] flex flex-col items-center justify-between p-4 h-full" id="achievement-friend">
+			<div class="flex flex-col items-center">
+			  <img src="../../assets/friend-big.png" alt="people" class="w-full max-w-[100px] h-auto object-contain" />
+			  <p class="text-center text-white text-2xl mt-4">Make a friend.</p>
+			</div>
+			<p class="text-center text-green-400 text-lg hidden" id="achievement-friend-status">Achieved!</p>
 		  </div>
-		  <div class="bg-[#1E1B4B] md:flex-1 rounded-[5px] flex flex-col items-center justify-center p-4" id="achievement-wins">
-			<img src="../../assets/reward.png" alt="reward" class="w-full max-w-[100px] h-auto object-contain" />
-			<p class="text-center text-white text-2xl mt-4">Win 3 matches.</p>
-			<p class="text-center text-green-400 text-lg mt-2 hidden" id="achievement-wins-status">Achieved!</p>
+		  <div class="bg-[#1E1B4B] md:flex-1 rounded-[5px] flex flex-col items-center justify-between p-4 h-full" id="achievement-wins">
+			<div class="flex flex-col items-center">
+			  <img src="../../assets/reward.png" alt="reward" class="w-full max-w-[100px] h-auto object-contain" />
+			  <p class="text-center text-white text-2xl mt-4">Win 3 matches.</p>
+			</div>
+			<p class="text-center text-green-400 text-lg hidden" id="achievement-wins-status">Achieved!</p>
 		  </div>
-		  <div class="bg-[#1E1B4B] md:flex-1 rounded-[5px] flex flex-col items-center justify-center p-4" id="achievement-rank">
-			<img src="../../assets/podio-big.png" alt="rank" class="w-full max-w-[100px] h-auto object-contain" />
-			<p class="text-center text-white text-2xl mt-4">Be among the top ranked.</p>
-			<p class="text-center text-green-400 text-lg mt-2 hidden" id="achievement-rank-status">Achieved!</p>
+		  <div class="bg-[#1E1B4B] md:flex-1 rounded-[5px] flex flex-col items-center justify-between p-4 h-full" id="achievement-rank">
+			<div class="flex flex-col items-center">
+			  <img src="../../assets/podio-big.png" alt="rank" class="w-full max-w-[100px] h-auto object-contain" />
+			  <p class="text-center text-white text-2xl mt-4">Be among the top ranked.</p>
+			</div>
+			<p class="text-center text-green-400 text-lg hidden" id="achievement-rank-status">Achieved!</p>
 		  </div>
-		  <div class="bg-[#1E1B4B] md:flex-1 rounded-[5px] flex flex-col items-center justify-center p-4" id="achievement-friends">
-			<img src="../../assets/people-big.png" alt="people" class="w-full max-w-[100px] h-auto object-contain" />
-			<p class="text-center text-white text-2xl mt-4">Make more than 3 friends.</p>
-			<p class="text-center text-green-400 text-lg mt-2 hidden" id="achievement-friends-status">Achieved!</p>
+		  <div class="bg-[#1E1B4B] md:flex-1 rounded-[5px] flex flex-col items-center justify-between p-4 h-full" id="achievement-friends">
+			<div class="flex flex-col items-center">
+			  <img src="../../assets/people-big.png" alt="people" class="w-full max-w-[100px] h-auto object-contain" />
+			  <p class="text-center text-white text-2xl mt-4">Make more than 3 friends.</p>
+			</div>
+			<p class="text-center text-green-400 text-lg hidden" id="achievement-friends-status">Achieved!</p>
 		  </div>
 		</div>
 	  </div>
