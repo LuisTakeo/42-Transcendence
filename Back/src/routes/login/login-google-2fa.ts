@@ -22,6 +22,7 @@ export function loginWithGoogle2FA(app: FastifyInstance) {
     }
 
     const { email, name, googleId } = payload;
+
     const user = await findOrCreateUserDb(email, name, googleId);
     if (!user) {
       return reply.status(404).send({ error: 'User not found.' });
@@ -37,7 +38,10 @@ export function loginWithGoogle2FA(app: FastifyInstance) {
       secret,
       encoding: 'base32',
       token: twoFactorCode,
-      window: 1,
+      window: 2, // Allow 2 time windows for timing issues
+      algorithm: 'sha1',
+      digits: 6,
+      period: 30
     });
 
     if (!isCodeValid) {

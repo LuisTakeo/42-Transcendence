@@ -9,6 +9,9 @@ export interface User {
   avatar_url: string | null;
   is_online: number;
   last_seen_at: string | null;
+  two_factor_enabled?: number;
+  two_factor_secret?: string;
+  google_id?: string;
   created_at: string;
 }
 
