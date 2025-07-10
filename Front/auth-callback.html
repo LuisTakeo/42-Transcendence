@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Google Auth Callback</title>
+</head>
+<body>
+    <div style="text-align: center; padding: 50px; font-family: Arial, sans-serif;">
+        <h2>Completing authentication...</h2>
+        <p>Please wait while we complete your Google sign-in.</p>
+    </div>
+
+    <script>
+        // Extract auth code from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const code = urlParams.get('code');
+        const error = urlParams.get('error');
+        const state = urlParams.get('state');
+
+        if (error) {
+            // Send error to parent window
+            if (window.opener) {
+                window.opener.postMessage({
+                    type: 'GOOGLE_AUTH_ERROR',
+                    error: error
+                }, window.location.origin);
+            }
+            window.close();
+        } else if (code) {
+            // Send success to parent window
+            if (window.opener) {
+                window.opener.postMessage({
+                    type: 'GOOGLE_AUTH_SUCCESS',
+                    code: code,
+                    state: state
+                }, window.location.origin);
+            }
+            window.close();
+        } else {
+            // No code or error - something went wrong
+            if (window.opener) {
+                window.opener.postMessage({
+                    type: 'GOOGLE_AUTH_ERROR',
+                    error: 'No authorization code received'
+                }, window.location.origin);
+            }
+            window.close();
+        }
+    </script>
+</body>
+</html>

@@ -1,15 +1,45 @@
 import { usersService } from "../services/users.service.ts";
+import { userService } from "../services/user.service.ts";
 import { rankingService, RankingUser } from "../services/ranking.service.ts";
 import { friendsService } from "../services/friends.service.ts";
 import { showSuccessMessage, showErrorMessage } from './notification.ts';
 
 let rankingData: RankingUser[] = [];
 
-// Helper function to get current user ID - in a real app this would come from auth/session
-function getCurrentUserId(): number | null {
-  // For testing purposes, return user ID 1
-  // In a real app, this would check localStorage, sessionStorage, or auth context
-  return 1; // Testing as user ID 1
+/**
+ * Check authentication and get current user.
+ * Returns the current user object or null if not authenticated.
+ */
+async function getCurrentUser(): Promise<any | null> {
+	const currentUser = await userService.requireAuth();
+	if (!currentUser) {
+		return null; // User will be redirected to login
+	}
+	return currentUser;
+}
+
+/**
+ * Determine which user to show.
+ * If no userId is provided, show current user.
+ * Returns { targetUserId, isOwnProfile }
+ */
+async function getTargetUserInfo(userId?: number): Promise<{ targetUserId: number, isOwnProfile: boolean } | null> {
+	const currentUser = await getCurrentUser();
+	if (!currentUser) {
+		return null;
+	}
+	const targetUserId = userId || currentUser.id;
+	const isOwnProfile = targetUserId === currentUser.id;
+	return { targetUserId, isOwnProfile };
+}
+
+// Helper function to get current user ID - checks authentication and returns user ID or null
+async function getCurrentUserId(): Promise<number | null> {
+	const currentUser = await userService.requireAuth();
+	if (!currentUser) {
+		return null; // User will be redirected to login if not authenticated
+	}
+	return currentUser.id;
 }
 
 function renderRows(): string {
@@ -153,7 +183,7 @@ async function handleAddFriend(userId: number, buttonElement: HTMLElement): Prom
   try {
     buttonElement.style.opacity = '0.5';
     buttonElement.style.pointerEvents = 'none';
-    const currentUserId = getCurrentUserId();
+    const currentUserId = await getCurrentUserId();
     if (currentUserId && userId === currentUserId) {
       showErrorMessage("You cannot add yourself as a friend!");
       return;
@@ -188,7 +218,7 @@ async function handleRemoveFriend(userId: number, buttonElement: HTMLElement): P
   try {
     buttonElement.style.opacity = '0.5';
     buttonElement.style.pointerEvents = 'none';
-    const currentUserId = getCurrentUserId();
+    const currentUserId = await getCurrentUserId();
     if (currentUserId && userId === currentUserId) {
       showErrorMessage("You cannot remove yourself!");
       return;
