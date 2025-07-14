@@ -5,6 +5,7 @@ import ProfilePage from './pages/profile.ts';
 import RankingPage from './pages/ranking.ts';
 import SettingsPage from './pages/settings.ts';
 import UsersPage, { initializeUsersPage } from './pages/users.ts';
+import MatchHistoryPage from './pages/matchHistory.ts';
 import { authService } from './services/auth.service.ts';
 import { userService } from './services/user.service.ts';
 // import ClassicGamePage from './pages/classicGame.ts';
@@ -22,6 +23,7 @@ const routesWithSidebar = [
   '/ranking',
   '/settings',
   '/users',
+  '/match-history',
 ];
 
 // Função que renderiza a página correta e controla a sidebar
@@ -66,6 +68,9 @@ async function renderRoute(path: string) {
       case '/users':
         app.innerHTML = UsersPage();
         initializeUsersPage();
+        break;
+      case '/match-history':
+        await MatchHistoryPage();
         break;
       default:
         window.history.replaceState(null, '', '/home');
