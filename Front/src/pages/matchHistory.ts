@@ -48,76 +48,9 @@ async function loadMatchHistory(userId: number): Promise<void> {
         return;
       }
       if (content) {
-        // Clear content
         content.innerHTML = '';
-        // Create responsive wrapper
-        const wrapper = document.createElement('div');
-        wrapper.className = 'overflow-x-auto rounded-lg';
-        // Create table
-        const table = document.createElement('table');
-        table.className = 'min-w-[600px] w-full text-center text-white rounded-lg overflow-hidden';
-        // Create thead
-        const thead = document.createElement('thead');
-        thead.className = 'bg-[#3B3567] text-base md:text-xl uppercase';
-        const headRow = document.createElement('tr');
-        const headers = ['Opponent', 'Your Score', 'Opponent Score', 'Winner', 'Date'];
-        headers.forEach(header => {
-          const th = document.createElement('th');
-          th.className = 'px-2 md:px-6 py-3';
-          th.textContent = header;
-          headRow.appendChild(th);
-        });
-        thead.appendChild(headRow);
-        table.appendChild(thead);
-        // Create tbody
-        const tbody = document.createElement('tbody');
-        tbody.className = 'text-base md:text-lg';
-        matches.forEach((match: any) => {
-          const row = document.createElement('tr');
-          row.className = 'bg-[#2D2856]';
-          const isPlayer1 = match.player1_id === userId;
-          const opponent = isPlayer1 ? match.player2_username : match.player1_username;
-          const yourScore = isPlayer1 ? match.player1_score : match.player2_score;
-          const opponentScore = isPlayer1 ? match.player2_score : match.player1_score;
-          const winner = match.winner_username;
-          // Format date as DD/MM/YYYY HH:mm (24-hour, zero-padded)
-          const dateObj = new Date(match.played_at);
-          const day = String(dateObj.getDate()).padStart(2, '0');
-          const month = String(dateObj.getMonth() + 1).padStart(2, '0');
-          const year = dateObj.getFullYear();
-          const hours = String(dateObj.getHours()).padStart(2, '0');
-          const minutes = String(dateObj.getMinutes()).padStart(2, '0');
-          const formattedDate = `${day}/${month}/${year} ${hours}:${minutes}`;
-          // Opponent
-          const tdOpponent = document.createElement('td');
-          tdOpponent.className = 'px-6 py-4';
-          tdOpponent.textContent = opponent ? `@${opponent}` : '-';
-          row.appendChild(tdOpponent);
-          // Your Score
-          const tdYourScore = document.createElement('td');
-          tdYourScore.className = 'px-6 py-4';
-          tdYourScore.textContent = `${yourScore} points`;
-          row.appendChild(tdYourScore);
-          // Opponent Score
-          const tdOpponentScore = document.createElement('td');
-          tdOpponentScore.className = 'px-6 py-4';
-          tdOpponentScore.textContent = `${opponentScore} points`;
-          row.appendChild(tdOpponentScore);
-          // Winner
-          const tdWinner = document.createElement('td');
-          tdWinner.className = 'px-6 py-4';
-          tdWinner.textContent = winner ? `@${winner}` : '-';
-          row.appendChild(tdWinner);
-          // Date
-          const tdDate = document.createElement('td');
-          tdDate.className = 'px-6 py-4';
-          tdDate.textContent = formattedDate;
-          row.appendChild(tdDate);
-          tbody.appendChild(row);
-        });
-        table.appendChild(tbody);
-        wrapper.appendChild(table);
-        content.appendChild(wrapper);
+        const table = createMatchHistoryTable(matches, userId);
+        content.appendChild(table);
       }
     } else {
       throw new Error("Failed to load match history");
@@ -136,15 +69,88 @@ async function loadMatchHistory(userId: number): Promise<void> {
         </div>
       `;
       const retryButton = document.getElementById("retry-match-history");
-      retryButton?.addEventListener("click", () => {
-        content.innerHTML = `
-          <div class="text-center text-white text-xl">
-            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500 mx-auto mb-4"></div>
-            Loading match history...
-          </div>
-        `;
-        loadMatchHistory(userId);
-      });
+      if (retryButton) {
+        retryButton.onclick = () => {
+          content.innerHTML = `
+            <div class="text-center text-white text-xl">
+              <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500 mx-auto mb-4"></div>
+              Loading match history...
+            </div>
+          `;
+          loadMatchHistory(userId);
+        };
+      }
     }
   }
+}
+
+function createMatchHistoryTable(matches: any[], userId: number): HTMLElement {
+  // Create responsive wrapper
+  const wrapper = document.createElement('div');
+  wrapper.className = 'overflow-x-auto rounded-lg';
+  // Create table
+  const table = document.createElement('table');
+  table.className = 'min-w-[600px] w-full text-center text-white rounded-lg overflow-hidden';
+  // Create thead
+  const thead = document.createElement('thead');
+  thead.className = 'bg-[#3B3567] text-base md:text-xl uppercase';
+  const headRow = document.createElement('tr');
+  const headers = ['Opponent', 'Your Score', 'Opponent Score', 'Winner', 'Date'];
+  headers.forEach(header => {
+    const th = document.createElement('th');
+    th.className = 'px-2 md:px-6 py-3';
+    th.textContent = header;
+    headRow.appendChild(th);
+  });
+  thead.appendChild(headRow);
+  table.appendChild(thead);
+  // Create tbody
+  const tbody = document.createElement('tbody');
+  tbody.className = 'text-base md:text-lg';
+  matches.forEach((match: any) => {
+    const row = document.createElement('tr');
+    row.className = 'bg-[#2D2856]';
+    const isPlayer1 = match.player1_id === userId;
+    const opponent = isPlayer1 ? match.player2_username : match.player1_username;
+    const yourScore = isPlayer1 ? match.player1_score : match.player2_score;
+    const opponentScore = isPlayer1 ? match.player2_score : match.player1_score;
+    const winner = match.winner_username;
+    // Format date as DD/MM/YYYY HH:mm (24-hour, zero-padded)
+    const dateObj = new Date(match.played_at);
+    const day = String(dateObj.getDate()).padStart(2, '0');
+    const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+    const year = dateObj.getFullYear();
+    const hours = String(dateObj.getHours()).padStart(2, '0');
+    const minutes = String(dateObj.getMinutes()).padStart(2, '0');
+    const formattedDate = `${day}/${month}/${year} ${hours}:${minutes}`;
+    // Opponent
+    const tdOpponent = document.createElement('td');
+    tdOpponent.className = 'px-6 py-4';
+    tdOpponent.textContent = opponent ? `@${opponent}` : '-';
+    row.appendChild(tdOpponent);
+    // Your Score
+    const tdYourScore = document.createElement('td');
+    tdYourScore.className = 'px-6 py-4';
+    tdYourScore.textContent = `${yourScore} points`;
+    row.appendChild(tdYourScore);
+    // Opponent Score
+    const tdOpponentScore = document.createElement('td');
+    tdOpponentScore.className = 'px-6 py-4';
+    tdOpponentScore.textContent = `${opponentScore} points`;
+    row.appendChild(tdOpponentScore);
+    // Winner
+    const tdWinner = document.createElement('td');
+    tdWinner.className = 'px-6 py-4';
+    tdWinner.textContent = winner ? `@${winner}` : '-';
+    row.appendChild(tdWinner);
+    // Date
+    const tdDate = document.createElement('td');
+    tdDate.className = 'px-6 py-4';
+    tdDate.textContent = formattedDate;
+    row.appendChild(tdDate);
+    tbody.appendChild(row);
+  });
+  table.appendChild(tbody);
+  wrapper.appendChild(table);
+  return wrapper;
 }
