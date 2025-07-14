@@ -37,12 +37,10 @@ export default async function MatchHistoryPage(): Promise<void> {
 async function loadMatchHistory(userId: number): Promise<void> {
   try {
     const response = await matchesService.getPlayerMatches(userId);
-    console.log('API response for match history:', response);
     const content = document.getElementById("match-history-content");
 
     if (response.success && response.data) {
       const matches = response.data;
-      console.log('Matches array:', matches);
       if (matches.length === 0) {
         if (content) {
           content.innerHTML = `<div class="text-center text-white text-xl py-8">No matches found.</div>`;
@@ -50,24 +48,76 @@ async function loadMatchHistory(userId: number): Promise<void> {
         return;
       }
       if (content) {
-        content.innerHTML = `
-          <div class="overflow-x-auto rounded-lg">
-            <table class="min-w-[600px] w-full text-center text-white rounded-lg overflow-hidden">
-              <thead class="bg-[#3B3567] text-base md:text-xl uppercase">
-                <tr>
-                  <th class="px-2 md:px-6 py-3">Opponent</th>
-                  <th class="px-2 md:px-6 py-3">Your Score</th>
-                  <th class="px-2 md:px-6 py-3">Opponent Score</th>
-                  <th class="px-2 md:px-6 py-3">Winner</th>
-                  <th class="px-2 md:px-6 py-3">Date</th>
-                </tr>
-              </thead>
-              <tbody class="text-base md:text-lg">
-                ${matches.map((m: any) => renderMatchRow(m, userId)).join("")}
-              </tbody>
-            </table>
-          </div>
-        `;
+        // Clear content
+        content.innerHTML = '';
+        // Create responsive wrapper
+        const wrapper = document.createElement('div');
+        wrapper.className = 'overflow-x-auto rounded-lg';
+        // Create table
+        const table = document.createElement('table');
+        table.className = 'min-w-[600px] w-full text-center text-white rounded-lg overflow-hidden';
+        // Create thead
+        const thead = document.createElement('thead');
+        thead.className = 'bg-[#3B3567] text-base md:text-xl uppercase';
+        const headRow = document.createElement('tr');
+        const headers = ['Opponent', 'Your Score', 'Opponent Score', 'Winner', 'Date'];
+        headers.forEach(header => {
+          const th = document.createElement('th');
+          th.className = 'px-2 md:px-6 py-3';
+          th.textContent = header;
+          headRow.appendChild(th);
+        });
+        thead.appendChild(headRow);
+        table.appendChild(thead);
+        // Create tbody
+        const tbody = document.createElement('tbody');
+        tbody.className = 'text-base md:text-lg';
+        matches.forEach((match: any) => {
+          const row = document.createElement('tr');
+          row.className = 'bg-[#2D2856]';
+          const isPlayer1 = match.player1_id === userId;
+          const opponent = isPlayer1 ? match.player2_username : match.player1_username;
+          const yourScore = isPlayer1 ? match.player1_score : match.player2_score;
+          const opponentScore = isPlayer1 ? match.player2_score : match.player1_score;
+          const winner = match.winner_username;
+          // Format date as DD/MM/YYYY HH:mm (24-hour, zero-padded)
+          const dateObj = new Date(match.played_at);
+          const day = String(dateObj.getDate()).padStart(2, '0');
+          const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+          const year = dateObj.getFullYear();
+          const hours = String(dateObj.getHours()).padStart(2, '0');
+          const minutes = String(dateObj.getMinutes()).padStart(2, '0');
+          const formattedDate = `${day}/${month}/${year} ${hours}:${minutes}`;
+          // Opponent
+          const tdOpponent = document.createElement('td');
+          tdOpponent.className = 'px-6 py-4';
+          tdOpponent.textContent = opponent ? `@${opponent}` : '-';
+          row.appendChild(tdOpponent);
+          // Your Score
+          const tdYourScore = document.createElement('td');
+          tdYourScore.className = 'px-6 py-4';
+          tdYourScore.textContent = `${yourScore} points`;
+          row.appendChild(tdYourScore);
+          // Opponent Score
+          const tdOpponentScore = document.createElement('td');
+          tdOpponentScore.className = 'px-6 py-4';
+          tdOpponentScore.textContent = `${opponentScore} points`;
+          row.appendChild(tdOpponentScore);
+          // Winner
+          const tdWinner = document.createElement('td');
+          tdWinner.className = 'px-6 py-4';
+          tdWinner.textContent = winner ? `@${winner}` : '-';
+          row.appendChild(tdWinner);
+          // Date
+          const tdDate = document.createElement('td');
+          tdDate.className = 'px-6 py-4';
+          tdDate.textContent = formattedDate;
+          row.appendChild(tdDate);
+          tbody.appendChild(row);
+        });
+        table.appendChild(tbody);
+        wrapper.appendChild(table);
+        content.appendChild(wrapper);
       }
     } else {
       throw new Error("Failed to load match history");
@@ -97,29 +147,4 @@ async function loadMatchHistory(userId: number): Promise<void> {
       });
     }
   }
-}
-
-function renderMatchRow(match: any, userId: number): string {
-  const isPlayer1 = match.player1_id === userId;
-  const opponent = isPlayer1 ? match.player2_username : match.player1_username;
-  const yourScore = isPlayer1 ? match.player1_score : match.player2_score;
-  const opponentScore = isPlayer1 ? match.player2_score : match.player1_score;
-  const winner = match.winner_username;
-  // Simple format: DD/MM/YYYY HH:mm (24-hour, zero-padded)
-  const dateObj = new Date(match.played_at);
-  const day = String(dateObj.getDate()).padStart(2, '0');
-  const month = String(dateObj.getMonth() + 1).padStart(2, '0');
-  const year = dateObj.getFullYear();
-  const hours = String(dateObj.getHours()).padStart(2, '0');
-  const minutes = String(dateObj.getMinutes()).padStart(2, '0');
-  const formattedDate = `${day}/${month}/${year} ${hours}:${minutes}`;
-  return `
-    <tr class="bg-[#2D2856]">
-      <td class="px-6 py-4">@${opponent}</td>
-      <td class="px-6 py-4">${yourScore} points</td>
-      <td class="px-6 py-4">${opponentScore} points</td>
-      <td class="px-6 py-4">@${winner}</td>
-      <td class="px-6 py-4">${formattedDate}</td>
-    </tr>
-  `;
 }
