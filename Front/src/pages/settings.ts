@@ -6,10 +6,24 @@ import { userService } from "../services/user.service.ts";
 import { getBaseUrl } from "../services/base-api.ts";
 import { showSuccessMessage, showErrorMessage } from './notification.ts';
 
-export default function SettingsPage(): void {
+export default async function SettingsPage(): Promise<void> {
 	const app = document.getElementById("app");
 	if (!app) return;
 
+	// Show loading spinner while fetching user data
+	app.innerHTML = `<div class="flex justify-center items-center min-h-screen"><div class="animate-spin rounded-full h-16 w-16 border-b-2 border-purple-500"></div></div>`;
+
+	// Fetch user data
+	let user;
+	try {
+		user = await userService.getCurrentUser();
+		if (!user) throw new Error('No authenticated user found');
+	} catch (error) {
+		showErrorMessage('Failed to load user data. Please try again.');
+		return;
+	}
+
+	// Now render the settings page with the loaded user data
 	app.innerHTML = `
 	<main class="flex min-h-screen p-10">
 	  <div class="flex w-full gap-8">
@@ -18,7 +32,11 @@ export default function SettingsPage(): void {
 		<div class="w-full md:flex-1 bg-[#1E1B4B] rounded-[5px] p-6">
 		  <div class="w-36 h-36 rounded-full overflow-hidden bg-white mt-6 mb-2 mx-auto relative group">
 			<div id="profile-pic-container" class="w-full h-full">
-				<!-- Profile photo will be loaded here dynamically -->
+				${user.avatar_url
+					? `<img src="${user.avatar_url}" alt="${user.name}" class="object-cover w-full h-full" onerror="console.error('Avatar load failed:', '${user.avatar_url}'); this.style.display='none'; this.nextElementSibling.style.display='flex';">
+					<div class="w-full h-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-6xl font-bold text-white" style="display: none;">${user.name.charAt(0).toUpperCase()}</div>`
+					: `<div class="w-full h-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-6xl font-bold text-white">${user.name.charAt(0).toUpperCase()}</div>`
+				}
 			</div>
 
 			<div class="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition">
@@ -33,7 +51,7 @@ export default function SettingsPage(): void {
       <div class="w-full mb-2 px-2 md:px-6">
         <label class="block text-lg mb-1">Name</label>
         <div class="flex items-center gap-2">
-          <input id="nameInput" type="text" value="Beatriz Mota"
+          <input id="nameInput" type="text" value="${user.name}"
             class="w-full px-4 py-2 rounded-[5px] bg-[#383568] text-white placeholder-white focus:outline-none focus:ring-2 focus:ring-purple-500"
             disabled />
           <button data-id="nameInput"
@@ -46,7 +64,7 @@ export default function SettingsPage(): void {
 		  <div class="w-full mb-2 p-6">
 			<label class="block text-lg mb-1">Username</label>
 			<div class="flex items-center gap-2">
-			  <input id="usernameInput" type="text" value="Bellatrix"
+			  <input id="usernameInput" type="text" value="${user.username}"
 				class="w-full px-4 py-2 rounded-[5px] bg-[#383568] text-white placeholder-white focus:outline-none focus:ring-2 focus:ring-purple-500"
 				disabled />
 
@@ -118,14 +136,10 @@ export default function SettingsPage(): void {
 			</div>
 		</div>
 	</div>
-
 	`;
 
-	// Load current user data and friends
-	loadCurrentUser();
+	// Load friends
 	loadFriends();
-
-	// Add event delegation for delete friend buttons
 	setupFriendDeleteHandlers();
 
 	// Inicializa as funcionalidades após renderizar o HTML

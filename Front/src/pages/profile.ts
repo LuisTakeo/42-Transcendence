@@ -7,6 +7,9 @@ export default async function ProfilePage(userId?: number): Promise<void> {
     return;
   }
 
+  // Show loading spinner while fetching user data
+  app.innerHTML = `<div class="flex justify-center items-center min-h-screen"><div class="animate-spin rounded-full h-16 w-16 border-b-2 border-purple-500"></div></div>`;
+
   // Check authentication and get current user
   const currentUser = await userService.requireAuth();
 
@@ -18,97 +21,112 @@ export default async function ProfilePage(userId?: number): Promise<void> {
   const targetUserId = userId || currentUser.id;
   const isOwnProfile = targetUserId === currentUser.id;
 
-  app.innerHTML = ""; // Clear existing content
+  // Fetch user data before rendering the profile
+  const userToLoad = targetUserId || currentUser.id;
+  let user;
+  try {
+    user = (userToLoad === currentUser.id)
+      ? currentUser
+      : await userService.getUserById(userToLoad);
+    if (!user) throw new Error('User not found');
+  } catch (error) {
+    showErrorMessage('Failed to load user profile.');
+    return;
+  }
 
+  // Now render the profile page with the loaded user data
+  app.innerHTML = ""; // Clear loading spinner
   const main = document.createElement("main");
   main.className = "p-4 box-border min-h-screen flex flex-col gap-2 container mx-auto";
   main.innerHTML = `
-	  <div class="flex flex-col md:flex-row gap-10 w-full p-8">
-		<div class="flex-1 bg-[#1E1B4B] rounded-[5px] h-[400px] flex flex-col items-center justify-center">
-		  <div class="w-36 h-36 rounded-full overflow-hidden mt-6 mb-6">
-          <img id="user-avatar" src="../../assets/minecraft.jpg" alt="User" class="object-cover w-full h-full" />
-		  </div>
-        <p id="user-name" class="text-white text-2xl font-semibold mb-4">Loading...</p>
-        <p id="user-username" class="text-white text-lg mb-4">@loading</p>
-		  <div class="flex items-center justify-center text-white gap-5 text-center">
-			<div class="flex flex-col items-center space-y-1">
-			  <img src="../../assets/battle.png" alt="battle icon" class="mx-auto w-8 h-8 mb-2" />
+    <div class="flex flex-col md:flex-row gap-10 w-full p-8">
+      <div class="flex-1 bg-[#1E1B4B] rounded-[5px] h-[400px] flex flex-col items-center justify-center">
+        <div class="w-36 h-36 rounded-full overflow-hidden mt-6 mb-6">
+          ${user.avatar_url
+            ? `<img id="user-avatar" src="${user.avatar_url}" alt="${user.username || 'User'}" class="object-cover w-full h-full" />`
+            : `<div class="w-36 h-36 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-4xl font-bold text-white">${(user.username || user.email || '?')[0].toUpperCase()}</div>`
+          }
+        </div>
+        <p id="user-name" class="text-white text-2xl font-semibold mb-4">${user.name || user.username || 'User'}</p>
+        <p id="user-username" class="text-white text-lg mb-4">@${user.username || 'user'}</p>
+        <div class="flex items-center justify-center text-white gap-5 text-center">
+          <div class="flex flex-col items-center space-y-1">
+            <img src="../../assets/battle.png" alt="battle icon" class="mx-auto w-8 h-8 mb-2" />
             <p id="total-matches" class="text-4xl font-bold">-</p>
-			  <p class="text-2xl">battles</p>
-			</div>
-			<div class="text-6xl font-light px-2">|</div>
-			<div class="flex flex-col items-center space-y-1">
-			  <img src="../../assets/win.png" alt="win icon" class="mx-auto w-8 h-8 mb-2" />
+            <p class="text-2xl">battles</p>
+          </div>
+          <div class="text-6xl font-light px-2">|</div>
+          <div class="flex flex-col items-center space-y-1">
+            <img src="../../assets/win.png" alt="win icon" class="mx-auto w-8 h-8 mb-2" />
             <p id="total-wins" class="text-4xl font-bold">-</p>
-			  <p class="text-2xl">wins</p>
-			</div>
-			<div class="text-6xl font-light px-2">|</div>
-			<div class="flex flex-col items-center space-y-1">
-			  <img src="../../assets/percent.png" alt="win rate icon" class="mx-auto w-8 h-8 mb-2" />
+            <p class="text-2xl">wins</p>
+          </div>
+          <div class="text-6xl font-light px-2">|</div>
+          <div class="flex flex-col items-center space-y-1">
+            <img src="../../assets/percent.png" alt="win rate icon" class="mx-auto w-8 h-8 mb-2" />
             <p id="win-rate" class="text-4xl font-bold">-</p>
-			  <p class="text-2xl whitespace-nowrap">win‑rate</p>
-			</div>
-		  </div>
-		</div>
+            <p class="text-2xl whitespace-nowrap">win‑rate</p>
+          </div>
+        </div>
+      </div>
 
-		<div class="flex-1 bg-[#1E1B4B] rounded-[5px] h-[400px] p-4 flex flex-col">
-		  <h1 class="text-4xl font-bold text-center p-2">Battles</h1>
-		  <div class="flex-1 overflow-y-auto p-2 custom-scrollbar" style="height: calc(400px - 120px);">
+      <div class="flex-1 bg-[#1E1B4B] rounded-[5px] h-[400px] p-4 flex flex-col">
+        <h1 class="text-4xl font-bold text-center p-2">Battles</h1>
+        <div class="flex-1 overflow-y-auto p-2 custom-scrollbar" style="height: calc(400px - 120px);">
           <div id="matches-container">
             <div class="text-center text-white text-xl">
               <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500 mx-auto mb-4"></div>
               Loading matches...
             </div>
           </div>
-		  </div>
-		</div>
-	  </div>
+        </div>
+      </div>
+    </div>
 
-	  <div class="flex flex-col w-full p-6 bg-[#383568] max-h-[50vh] overflow-hidden rounded-[5px]">
-		<div class="bg-[#383568] rounded-[5px] w-full h-[38vh] flex flex-col md:flex-row flex-wrap gap-4 p-1 overflow-auto" id="achievements-container">
-		  <div class="bg-[#1E1B4B] md:flex-1 rounded-[5px] flex flex-col items-center justify-between p-4 h-full" id="achievement-2fa">
-			<div class="flex flex-col items-center">
-			  <img src="../../assets/padlock.png" alt="padlock" class="w-full max-w-[100px] h-auto object-contain" />
-			  <p class="text-center text-white text-2xl mt-4">two-factor authentication.</p>
-			</div>
-			<p class="text-center text-green-400 text-lg hidden" id="achievement-2fa-status">Achieved!</p>
-		  </div>
-		  <div class="bg-[#1E1B4B] md:flex-1 rounded-[5px] flex flex-col items-center justify-between p-4 h-full" id="achievement-friend">
-			<div class="flex flex-col items-center">
-			  <img src="../../assets/friend-big.png" alt="people" class="w-full max-w-[100px] h-auto object-contain" />
-			  <p class="text-center text-white text-2xl mt-4">Make a friend.</p>
-			</div>
-			<p class="text-center text-green-400 text-lg hidden" id="achievement-friend-status">Achieved!</p>
-		  </div>
-		  <div class="bg-[#1E1B4B] md:flex-1 rounded-[5px] flex flex-col items-center justify-between p-4 h-full" id="achievement-wins">
-			<div class="flex flex-col items-center">
-			  <img src="../../assets/reward.png" alt="reward" class="w-full max-w-[100px] h-auto object-contain" />
-			  <p class="text-center text-white text-2xl mt-4">Win 3 matches.</p>
-			</div>
-			<p class="text-center text-green-400 text-lg hidden" id="achievement-wins-status">Achieved!</p>
-		  </div>
-		  <div class="bg-[#1E1B4B] md:flex-1 rounded-[5px] flex flex-col items-center justify-between p-4 h-full" id="achievement-rank">
-			<div class="flex flex-col items-center">
-			  <img src="../../assets/podio-big.png" alt="rank" class="w-full max-w-[100px] h-auto object-contain" />
-			  <p class="text-center text-white text-2xl mt-4">Be among the top ranked.</p>
-			</div>
-			<p class="text-center text-green-400 text-lg hidden" id="achievement-rank-status">Achieved!</p>
-		  </div>
-		  <div class="bg-[#1E1B4B] md:flex-1 rounded-[5px] flex flex-col items-center justify-between p-4 h-full" id="achievement-friends">
-			<div class="flex flex-col items-center">
-			  <img src="../../assets/people-big.png" alt="people" class="w-full max-w-[100px] h-auto object-contain" />
-			  <p class="text-center text-white text-2xl mt-4">Make more than 3 friends.</p>
-			</div>
-			<p class="text-center text-green-400 text-lg hidden" id="achievement-friends-status">Achieved!</p>
-		  </div>
-		</div>
-	  </div>
+    <div class="flex flex-col w-full p-6 bg-[#383568] max-h-[50vh] overflow-hidden rounded-[5px]">
+      <div class="bg-[#383568] rounded-[5px] w-full h-[38vh] flex flex-col md:flex-row flex-wrap gap-4 p-1 overflow-auto" id="achievements-container">
+        <div class="bg-[#1E1B4B] md:flex-1 rounded-[5px] flex flex-col items-center justify-between p-4 h-full" id="achievement-2fa">
+          <div class="flex flex-col items-center">
+            <img src="../../assets/padlock.png" alt="padlock" class="w-full max-w-[100px] h-auto object-contain" />
+            <p class="text-center text-white text-2xl mt-4">two-factor authentication.</p>
+          </div>
+          <p class="text-center text-green-400 text-lg hidden" id="achievement-2fa-status">Achieved!</p>
+        </div>
+        <div class="bg-[#1E1B4B] md:flex-1 rounded-[5px] flex flex-col items-center justify-between p-4 h-full" id="achievement-friend">
+          <div class="flex flex-col items-center">
+            <img src="../../assets/friend-big.png" alt="people" class="w-full max-w-[100px] h-auto object-contain" />
+            <p class="text-center text-white text-2xl mt-4">Make a friend.</p>
+          </div>
+          <p class="text-center text-green-400 text-lg hidden" id="achievement-friend-status">Achieved!</p>
+        </div>
+        <div class="bg-[#1E1B4B] md:flex-1 rounded-[5px] flex flex-col items-center justify-between p-4 h-full" id="achievement-wins">
+          <div class="flex flex-col items-center">
+            <img src="../../assets/reward.png" alt="reward" class="w-full max-w-[100px] h-auto object-contain" />
+            <p class="text-center text-white text-2xl mt-4">Win 3 matches.</p>
+          </div>
+          <p class="text-center text-green-400 text-lg hidden" id="achievement-wins-status">Achieved!</p>
+        </div>
+        <div class="bg-[#1E1B4B] md:flex-1 rounded-[5px] flex flex-col items-center justify-between p-4 h-full" id="achievement-rank">
+          <div class="flex flex-col items-center">
+            <img src="../../assets/podio-big.png" alt="rank" class="w-full max-w-[100px] h-auto object-contain" />
+            <p class="text-center text-white text-2xl mt-4">Be among the top ranked.</p>
+          </div>
+          <p class="text-center text-green-400 text-lg hidden" id="achievement-rank-status">Achieved!</p>
+        </div>
+        <div class="bg-[#1E1B4B] md:flex-1 rounded-[5px] flex flex-col items-center justify-between p-4 h-full" id="achievement-friends">
+          <div class="flex flex-col items-center">
+            <img src="../../assets/people-big.png" alt="people" class="w-full max-w-[100px] h-auto object-contain" />
+            <p class="text-center text-white text-2xl mt-4">Make more than 3 friends.</p>
+          </div>
+          <p class="text-center text-green-400 text-lg hidden" id="achievement-friends-status">Achieved!</p>
+        </div>
+      </div>
+    </div>
   `;
 
   app.appendChild(main);
 
-  // Load user data - if no userId provided, show current user
-  const userToLoad = targetUserId || currentUser.id;
+  // Now load the rest of the profile data (stats, matches, achievements)
   await loadUserProfile(userToLoad, currentUser);
 }
 
