@@ -1,6 +1,7 @@
 import { usersService } from "../services/users.service.ts";
 import { matchesService } from "../services/matches.service.ts";
 import { showErrorMessage } from './notification.ts';
+import { renderAchievements } from "./cards.ts";
 
 export default function ProfilePage(userId?: number): void {
   const app = document.getElementById("app");
@@ -21,19 +22,19 @@ export default function ProfilePage(userId?: number): void {
 		  <div class="flex items-center justify-center text-white gap-5 text-center">
 			<div class="flex flex-col items-center space-y-1">
 			  <img src="../../assets/battle.png" alt="battle icon" class="mx-auto w-8 h-8 mb-2" />
-            <p id="total-matches" class="text-4xl font-bold">-</p>
+            <p id="total-matches" class="text-2xl font-bold">-</p>
 			  <p class="text-2xl">battles</p>
 			</div>
 			<div class="text-6xl font-light px-2">|</div>
 			<div class="flex flex-col items-center space-y-1">
 			  <img src="../../assets/win.png" alt="win icon" class="mx-auto w-8 h-8 mb-2" />
-            <p id="total-wins" class="text-4xl font-bold">-</p>
+            <p id="total-wins" class="text-2xl font-bold">-</p>
 			  <p class="text-2xl">wins</p>
 			</div>
 			<div class="text-6xl font-light px-2">|</div>
 			<div class="flex flex-col items-center space-y-1">
 			  <img src="../../assets/percent.png" alt="win rate icon" class="mx-auto w-8 h-8 mb-2" />
-            <p id="win-rate" class="text-4xl font-bold">-</p>
+            <p id="win-rate" class="text-2xl font-bold">-</p>
 			  <p class="text-2xl whitespace-nowrap">win‑rate</p>
 			</div>
 		  </div>
@@ -52,30 +53,14 @@ export default function ProfilePage(userId?: number): void {
 		</div>
 	  </div>
 
-	  <div class="flex flex-col w-full p-6 bg-[#383568] max-h-[50vh] overflow-hidden rounded-[5px]">
-		<div class="bg-[#383568] rounded-[5px] w-full h-[38vh] flex flex-col md:flex-row flex-wrap gap-4 p-1 overflow-auto">
-		  <div class="bg-[#1E1B4B] md:flex-1 rounded-[5px] flex flex-col items-center justify-center p-4">
-			<img src="../../assets/padlock.png" alt="padlock" class="w-full max-w-[100px] h-auto object-contain" />
-			<p class="text-center text-white text-2xl mt-4">two-factor authentication.</p>
-		  </div>
-		  <div class="bg-[#1E1B4B] md:flex-1 rounded-[5px] flex flex-col items-center justify-center p-4">
-			<img src="../../assets/friend-big.png" alt="people" class="w-full max-w-[100px] h-auto object-contain" />
-			<p class="text-center text-white text-2xl mt-4">Make a friend.</p>
-		  </div>
-		  <div class="bg-[#1E1B4B] md:flex-1 rounded-[5px] flex flex-col items-center justify-center p-4">
-			<img src="../../assets/reward.png" alt="reward" class="w-full max-w-[100px] h-auto object-contain" />
-			<p class="text-center text-white text-2xl mt-4">Win 3 matches.</p>
-		  </div>
-		  <div class="bg-[#1E1B4B] md:flex-1 rounded-[5px] flex flex-col items-center justify-center p-4">
-			<img src="../../assets/podio-big.png" alt="rank" class="w-full max-w-[100px] h-auto object-contain" />
-			<p class="text-center text-white text-2xl mt-4">Be among the top ranked.</p>
-		  </div>
-		  <div class="bg-[#1E1B4B] md:flex-1 rounded-[5px] flex flex-col items-center justify-center p-4">
-			<img src="../../assets/people-big.png" alt="people" class="w-full max-w-[100px] h-auto object-contain" />
-			<p class="text-center text-white text-2xl mt-4">Make more than 3 friends.</p>
-		  </div>
+	  <div class="flex flex-col w-full p-2 bg-[#383568] rounded-[5px]">
+		<div class="bg-[#383568] rounded-[5px] w-full flex flex-col md:flex-row flex-wrap gap-4 p-4">
+			<div id="achievements-container" class="flex flex-col md:flex-row flex-wrap w-full gap-4">
+  				<!-- Cards de conquistas serão inseridos aqui depois pelo TypeScript -->
+			</div>
 		</div>
 	  </div>
+
   `;
 
   app.appendChild(main);
@@ -83,6 +68,7 @@ export default function ProfilePage(userId?: number): void {
   // Load user data if userId is provided
   if (userId !== undefined && !isNaN(userId)) {
     loadUserProfile(userId);
+	renderAchievements(userId);
   } else {
     // Show current user's profile (you can implement this later)
     const userName = document.getElementById("user-name") as HTMLParagraphElement;
@@ -93,13 +79,13 @@ export default function ProfilePage(userId?: number): void {
 
   // Show a button to return to users page
   const returnButtonContainer = document.createElement('div');
-  returnButtonContainer.className = 'flex flex-col items-center mt-8';
+  returnButtonContainer.className = 'flex flex-col items-center';
   returnButtonContainer.innerHTML = `
-    <button id='back-to-users' class='mt-4 px-6 py-3 bg-purple-600 text-white rounded hover:bg-purple-700 transition text-lg'>
+    <button id='back-to-users' class=' px-6 py-3 bg-[#1E1B4B] text-white rounded hover:bg-purple-700 transition text-lg'>
       Return to Users
     </button>
   `;
-  app.appendChild(returnButtonContainer);
+  main.appendChild(returnButtonContainer);
 
   const backBtn = document.getElementById('back-to-users');
   if (backBtn) {

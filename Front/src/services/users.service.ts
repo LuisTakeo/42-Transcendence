@@ -12,6 +12,13 @@ export interface User {
   created_at: string;
 }
 
+export interface UserStats {
+	twoFactorEnabled: boolean;
+	friendsCount: number;
+	totalWins: number;
+	topRanked: boolean;
+  }
+
 export class UsersService extends BaseApiService {
   // Get users with pagination and search
   async getUsers(page: number = 1, limit: number = 10, search?: string): Promise<PaginatedResponse<User>> {
@@ -23,6 +30,8 @@ export class UsersService extends BaseApiService {
     if (search) {
       params.append('search', search);
     }
+	console.log("bateu aqui - get Users ");
+
 
     return this.request<PaginatedResponse<User>>(`/users?${params.toString()}`);
   }
@@ -62,6 +71,18 @@ export class UsersService extends BaseApiService {
     window.dispatchEvent(new CustomEvent('routeChange', {
       detail: { path: `/profile/${userId}` }
     }));
+  }
+
+  async getUserStats(userId: number): Promise<SingleResponse<UserStats>> {
+    // Aqui você pode criar uma rota específica no backend que já retorna esses dados,
+    // ou montar na mão consultando os serviços que você tem.
+
+	return this.request<SingleResponse<UserStats>>(`/users/${userId}/stats`, {
+		method: 'GET',
+		headers: {
+		  'Content-Type': 'application/json',
+		},
+	  });
   }
 }
 

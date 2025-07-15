@@ -5,6 +5,11 @@ import ProfilePage from './pages/profile.ts';
 import RankingPage from './pages/ranking.ts';
 import SettingsPage from './pages/settings.ts';
 import UsersPage from './pages/users.ts';
+import { logOutButton } from "./pages/button.ts";
+
+document.addEventListener("DOMContentLoaded", () => {
+  logOutButton();
+});
 // import ClassicGamePage from './pages/classicGame.ts';
 // import FastGamePage from './pages/fastGame.ts';
 // import JoquempoPage from './pages/joquempo.ts';
@@ -20,6 +25,9 @@ const routesWithSidebar = [
   '/ranking',
   '/settings',
   '/users',
+//  '/Game/Local',
+//  '/Game/vsCPU',
+//  '/Tournament',
 ];
 
 // Função que renderiza a página correta e controla a sidebar
