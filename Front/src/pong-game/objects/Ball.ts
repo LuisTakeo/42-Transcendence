@@ -93,6 +93,7 @@ class Ball {
         this.initialSpeed *= -1; // Inverte a direção da velocidade
     }
 
+
     /**
      * Obtém a malha da bola
      */

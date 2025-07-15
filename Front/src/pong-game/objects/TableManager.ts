@@ -41,9 +41,7 @@ class TableManager {
         this.tableWidth = tableWidth;
         this.tableDepth = tableDepth;
 
-        // Define a cor primária da mesa
         this.colorPrimary = new Color3(0.2, 0.2, 0.2);
-        // Define a cor secundária da mesa
         this.colorSecondary = new Color3(1, 1, 1);
     }
 

@@ -26,6 +26,22 @@ export enum LevelAI {
     EXPERT = 200, // Expert
 }
 
+interface RemoteStateReceive {
+    paddleLeftPosition: Vector3;  // Posição do paddle esquerdo
+    paddleRightPosition: Vector3; // Posição do paddle direito
+    ballPosition: Vector3;         // Posição da bola
+    ballVelocity: Vector3;         // Velocidade da bola
+    score: { player1: number, player2: number }; // Pontuação atual
+}
+
+export interface RemoteStateSend {
+    paddleMove: {
+        paddleId: string; // ID do paddle que está se movendo
+        direction: "up" | "down"; // Direção do movimento
+    };
+
+}
+
 /**
  * Main class for managing the Babylon.js application
  */
@@ -33,22 +49,16 @@ class MainGame {
     private canvas: HTMLCanvasElement;
     private engine: Engine;
     private scene: Scene;
-
-    // Managers
     private cameraManager: CameraManager;
     private lightManager: LightManager;
     private environmentManager: EnvironmentManager;
     private tableManager: TableManager;
     private inputManager: InputManager;
-
-    // Tipo de jogo
     private gameType: GameType;
 
-    // Textures for GUI
     private advancedTexture: AdvancedDynamicTexture;
     private scoreText: TextBlock;
     private instructionsText: TextBlock;
-    // Score tracking
     private score: { player1: number, player2: number };
     private maxScore: number;
 
@@ -299,8 +309,10 @@ class MainGame {
     public run(): void {
         this.initializeScene();
 
-        // Loop único para renderização e atualização
-        this.engine.runRenderLoop(this.update.bind(this));
+        if (this.gameType === GameType.REMOTE)
+            this.engine.runRenderLoop(this.updateRemote.bind(this));
+        else 
+            this.engine.runRenderLoop(this.update.bind(this));
 
         // Ajustar tamanho do canvas ao redimensionar janela
         window.addEventListener('resize', () => {
@@ -308,7 +320,12 @@ class MainGame {
         });
     }
 
-    // Refatoração do método update para simplificar lógica
+    public updateRemote(): void
+    {
+        
+        this.scene.render();
+    }
+
     public update(): void {
         const deltaTime = this.engine.getDeltaTime() / 1000;
 
