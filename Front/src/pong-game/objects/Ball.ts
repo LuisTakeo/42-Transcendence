@@ -12,6 +12,7 @@ class Ball {
     private initialPosition: Vector3;
     private tableSize: { width: number; depth: number };
     private halfTable: { width: number; depth: number };
+    private diameter: number = 2; // Diâmetro da bola
 
     /**
      * Construtor da bola
@@ -131,6 +132,10 @@ class Ball {
     public updatePosition(position: Vector3): void {
         this.mesh.position = position;
     }
+
+    public getDiameter(): number {
+        return this.diameter; // Retorna o diâmetro da bola
+    }   
 
 }
 
