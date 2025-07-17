@@ -19,6 +19,7 @@ import websocketRoutes from './websockets/websocket.routes';
 import { registerRoutes } from './routes/routes-controller'
 import { runMigrations } from './database/database';
 
+// Load environment variables from .env files using dotenv. Docker Compose passes environment variables to the container.
 dotenv.config();
 
 export const startServer = async () => {

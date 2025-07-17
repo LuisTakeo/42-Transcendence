@@ -21,6 +21,7 @@ services:
       dockerfile: Dockerfile
       args:
         - FRONT_PORT=${FRONT_PORT}
+        - VITE_GOOGLE_CLIENT_ID=${VITE_GOOGLE_CLIENT_ID}
     volumes:
       - ./Front:/frontend
       - /frontend/node_modules
@@ -36,6 +37,8 @@ services:
       dockerfile: Dockerfile
       args:
         - BACK_PORT=${BACK_PORT}
+        - FASTIFY_SECRET=${FASTIFY_SECRET}
+        - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
     volumes:
       - ./Back:/backend
       - /backend/node_modules
