@@ -21,7 +21,7 @@ services:
       dockerfile: Dockerfile
       args:
         - FRONT_PORT=${FRONT_PORT}
-    platform: linux/arm64/v8
+
     volumes:
       - ./Front:/frontend
       - /frontend/node_modules
@@ -37,7 +37,7 @@ services:
       dockerfile: Dockerfile
       args:
         - BACK_PORT=${BACK_PORT}
-    platform: linux/arm64/v8
+
     volumes:
       - ./Back:/backend
       - /backend/node_modules
