@@ -4,7 +4,7 @@ import LoginPage, { initializeLoginPage } from './pages/login.ts';
 import ProfilePage from './pages/profile.ts';
 import RankingPage from './pages/ranking.ts';
 import SettingsPage from './pages/settings.ts';
-import UsersPage, { initializeUsersPage } from './pages/users.ts';
+import UsersPage from './pages/users.ts';
 import MatchHistoryPage from './pages/matchHistory.ts';
 import { authService } from './services/auth.service.ts';
 import { userService } from './services/user.service.ts';
