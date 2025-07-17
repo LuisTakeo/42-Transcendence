@@ -45,7 +45,7 @@ WHERE NOT EXISTS (
 );
 
 INSERT INTO matches (player1_id, player2_id, player1_alias, player2_alias, winner_id, player1_score, player2_score)
-SELECT 1, 3, 'alice', 'carol', NULL, 2, 2
+SELECT 1, 3, 'alice', 'carol', 1, 2, 2
 WHERE NOT EXISTS (
   SELECT 1 FROM matches WHERE player1_id = 1 AND player2_id = 3 AND player1_score = 2 AND player2_score = 2
 );
