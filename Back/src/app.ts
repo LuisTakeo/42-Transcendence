@@ -27,17 +27,17 @@ export const startServer = async () => {
 
 	const host = '0.0.0.0';
 
-	// app.register(fastifyJwt, {
-	//   secret: process.env.FASTIFY_SECRET,
-	// });
+	app.register(fastifyJwt, {
+	  secret: process.env.FASTIFY_SECRET,
+	});
 
 	app.register(registerRoutes);
 
 	// Habilitar CORS para seu frontend
 	await app.register(cors, {
-		origin: ['http://localhost:5173', 'http://localhost:3042'], // URLs do frontend
+		origin: ['http://localhost:3142', 'http://localhost:3042', '*'], // URLs do frontend
 		credentials: true,
-		methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+		methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
 		allowedHeaders: ['Content-Type', 'Authorization']
 	});
 

@@ -23,10 +23,6 @@ clean:
 	docker compose down -v
 	docker system prune -f
 
-# Start in development mode
-dev:
-	FRONT_PORT=3042 BACK_PORT=3143 docker compose up -d --build
-
 # Start in production mode
 prod:
 	FRONT_PORT=3042 BACK_PORT=3142 docker compose up -d --build

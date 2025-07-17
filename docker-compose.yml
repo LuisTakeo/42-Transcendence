@@ -1,15 +1,19 @@
 
 services:
-  nginx:
-    build:
-      context: ./Nginx
-      dockerfile: Dockerfile
-    ports:
-      - "${NGINX_PORT}:80"
-    depends_on:
-      - frontend
-      - backend
-    restart: unless-stopped
+  # nginx:
+  #   build:
+  #     context: ./Nginx
+  #     dockerfile: Dockerfile
+  #   platform: linux/arm64/v8
+  #   environment:
+  #     - DOMAIN=fazai.dev
+  #   ports:
+  #     - "${NGINX_PORT}:80"
+  #     - "443:443"
+  #   depends_on:
+  #     - frontend
+  #     - backend
+  #   restart: unless-stopped
 
   frontend:
     build:
@@ -20,8 +24,8 @@ services:
     volumes:
       - ./Front:/frontend
       - /frontend/node_modules
-    expose:
-      - "${FRONT_PORT}"
+    ports:
+      - "${FRONT_PORT}:${FRONT_PORT}"
     command: dev
     depends_on:
       - backend
@@ -35,6 +39,6 @@ services:
     volumes:
       - ./Back:/backend
       - /backend/node_modules
-    expose:
-      - "${BACK_PORT}"
+    ports:
+      - "${BACK_PORT}:${BACK_PORT}"
     command: dev

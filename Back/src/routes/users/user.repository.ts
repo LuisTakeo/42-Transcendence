@@ -36,6 +36,9 @@ export interface User {
 	avatar_url?: string;
 	is_online?: number;
 	last_seen_at?: string;
+	two_factor_enabled?: number;
+	two_factor_secret?: string;
+	google_id?: string;
 	created_at?: string;
 }
 
@@ -53,6 +56,8 @@ export interface UpdateUserData {
 	avatar_url?: string;
 	is_online?: number;
 	last_seen_at?: string;
+	two_factor_enabled?: number;
+	two_factor_secret?: string | null;
 }
 
 // NEW: Check if username exists (case-insensitive)
@@ -147,7 +152,7 @@ export async function findOrCreateUserDb(email: string, name: string, googleId: 
 
   export async function saveSecret(email: string, secret: string) {
 	const db = await openDb();
-	await db.run(
+	const result = await db.run(
 	  `UPDATE users SET two_factor_secret = ? WHERE LOWER(email) = LOWER(?)`,
 	  secret,
 	  email
@@ -310,6 +315,14 @@ export async function updateUser(id: number, userData: UpdateUserData): Promise<
 	if (userData.last_seen_at !== undefined) {
 		updateFields.push('last_seen_at = ?');
 		values.push(userData.last_seen_at);
+	}
+	if (userData.two_factor_enabled !== undefined) {
+		updateFields.push('two_factor_enabled = ?');
+		values.push(userData.two_factor_enabled);
+	}
+	if (userData.two_factor_secret !== undefined) {
+		updateFields.push('two_factor_secret = ?');
+		values.push(userData.two_factor_secret);
 	}
 
 	if (updateFields.length === 0) {
