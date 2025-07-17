@@ -1,3 +1,5 @@
+import { userService } from '../services/user.service.ts';
+
 export default function HomePage(): string {
 	return `
 	<div class="min-h-screen flex-1">
@@ -42,3 +44,14 @@ export default function HomePage(): string {
 	`;
 }
 
+// Initialize home page with user data
+export async function initializeHomePage(): Promise<void> {
+  // Check authentication and get user
+  const user = await userService.requireAuth();
+  if (!user) {
+    return; // User will be redirected to login
+  }
+
+  // The home page doesn't need any special initialization
+  // User data will be handled by the sidebar or other components
+}

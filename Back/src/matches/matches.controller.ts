@@ -173,11 +173,37 @@ export async function getPlayerStats(request: FastifyRequest, reply: FastifyRepl
 			});
 		}
 
-		const stats = await repository.getUserStats(playerIdNum);
+		// Get both stats and recent matches
+		const [stats, recentMatches] = await Promise.all([
+			repository.getUserStats(playerIdNum),
+			repository.getMatchesByPlayerId(playerIdNum)
+		]);
+
+		// Format all matches for the frontend (no limit)
+		const formattedMatches = recentMatches.map(match => {
+			const isPlayer1 = match.player1_id === playerIdNum;
+			// Use the actual usernames from the users table, not aliases
+			const playerUsername = isPlayer1 ? match.player1_username : match.player2_username;
+			const opponentUsername = isPlayer1 ? match.player2_username : match.player1_username;
+			const playerScore = isPlayer1 ? match.player1_score : match.player2_score;
+			const opponentScore = isPlayer1 ? match.player2_score : match.player1_score;
+
+			return {
+				id: match.id,
+				playerUsername,
+				opponentUsername,
+				playerScore,
+				opponentScore,
+				playedAt: match.played_at
+			};
+		});
 
 		reply.send({
 			success: true,
-			data: stats
+			data: {
+				...stats,
+				recentMatches: formattedMatches
+			}
 		});
 	} catch (error) {
 		reply.status(500).send({
