@@ -263,8 +263,14 @@ async function updateAchievements(user: any, stats: any): Promise<void> {
     updateAchievementCard('achievement-2fa', 'achievement-2fa-status', twoFactorEnabled);
 
     // Check friend count achievements
-    const friendCountResponse = await friendsService.getUserFriendCount(user.id);
-    const friendCount = friendCountResponse?.data?.friend_count || 0;
+    let friendCount = 0;
+    try {
+      const friendCountResponse = await friendsService.getUserFriendCount(user.id);
+      friendCount = friendCountResponse?.data?.friend_count || 0;
+    } catch (error) {
+      console.error('Error retrieving friend count:', error);
+      showErrorMessage('Failed to retrieve friend count. Some achievements may not be updated.');
+    }
 
     // "Make a friend" achievement
     updateAchievementCard('achievement-friend', 'achievement-friend-status', friendCount >= 1);
