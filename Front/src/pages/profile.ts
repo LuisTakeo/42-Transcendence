@@ -1,5 +1,6 @@
 import { userService } from "../services/user.service.ts";
 import { showErrorMessage } from './notification.ts';
+import { friendsService } from '../services/friends.service.ts';
 
 export default async function ProfilePage(userId?: number): Promise<void> {
   const app = document.getElementById("app");
@@ -65,26 +66,41 @@ export default async function ProfilePage(userId?: number): Promise<void> {
 	  </div>
 
 	  <div class="flex flex-col w-full p-6 bg-[#383568] max-h-[50vh] overflow-hidden rounded-[5px]">
-		<div class="bg-[#383568] rounded-[5px] w-full h-[38vh] flex flex-col md:flex-row flex-wrap gap-4 p-1 overflow-auto">
-		  <div class="bg-[#1E1B4B] md:flex-1 rounded-[5px] flex flex-col items-center justify-center p-4">
-			<img src="../../assets/padlock.png" alt="padlock" class="w-full max-w-[100px] h-auto object-contain" />
-			<p class="text-center text-white text-2xl mt-4">two-factor authentication.</p>
+		<div class="bg-[#383568] rounded-[5px] w-full h-[38vh] flex flex-col md:flex-row flex-wrap gap-4 p-1 overflow-auto" id="achievements-container">
+		  <div class="bg-[#1E1B4B] md:flex-1 rounded-[5px] flex flex-col items-center justify-between p-4 h-full" id="achievement-2fa">
+			<div class="flex flex-col items-center">
+			  <img src="../../assets/padlock.png" alt="padlock" class="w-full max-w-[100px] h-auto object-contain" />
+			  <p class="text-center text-white text-2xl mt-4">two-factor authentication.</p>
+			</div>
+			<p class="text-center text-green-400 text-lg hidden" id="achievement-2fa-status">Achieved!</p>
 		  </div>
-		  <div class="bg-[#1E1B4B] md:flex-1 rounded-[5px] flex flex-col items-center justify-center p-4">
-			<img src="../../assets/friend-big.png" alt="people" class="w-full max-w-[100px] h-auto object-contain" />
-			<p class="text-center text-white text-2xl mt-4">Make a friend.</p>
+		  <div class="bg-[#1E1B4B] md:flex-1 rounded-[5px] flex flex-col items-center justify-between p-4 h-full" id="achievement-friend">
+			<div class="flex flex-col items-center">
+			  <img src="../../assets/friend-big.png" alt="people" class="w-full max-w-[100px] h-auto object-contain" />
+			  <p class="text-center text-white text-2xl mt-4">Make a friend.</p>
+			</div>
+			<p class="text-center text-green-400 text-lg hidden" id="achievement-friend-status">Achieved!</p>
 		  </div>
-		  <div class="bg-[#1E1B4B] md:flex-1 rounded-[5px] flex flex-col items-center justify-center p-4">
-			<img src="../../assets/reward.png" alt="reward" class="w-full max-w-[100px] h-auto object-contain" />
-			<p class="text-center text-white text-2xl mt-4">Win 3 matches.</p>
+		  <div class="bg-[#1E1B4B] md:flex-1 rounded-[5px] flex flex-col items-center justify-between p-4 h-full" id="achievement-wins">
+			<div class="flex flex-col items-center">
+			  <img src="../../assets/reward.png" alt="reward" class="w-full max-w-[100px] h-auto object-contain" />
+			  <p class="text-center text-white text-2xl mt-4">Win 3 matches.</p>
+			</div>
+			<p class="text-center text-green-400 text-lg hidden" id="achievement-wins-status">Achieved!</p>
 		  </div>
-		  <div class="bg-[#1E1B4B] md:flex-1 rounded-[5px] flex flex-col items-center justify-center p-4">
-			<img src="../../assets/podio-big.png" alt="rank" class="w-full max-w-[100px] h-auto object-contain" />
-			<p class="text-center text-white text-2xl mt-4">Be among the top ranked.</p>
+		  <div class="bg-[#1E1B4B] md:flex-1 rounded-[5px] flex flex-col items-center justify-between p-4 h-full" id="achievement-rank">
+			<div class="flex flex-col items-center">
+			  <img src="../../assets/podio-big.png" alt="rank" class="w-full max-w-[100px] h-auto object-contain" />
+			  <p class="text-center text-white text-2xl mt-4">Be among the top ranked.</p>
+			</div>
+			<p class="text-center text-green-400 text-lg hidden" id="achievement-rank-status">Achieved!</p>
 		  </div>
-		  <div class="bg-[#1E1B4B] md:flex-1 rounded-[5px] flex flex-col items-center justify-center p-4">
-			<img src="../../assets/people-big.png" alt="people" class="w-full max-w-[100px] h-auto object-contain" />
-			<p class="text-center text-white text-2xl mt-4">Make more than 3 friends.</p>
+		  <div class="bg-[#1E1B4B] md:flex-1 rounded-[5px] flex flex-col items-center justify-between p-4 h-full" id="achievement-friends">
+			<div class="flex flex-col items-center">
+			  <img src="../../assets/people-big.png" alt="people" class="w-full max-w-[100px] h-auto object-contain" />
+			  <p class="text-center text-white text-2xl mt-4">Make more than 3 friends.</p>
+			</div>
+			<p class="text-center text-green-400 text-lg hidden" id="achievement-friends-status">Achieved!</p>
 		  </div>
 		</div>
 	  </div>
@@ -169,6 +185,9 @@ async function loadUserProfile(userId: number, currentUser: any): Promise<void> 
         winRate.textContent = `${rate}%`;
       }
 
+      // Check and update achievements
+      await updateAchievements(user, stats);
+
             // Update matches list
       const matchesContainer = document.getElementById("matches-container") as HTMLDivElement;
       if (stats.recentMatches && stats.recentMatches.length > 0 && matchesContainer) {
@@ -234,5 +253,59 @@ async function loadUserProfile(userId: number, currentUser: any): Promise<void> 
     const userUsername = document.getElementById("user-username") as HTMLParagraphElement;
     if (userName) userName.textContent = "Profile Error";
     if (userUsername) userUsername.textContent = "@error";
+  }
+}
+
+async function updateAchievements(user: any, stats: any): Promise<void> {
+  try {
+    // Check 2FA achievement
+    const twoFactorEnabled = user.two_factor_enabled === 1;
+    updateAchievementCard('achievement-2fa', 'achievement-2fa-status', twoFactorEnabled);
+
+    // Check friend count achievements
+    let friendCount = 0;
+    try {
+      const friendCountResponse = await friendsService.getUserFriendCount(user.id);
+      friendCount = friendCountResponse?.data?.friend_count || 0;
+    } catch (error) {
+      console.error('Error retrieving friend count:', error);
+      showErrorMessage('Failed to retrieve friend count. Some achievements may not be updated.');
+    }
+
+    // "Make a friend" achievement
+    updateAchievementCard('achievement-friend', 'achievement-friend-status', friendCount >= 1);
+
+    // "Make more than 3 friends" achievement
+    updateAchievementCard('achievement-friends', 'achievement-friends-status', friendCount > 3);
+
+    // Check wins achievement
+    const wins = stats.wins || 0;
+    updateAchievementCard('achievement-wins', 'achievement-wins-status', wins >= 3);
+
+    // Check ranking achievement (top 10)
+    const rank = stats.rank || 999;
+    updateAchievementCard('achievement-rank', 'achievement-rank-status', rank <= 10);
+
+  } catch (error) {
+    console.error('Error updating achievements:', error);
+  }
+}
+
+function updateAchievementCard(cardId: string, statusId: string, isAchieved: boolean): void {
+  const card = document.getElementById(cardId) as HTMLDivElement;
+  const status = document.getElementById(statusId) as HTMLParagraphElement;
+
+  if (card && status) {
+    if (isAchieved) {
+      // Achievement completed - keep dark background, show green status
+      card.classList.remove('bg-opacity-50', 'bg-[#1E1B4B]/50');
+      card.classList.add('bg-[#1E1B4B]');
+      status.classList.remove('hidden');
+    } else {
+      // Achievement not completed - make background more transparent
+      card.classList.remove('bg-[#1E1B4B]');
+      card.classList.add('bg-[#1E1B4B]/50');
+      status.classList.add('hidden');
+    }
   }
 }
