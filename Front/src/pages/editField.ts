@@ -1,4 +1,5 @@
 import { userService } from '../services/user.service.ts';
+import { isRequired, minLength } from './validateInput.ts';
 
 export function initializeEditField() {
   // Inicializa botões de edição de campos
@@ -32,6 +33,20 @@ export function initializeEditField() {
         if (newValue === originalValue) {
           // No changes, just exit edit mode
           exitEditMode(btn, input);
+          return;
+        }
+
+        // Input validation
+        if (!isRequired(newValue)) {
+          showFieldErrorMessage(inputId);
+          return;
+        }
+        if (inputId === 'usernameInput' && !minLength(newValue, 3)) {
+          showFieldErrorMessage(inputId);
+          return;
+        }
+        if (inputId === 'nameInput' && !minLength(newValue, 2)) {
+          showFieldErrorMessage(inputId);
           return;
         }
 
