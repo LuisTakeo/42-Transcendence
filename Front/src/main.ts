@@ -219,7 +219,7 @@ document.addEventListener('click', resetActivityTimer);
 document.addEventListener('scroll', resetActivityTimer);
 
 // Start activity tracking when page loads
-resetActivityTimer();
+resetActivityTimer();  
 
 // Inicializa a aplicação com a rota atual
 onRouteChange();
