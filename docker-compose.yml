@@ -21,7 +21,6 @@ services:
       dockerfile: Dockerfile
       args:
         - FRONT_PORT=${FRONT_PORT}
-
     volumes:
       - ./Front:/frontend
       - /frontend/node_modules
@@ -37,7 +36,6 @@ services:
       dockerfile: Dockerfile
       args:
         - BACK_PORT=${BACK_PORT}
-
     volumes:
       - ./Back:/backend
       - /backend/node_modules
