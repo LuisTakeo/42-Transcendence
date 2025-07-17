@@ -1,5 +1,6 @@
 import { userService } from "../services/user.service.ts";
 import { showErrorMessage } from './notification.ts';
+import { friendsService } from '../services/friends.service.ts';
 
 export default async function ProfilePage(userId?: number): Promise<void> {
   const app = document.getElementById("app");
@@ -257,9 +258,6 @@ async function loadUserProfile(userId: number, currentUser: any): Promise<void> 
 
 async function updateAchievements(user: any, stats: any): Promise<void> {
   try {
-    // Import friends service
-    const { friendsService } = await import('../services/friends.service.ts');
-
     // Check 2FA achievement
     const twoFactorEnabled = user.two_factor_enabled === 1;
     updateAchievementCard('achievement-2fa', 'achievement-2fa-status', twoFactorEnabled);
@@ -294,12 +292,13 @@ function updateAchievementCard(cardId: string, statusId: string, isAchieved: boo
   if (card && status) {
     if (isAchieved) {
       // Achievement completed - keep dark background, show green status
-      card.className = card.className.replace('bg-opacity-50', '');
-      card.className = card.className.replace('bg-[#1E1B4B]/50', 'bg-[#1E1B4B]');
+      card.classList.remove('bg-opacity-50', 'bg-[#1E1B4B]/50');
+      card.classList.add('bg-[#1E1B4B]');
       status.classList.remove('hidden');
     } else {
       // Achievement not completed - make background more transparent
-      card.className = card.className.replace('bg-[#1E1B4B]', 'bg-[#1E1B4B]/50');
+      card.classList.remove('bg-[#1E1B4B]');
+      card.classList.add('bg-[#1E1B4B]/50');
       status.classList.add('hidden');
     }
   }
