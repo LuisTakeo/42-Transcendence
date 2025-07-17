@@ -6,6 +6,7 @@ import RankingPage from './pages/ranking.ts';
 import SettingsPage from './pages/settings.ts';
 import UsersPage from './pages/users.ts';
 import { logOutButton } from "./pages/button.ts";
+import HowToPlay from './pages/howToPlay.ts';
 
 document.addEventListener("DOMContentLoaded", () => {
   logOutButton();
@@ -25,7 +26,7 @@ const routesWithSidebar = [
   '/ranking',
   '/settings',
   '/users',
-//  '/Game/Local',
+  '/howToPlay',
 //  '/Game/vsCPU',
 //  '/Tournament',
 ];
@@ -55,6 +56,13 @@ function renderRoute(path: string) {
     switch (path) {
       case '/home':
         app.innerHTML = HomePage();
+		const howToPlayBtn = document.getElementById('how-to-play');
+			if (howToPlayBtn) {
+			howToPlayBtn.addEventListener('click', () => {
+				window.history.pushState(null, '', '/howToPlay');
+				window.dispatchEvent(new Event('popstate'));
+			});
+			}
         break;
       case '/profile':
         ProfilePage();
@@ -67,6 +75,9 @@ function renderRoute(path: string) {
         break;
       case '/users':
         UsersPage();
+        break;
+	  case '/howToPlay':
+        HowToPlay();
         break;
       default:
         console.log('Route not found in switch:', path); // Debug

@@ -1,6 +1,6 @@
 export default function HomePage(): string {
 	return `
-<div class="min-h-screen flex-1">
+	<div class="min-h-screen flex-1">
 	  <div class="grid grid-cols-1 md:grid-cols-2 gap-12 p-8 h-auto min-h-screen">
 		<!-- Botão 1 -->
 		<button class="h-full relative flex flex-col items-center justify-center
@@ -12,7 +12,7 @@ export default function HomePage(): string {
 		</button>
 
 		<!-- Botão 2 -->
-		<button class="h-full relative flex flex-col items-center justify-center
+		<button id="how-to-play" class="h-full relative flex flex-col items-center justify-center
 		  bg-[#1E1B4B] hover:bg-[#4A4180] rounded-[5px]
 		  transition duration-300 transform hover:scale-[1.02] hover:shadow-2xl overflow-hidden">
 		  <img src="../../assets/pong-players-happy.png" alt="Classic Game" class="absolute inset-0 w-full h-full object-cover opacity-60" />
@@ -39,4 +39,6 @@ export default function HomePage(): string {
 		</button>
 	  </div>
 	</div>
-	`;}
+	`;
+}
+

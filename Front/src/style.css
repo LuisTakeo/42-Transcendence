@@ -21,3 +21,14 @@ border-radius: 4px;      /* bordas arredondadas da barrinha */
 scrollbar-width: thin;        /* barra fina */
 scrollbar-color: #888 transparent; /* cor da barrinha e do fundo */
 }
+
+.key {
+	display: inline-block;
+	padding: 0.25rem 0.6rem;
+	margin: 0 0.2rem;
+	border-radius: 0.25rem;
+	background-color: #ffffff22;
+	border: 1px solid #ffffff66;
+	font-weight: bold;
+	font-family: monospace;
+}
