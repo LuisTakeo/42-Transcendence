@@ -322,20 +322,20 @@ class MainGame {
 
     public updateRemote(): void
     {
-        const paddleLeft = this.tableManager.getPaddleLeft();
-        console.log("Paddle Left Position:");
-        console.log(paddleLeft.getMesh().position);
-        console.log(paddleLeft.getPaddleSize());
+        // const paddleLeft = this.tableManager.getPaddleLeft();
+        // console.log("Paddle Left Position:");
+        // console.log(paddleLeft.getMesh().position);
+        // console.log(paddleLeft.getPaddleSize());
 
-        const paddleRight = this.tableManager.getPaddleRight();
-        console.log("Paddle Right Position:");
-        console.log(paddleRight.getMesh().position);
-        console.log(paddleRight.getPaddleSize());
+        // const paddleRight = this.tableManager.getPaddleRight();
+        // console.log("Paddle Right Position:");
+        // console.log(paddleRight.getMesh().position);
+        // console.log(paddleRight.getPaddleSize());
 
-        const ball = this.tableManager.getBall();
-        console.log("Ball Position:");
-        console.log(ball.getMesh().position);
-        console.log(ball.getDiameter());
+        // const ball = this.tableManager.getBall();
+        // console.log("Ball Position:");
+        // console.log(ball.getMesh().position);
+        // console.log(ball.getDiameter());
 
         this.scene.render();
     }

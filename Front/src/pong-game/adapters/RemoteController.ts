@@ -18,6 +18,8 @@ export class RemoteController implements IInputController {
      */
     constructor(id: string) {
         this.id = id;
+        this.paddleSize = { width: 1, height: 4, depth: 10 }; // Tamanho padrão do paddle
+
     }
 
     /**
@@ -57,6 +59,8 @@ export class RemoteController implements IInputController {
         this.initialized = true;
         // Simular inicialização de conexão remota
         console.log(`Controlador remoto ${this.id} inicializado`);
+
+        
     }
 
     /**
@@ -65,24 +69,7 @@ export class RemoteController implements IInputController {
     public update(deltaTime: number): void {
         if (!this.initialized || !this.paddle) return;
 
-        // Em um caso real, você receberia esta direção da rede
-        // Para fins de simulação, estamos apenas movendo aleatoriamente
-        if (Math.random() < 0.05) {
-            this.moveDirection = (Math.random() > 0.5) ? 1 : -1;
-        }
-
-        if (Math.random() < 0.1) {
-            this.moveDirection = 0;
-        }        if (this.moveDirection !== 0) {
-            // Limite de movimento
-            const moveLimit = 35;
-
-            if (this.moveDirection < 0) {
-                this.paddle.moveUp(moveLimit);
-            } else {
-                this.paddle.moveDown(moveLimit);
-            }
-        }
+        
     }
 
     /**

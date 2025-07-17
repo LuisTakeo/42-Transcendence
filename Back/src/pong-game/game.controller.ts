@@ -22,66 +22,53 @@ const userToRoom: Map<string, string> = new Map(); // userId -> roomId
 
 
 
-// interface GameRoom {
-//     id: string;
-//     players: Map<string, any>; // userId -> connection
-//     gameState: {
-//         ball: { x: number, y: number, vx: number, vy: number };
-//         player1: { y: number };
-//         player2: { y: number };
-//         score: { player1: number, player2: number };
-//     };
-//     gameLoop?: NodeJS.Timer;
-//     status: 'waiting' | 'playing' | 'finished';
-// }
-
-// const mapRooms: Map<number, Room> = new Map<number, Room>();
 
 
 
 // Função para processar movimento dos jogadores
 function handlePlayerMove(userId: string, data: any) {
-    const roomId = userToRoom.get(userId);
-    if (!roomId) {
-        console.log(`User ${userId} não está em nenhuma sala`);
-        return;
-    }
+    console.log(`Movimento recebido de ${userId}:`, data);
+    // const roomId = userToRoom.get(userId);
+    // if (!roomId) {
+    //     console.log(`User ${userId} não está em nenhuma sala`);
+    //     return;
+    // }
     
-    const room = gameRooms.get(roomId);
-    if (!room || room.status !== 'playing') {
-        console.log(`Sala ${roomId} não está jogando`);
-        return;
-    }
+    // const room = gameRooms.get(roomId);
+    // if (!room || room.status !== 'playing') {
+    //     console.log(`Sala ${roomId} não está jogando`);
+    //     return;
+    // }
     
-    // Determinar qual jogador (baseado na ordem de entrada)
-    const playerIds = Array.from(room.players.keys());
-    const isPlayer1 = playerIds[0] === userId;
+    // // Determinar qual jogador (baseado na ordem de entrada)
+    // const playerIds = Array.from(room.players.keys());
+    // const isPlayer1 = playerIds[0] === userId;
     
-    console.log(`Movimento recebido: ${userId} (${isPlayer1 ? 'Player1' : 'Player2'}) - ${data.direction}`);
+    // console.log(`Movimento recebido: ${userId} (${isPlayer1 ? 'Player1' : 'Player2'}) - ${data.direction}`);
     
-    // Atualizar posição do jogador no backend
-    if (isPlayer1) {
-        // Limitar movimento dentro da mesa
-        if (data.direction === 'up') {
-            room.gameState.player1.y = Math.max(-15, room.gameState.player1.y - 2);
-        } else if (data.direction === 'down') {
-            room.gameState.player1.y = Math.min(15, room.gameState.player1.y + 2);
-        }
-    } else {
-        if (data.direction === 'up') {
-            room.gameState.player2.y = Math.max(-15, room.gameState.player2.y - 2);
-        } else if (data.direction === 'down') {
-            room.gameState.player2.y = Math.min(15, room.gameState.player2.y + 2);
-        }
-    }
+    // // Atualizar posição do jogador no backend
+    // if (isPlayer1) {
+    //     // Limitar movimento dentro da mesa
+    //     if (data.direction === 'up') {
+    //         room.gameState.player1.y = Math.max(-15, room.gameState.player1.y - 2);
+    //     } else if (data.direction === 'down') {
+    //         room.gameState.player1.y = Math.min(15, room.gameState.player1.y + 2);
+    //     }
+    // } else {
+    //     if (data.direction === 'up') {
+    //         room.gameState.player2.y = Math.max(-15, room.gameState.player2.y - 2);
+    //     } else if (data.direction === 'down') {
+    //         room.gameState.player2.y = Math.min(15, room.gameState.player2.y + 2);
+    //     }
+    // }
     
-    // Broadcast movimento para todos na sala
-    broadcastToRoom(roomId, {
-        type: 'player_moved',
-        player: isPlayer1 ? 'player1' : 'player2',
-        y: isPlayer1 ? room.gameState.player1.y : room.gameState.player2.y,
-        userId: userId
-    });
+    // // Broadcast movimento para todos na sala
+    // broadcastToRoom(roomId, {
+    //     type: 'player_moved',
+    //     player: isPlayer1 ? 'player1' : 'player2',
+    //     y: isPlayer1 ? room.gameState.player1.y : room.gameState.player2.y,
+    //     userId: userId
+    // });
 }
 
 function broadcastToRoom(roomId: string, data: any) {
@@ -195,9 +182,8 @@ function resetBall(room: GameRoom) {
     };
 }
 
-function createGameRoom(userId: string, connection: any): string {
-    const roomId = `room_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    
+function createGameRoom(userId: string, connection: any): number {
+    const roomId = gameIdCounter;
     const newRoom: GameRoom = {
         id: roomId,
         players: new Map([[userId, connection]]),
@@ -209,7 +195,7 @@ function createGameRoom(userId: string, connection: any): string {
         },
         status: 'waiting'
     };
-    
+    gameIdCounter++;
     gameRooms.set(roomId, newRoom);
     userToRoom.set(userId, roomId);
     
@@ -229,7 +215,6 @@ function joinGameRoom(userId: string, connection: any, roomId: string) {
         connection.send(JSON.stringify({ type: 'error', message: 'Sala não encontrada' }));
         return;
     }
-    
     if (room.players.size >= 2) {
         connection.send(JSON.stringify({ type: 'error', message: 'Sala cheia' }));
         return;
