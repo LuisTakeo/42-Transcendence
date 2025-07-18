@@ -12,6 +12,11 @@ export class RemoteController implements IInputController {
     private moveDirection: number = 0;
     private paddleSize: { width: number; height: number; depth: number };
 
+    private upKey: string = "ArrowUp"; // Tecla para mover para cima
+    private downKey: string = "ArrowDown"; // Tecla para mover para baixo
+    private _onKeyDown: ((evt: KeyboardEvent) => void) | null = null;
+    private _onKeyUp: ((evt: KeyboardEvent) => void) | null = null;
+
     /**
      * Cria um novo controlador remoto
      * @param id Identificador único do controlador
@@ -60,7 +65,24 @@ export class RemoteController implements IInputController {
         // Simular inicialização de conexão remota
         console.log(`Controlador remoto ${this.id} inicializado`);
 
-        
+        // Configura os event listeners do teclado
+        const handleKeyDown = (evt: KeyboardEvent) => {
+            if (evt.key === this.upKey || evt.key === this.downKey) {
+                this.keyStatus[evt.key] = true;
+            }
+        };
+
+        const handleKeyUp = (evt: KeyboardEvent) => {
+            if (evt.key === this.upKey || evt.key === this.downKey) {
+                this.keyStatus[evt.key] = false;
+            }
+        };
+
+        this._onKeyDown = handleKeyDown;
+        this._onKeyUp = handleKeyUp;
+
+        window.addEventListener("keydown", handleKeyDown);
+        window.addEventListener("keyup", handleKeyUp);
     }
 
     /**
@@ -88,5 +110,6 @@ export class RemoteController implements IInputController {
         console.log(`Controlador remoto ${this.id} desconectado`);
         this.paddle = null;
         this.initialized = false;
+
     }
 }

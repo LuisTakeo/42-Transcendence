@@ -1,4 +1,5 @@
 // Imports
+import gamePage from './pages/gamePage.ts';
 import HomePage from './pages/home.ts';
 import LoginPage from './pages/login.ts';
 import ProfilePage from './pages/profile.ts';
@@ -21,7 +22,8 @@ const routesWithSidebar = [
   '/ranking',
   '/settings',
   '/users',
-  '/game', // Temporarily using /game for the pong game
+  '/game/local',
+  '/game/cpu',
 ];
 
 // Função que renderiza a página correta e controla a sidebar
@@ -62,16 +64,13 @@ function renderRoute(path: string) {
       case '/users':
         UsersPage();
         break;
-      case '/game':
+      case '/game/local':
         // deletar depois
-        const canvas = document.createElement('canvas');
-        canvas.id = 'gameCanvas';
-        canvas.style.width = '100%';
-        canvas.style.height = '100%';
-        app.innerHTML = '';
-        app.appendChild(canvas);
-        const game = new MainGame('gameCanvas', GameType.REMOTE);
-        game.run();
+        gamePage(GameType.LOCAL_TWO_PLAYERS);
+        break;
+      case '/game/cpu':
+        // deletar depois
+        gamePage(GameType.LOCAL_VS_AI);
         break;
       default:
         console.log('Route not found in switch:', path); // Debug
