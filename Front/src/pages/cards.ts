@@ -12,7 +12,7 @@ export function createAchievementCard(title: string, imgSrc: string, isUnlocked:
 	  <div class="${baseClasses} ${isUnlocked ? unlockedClasses : lockedClasses}">
 		<img src="${imgSrc}" alt="${title}" class="w-auto max-w-[80px] h-auto object-contain" />
 		<p class="text-center text-white text-xl mt-4">${title}</p>
-		${isUnlocked ? `<p class="text-green-400 mt-2">Conquistado!</p>` : ''}
+		${isUnlocked ? `<p class="text-green-400 mt-2">Achieved!</p>` : ''}
 	  </div>
 	`;
   }

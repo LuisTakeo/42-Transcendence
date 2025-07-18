@@ -1,6 +1,6 @@
 import { userService } from "../services/user.service.ts";
 import { showErrorMessage } from './notification.ts';
-//import { renderAchievements } from "./cards.ts";
+import { renderAchievements } from "./cards.ts";
 import { friendsService } from '../services/friends.service.ts';
 
 export default async function ProfilePage(userId?: number): Promise<void> {
@@ -128,36 +128,36 @@ export default async function ProfilePage(userId?: number): Promise<void> {
 
   app.appendChild(main);
 
-//  // Load user data if userId is provided
-//  if (userId !== undefined && !isNaN(userId)) {
-//    loadUserProfile(userId);
-//	renderAchievements(userId);
-//  } else {
-//    // Show current user's profile (you can implement this later)
-//    const userName = document.getElementById("user-name") as HTMLParagraphElement;
-//    const userUsername = document.getElementById("user-username") as HTMLParagraphElement;
-//    if (userName) userName.textContent = "My Profile";
-//    if (userUsername) userUsername.textContent = "@myprofile";
-//  }
+  // Load user data if userId is provided
+  if (userId !== undefined && !isNaN(userId)) {
+    loadUserProfile(userId, currentUser.id);
+	renderAchievements(userId); 
+  } else {
+    // Show current user's profile (you can implement this later)
+    const userName = document.getElementById("user-name") as HTMLParagraphElement;
+    const userUsername = document.getElementById("user-username") as HTMLParagraphElement;
+    if (userName) userName.textContent = "My Profile";
+    if (userUsername) userUsername.textContent = "@myprofile";
+  }
 
-//  // Show a button to return to users page
-//  const returnButtonContainer = document.createElement('div');
-//  returnButtonContainer.className = 'flex flex-col items-center';
-//  returnButtonContainer.innerHTML = `
-//    <button id='back-to-users' class=' px-6 py-3 bg-[#1E1B4B] text-white rounded hover:bg-purple-700 transition text-lg'>
-//      Return to Users
-//    </button>
-//  `;
-//  main.appendChild(returnButtonContainer);
+  // Show a button to return to users page
+  const returnButtonContainer = document.createElement('div');
+  returnButtonContainer.className = 'flex flex-col items-center';
+  returnButtonContainer.innerHTML = `
+    <button id='back-to-users' class=' px-6 py-3 bg-[#1E1B4B] text-white rounded hover:bg-purple-700 transition text-lg'>
+      Return to Users
+    </button>
+  `;
+  main.appendChild(returnButtonContainer);
 
-//  const backBtn = document.getElementById('back-to-users');
-//  if (backBtn) {
-//    backBtn.addEventListener('click', () => {
-//      window.history.pushState({}, '', '/users');
-//      window.dispatchEvent(new Event('popstate'));
-//    });
-//  }
-  // Now load the rest of the profile data (stats, matches, achievements)
+  const backBtn = document.getElementById('back-to-users');
+  if (backBtn) {
+    backBtn.addEventListener('click', () => {
+      window.history.pushState({}, '', '/users');
+      window.dispatchEvent(new Event('popstate'));
+    });
+  }
+   //Now load the rest of the profile data (stats, matches, achievements)
   await loadUserProfile(userToLoad, currentUser);
 }
 
@@ -234,6 +234,7 @@ async function loadUserProfile(userId: number, currentUser: any): Promise<void> 
       }
 
       // Check and update achievements
+	  renderAchievements(userId); 
       await updateAchievements(user, stats);
 
             // Update matches list
