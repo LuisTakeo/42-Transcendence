@@ -10,31 +10,24 @@ CREATE TABLE IF NOT EXISTS tournaments (
     FOREIGN KEY (owner_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
--- tournament_players table
+-- tournament_players table (refactored for round-robin)
 CREATE TABLE IF NOT EXISTS tournament_players (
     tournament_id INTEGER NOT NULL,
     user_id INTEGER NOT NULL,
-    status TEXT DEFAULT 'active', -- active | eliminated | winner
-    eliminated_in_round INTEGER,
+    points INTEGER DEFAULT 0,
     PRIMARY KEY (tournament_id, user_id),
     FOREIGN KEY (tournament_id) REFERENCES tournaments(id) ON DELETE CASCADE,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
--- tournament_rounds table
-CREATE TABLE IF NOT EXISTS tournament_rounds (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    tournament_id INTEGER NOT NULL,
-    round_number INTEGER NOT NULL,
-    created_at DATETIME DEFAULT (datetime('now')),
-    FOREIGN KEY (tournament_id) REFERENCES tournaments(id) ON DELETE CASCADE
-);
+-- Remove tournament_rounds table (no longer needed)
+-- (table dropped or not created)
 
 -- Add tournament-related columns to matches table
 -- Note: SQLite doesn't support IF NOT EXISTS for ALTER TABLE, so we'll handle this in the application
 ALTER TABLE matches ADD COLUMN tournament_id INTEGER REFERENCES tournaments(id) ON DELETE CASCADE;
-ALTER TABLE matches ADD COLUMN round_number INTEGER;
-ALTER TABLE matches ADD COLUMN match_position INTEGER;
+-- Remove round_number and match_position columns (not needed for round-robin)
+-- (columns not added or dropped if present)
 
 -- Helpful views for tournament queries
 CREATE VIEW IF NOT EXISTS active_tournament_players AS
@@ -47,8 +40,7 @@ SELECT
     t.status as tournament_status
 FROM tournament_players tp
 JOIN users u ON tp.user_id = u.id
-JOIN tournaments t ON tp.tournament_id = t.id
-WHERE tp.status = 'active' AND t.status IN ('pending', 'ongoing');
+JOIN tournaments t ON tp.tournament_id = t.id;
 
 CREATE VIEW IF NOT EXISTS ongoing_matches AS
 SELECT
@@ -70,14 +62,9 @@ SELECT
     tp.user_id,
     u.username,
     u.name,
-    tp.status as player_status,
-    tp.eliminated_in_round,
-    CASE
-        WHEN tp.status = 'winner' THEN 1
-        WHEN tp.status = 'active' THEN 2
-        ELSE 3 + COALESCE(tp.eliminated_in_round, 0)
-    END as ranking_order
+    tp.points,
+    RANK() OVER (PARTITION BY tp.tournament_id ORDER BY tp.points DESC) as ranking
 FROM tournament_players tp
 JOIN users u ON tp.user_id = u.id
 JOIN tournaments t ON tp.tournament_id = t.id
-ORDER BY tp.tournament_id, ranking_order;
+ORDER BY tp.tournament_id, ranking;

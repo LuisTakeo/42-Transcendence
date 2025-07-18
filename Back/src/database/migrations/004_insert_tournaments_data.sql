@@ -23,95 +23,80 @@ SELECT 'Beginner Cup', 3, 'finished'
 WHERE NOT EXISTS (SELECT 1 FROM tournaments WHERE name = 'Beginner Cup');
 
 -- Inserindo jogadores dos torneios (tournament_players)
--- Tournament 1 (pending) - All players active, no matches yet
-INSERT INTO tournament_players (tournament_id, user_id, status)
-SELECT 1, 1, 'active'
+-- Tournament 1 (pending) - All players, no matches yet
+INSERT INTO tournament_players (tournament_id, user_id, points)
+SELECT 1, 1, 0
 WHERE NOT EXISTS (SELECT 1 FROM tournament_players WHERE tournament_id = 1 AND user_id = 1);
 
-INSERT INTO tournament_players (tournament_id, user_id, status)
-SELECT 1, 2, 'active'
+INSERT INTO tournament_players (tournament_id, user_id, points)
+SELECT 1, 2, 0
 WHERE NOT EXISTS (SELECT 1 FROM tournament_players WHERE tournament_id = 1 AND user_id = 2);
 
-INSERT INTO tournament_players (tournament_id, user_id, status)
-SELECT 1, 3, 'active'
+INSERT INTO tournament_players (tournament_id, user_id, points)
+SELECT 1, 3, 0
 WHERE NOT EXISTS (SELECT 1 FROM tournament_players WHERE tournament_id = 1 AND user_id = 3);
 
-INSERT INTO tournament_players (tournament_id, user_id, status)
-SELECT 1, 4, 'active'
+INSERT INTO tournament_players (tournament_id, user_id, points)
+SELECT 1, 4, 0
 WHERE NOT EXISTS (SELECT 1 FROM tournament_players WHERE tournament_id = 1 AND user_id = 4);
 
--- Tournament 2 (ongoing) - Some eliminated, some active
-INSERT INTO tournament_players (tournament_id, user_id, status, eliminated_in_round)
-SELECT 2, 2, 'winner', NULL
+-- Tournament 2 (ongoing) - Example points
+INSERT INTO tournament_players (tournament_id, user_id, points)
+SELECT 2, 2, 6
 WHERE NOT EXISTS (SELECT 1 FROM tournament_players WHERE tournament_id = 2 AND user_id = 2);
 
-INSERT INTO tournament_players (tournament_id, user_id, status, eliminated_in_round)
-SELECT 2, 3, 'eliminated', 1
+INSERT INTO tournament_players (tournament_id, user_id, points)
+SELECT 2, 3, 1
 WHERE NOT EXISTS (SELECT 1 FROM tournament_players WHERE tournament_id = 2 AND user_id = 3);
 
-INSERT INTO tournament_players (tournament_id, user_id, status, eliminated_in_round)
-SELECT 2, 4, 'eliminated', 2
+INSERT INTO tournament_players (tournament_id, user_id, points)
+SELECT 2, 4, 3
 WHERE NOT EXISTS (SELECT 1 FROM tournament_players WHERE tournament_id = 2 AND user_id = 4);
 
-INSERT INTO tournament_players (tournament_id, user_id, status, eliminated_in_round)
-SELECT 2, 5, 'eliminated', 1
+INSERT INTO tournament_players (tournament_id, user_id, points)
+SELECT 2, 5, 0
 WHERE NOT EXISTS (SELECT 1 FROM tournament_players WHERE tournament_id = 2 AND user_id = 5);
 
--- Tournament 3 (finished) - Final standings
-INSERT INTO tournament_players (tournament_id, user_id, status, eliminated_in_round)
-SELECT 3, 1, 'winner', NULL
+-- Tournament 3 (finished) - Example points
+INSERT INTO tournament_players (tournament_id, user_id, points)
+SELECT 3, 1, 9
 WHERE NOT EXISTS (SELECT 1 FROM tournament_players WHERE tournament_id = 3 AND user_id = 1);
 
-INSERT INTO tournament_players (tournament_id, user_id, status, eliminated_in_round)
-SELECT 3, 2, 'eliminated', 1
+INSERT INTO tournament_players (tournament_id, user_id, points)
+SELECT 3, 2, 3
 WHERE NOT EXISTS (SELECT 1 FROM tournament_players WHERE tournament_id = 3 AND user_id = 2);
 
-INSERT INTO tournament_players (tournament_id, user_id, status, eliminated_in_round)
-SELECT 3, 3, 'eliminated', 1
+INSERT INTO tournament_players (tournament_id, user_id, points)
+SELECT 3, 3, 3
 WHERE NOT EXISTS (SELECT 1 FROM tournament_players WHERE tournament_id = 3 AND user_id = 3);
 
-INSERT INTO tournament_players (tournament_id, user_id, status, eliminated_in_round)
-SELECT 3, 4, 'eliminated', 1
+INSERT INTO tournament_players (tournament_id, user_id, points)
+SELECT 3, 4, 0
 WHERE NOT EXISTS (SELECT 1 FROM tournament_players WHERE tournament_id = 3 AND user_id = 4);
 
-
--- Inserindo rounds dos torneios (tournament_rounds)
-INSERT INTO tournament_rounds (tournament_id, round_number)
-SELECT 2, 1
-WHERE NOT EXISTS (SELECT 1 FROM tournament_rounds WHERE tournament_id = 2 AND round_number = 1);
-
-INSERT INTO tournament_rounds (tournament_id, round_number)
-SELECT 2, 2
-WHERE NOT EXISTS (SELECT 1 FROM tournament_rounds WHERE tournament_id = 2 AND round_number = 2);
-
-INSERT INTO tournament_rounds (tournament_id, round_number)
-SELECT 3, 1
-WHERE NOT EXISTS (SELECT 1 FROM tournament_rounds WHERE tournament_id = 3 AND round_number = 1);
-
 -- Inserindo partidas de torneio
--- Tournament 2 (ongoing) - Round 1 (Semifinal matches)
-INSERT INTO matches (player1_id, player2_id, player1_alias, player2_alias, winner_id, player1_score, player2_score, tournament_id, round_number, match_position)
-SELECT 2, 3, 'bob', 'carol', 2, 3, 2, 2, 1, 1
+-- Tournament 2 (ongoing)
+INSERT INTO matches (player1_id, player2_id, player1_alias, player2_alias, winner_id, player1_score, player2_score, tournament_id)
+SELECT 2, 3, 'bob', 'carol', 2, 3, 2, 2
 WHERE NOT EXISTS (
   SELECT 1 FROM matches WHERE player1_id = 2 AND player2_id = 3 AND tournament_id = 2
 );
 
-INSERT INTO matches (player1_id, player2_id, player1_alias, player2_alias, winner_id, player1_score, player2_score, tournament_id, round_number, match_position)
-SELECT 4, 5, 'johndoe', 'maria', 4, 3, 1, 2, 1, 2
+INSERT INTO matches (player1_id, player2_id, player1_alias, player2_alias, winner_id, player1_score, player2_score, tournament_id)
+SELECT 4, 5, 'johndoe', 'maria', 4, 3, 1, 2
 WHERE NOT EXISTS (
   SELECT 1 FROM matches WHERE player1_id = 4 AND player2_id = 5 AND tournament_id = 2
 );
 
--- Tournament 2 (ongoing) - Round 2 (Final match)
-INSERT INTO matches (player1_id, player2_id, player1_alias, player2_alias, winner_id, player1_score, player2_score, tournament_id, round_number, match_position)
-SELECT 2, 4, 'bob', 'johndoe', 2, 3, 0, 2, 2, 1
+INSERT INTO matches (player1_id, player2_id, player1_alias, player2_alias, winner_id, player1_score, player2_score, tournament_id)
+SELECT 2, 4, 'bob', 'johndoe', 2, 2, 1, 2
 WHERE NOT EXISTS (
   SELECT 1 FROM matches WHERE player1_id = 2 AND player2_id = 4 AND tournament_id = 2
 );
 
--- Tournament 3 (finished) - Round 1 (Championship final)
-INSERT INTO matches (player1_id, player2_id, player1_alias, player2_alias, winner_id, player1_score, player2_score, tournament_id, round_number, match_position)
-SELECT 1, 3, 'alice', 'carol', 1, 3, 1, 3, 1, 1
+-- Tournament 3 (finished)
+INSERT INTO matches (player1_id, player2_id, player1_alias, player2_alias, winner_id, player1_score, player2_score, tournament_id)
+SELECT 1, 3, 'alice', 'carol', 1, 3, 1, 3
 WHERE NOT EXISTS (
   SELECT 1 FROM matches WHERE player1_id = 1 AND player2_id = 3 AND tournament_id = 3
 );
