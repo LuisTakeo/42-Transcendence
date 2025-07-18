@@ -1,4 +1,5 @@
 import { BaseApiService } from './base-api.ts';
+import API_BASE_URL from './base-api';
 
 export interface GoogleLoginResponse {
   success?: boolean;
@@ -109,7 +110,7 @@ export class AuthService extends BaseApiService {
     return userId ? parseInt(userId, 10) : null;
   }
 
-  private async updateOnlineStatus(isOnline: boolean): Promise<void> {
+  public async updateOnlineStatus(isOnline: boolean): Promise<void> {
     try {
       const token = this.getAuthToken();
       if (!token) return;
@@ -119,7 +120,8 @@ export class AuthService extends BaseApiService {
       const userId = payload.id;
 
       if (userId) {
-        await fetch(`http://localhost:3142/users/${userId}/online-status`, {
+        console.log("update online status", API_BASE_URL);
+        await fetch(`${API_BASE_URL}/users/${userId}/online-status`, {
           method: 'PATCH',
           headers: {
             'Authorization': `Bearer ${token}`,

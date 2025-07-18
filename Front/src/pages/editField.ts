@@ -130,34 +130,6 @@ export function initializeEditField() {
       }
     }
   });
-
-  // Inicializa upload de foto de perfil
-  const fileInput = document.getElementById('file-input') as HTMLInputElement;
-  const changePicBtn = document.getElementById('change-pic-btn') as HTMLButtonElement;
-  const profilePic = document.getElementById('profile-pic') as HTMLImageElement;
-
-  if (!fileInput || !changePicBtn || !profilePic) {
-    console.warn('Elementos de edição de perfil não encontrados');
-    return;
-  }
-
-  changePicBtn.addEventListener('click', () => {
-    fileInput.click();
-  });
-
-  fileInput.addEventListener('change', (event: Event) => {
-    const target = event.target as HTMLInputElement;
-    const file = target.files?.[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = () => {
-      if (typeof reader.result === 'string') {
-        profilePic.src = reader.result;
-      }
-    };
-    reader.readAsDataURL(file);
-  });
 }
 
 function exitEditMode(btn: HTMLButtonElement, input: HTMLInputElement) {

@@ -1,5 +1,6 @@
 // Backend API URL - uses environment variable or fallback
-const API_BASE_URL = 'http://localhost:3142';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+export default API_BASE_URL;
 export class BaseApiService {
   protected async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
     const url = `${API_BASE_URL}${endpoint}`;
@@ -19,6 +20,8 @@ export class BaseApiService {
 
     try {
       const response = await fetch(url, defaultOptions);
+      console.log("Base url", API_BASE_URL);
+      console.log("endpoint",url);
 
       if (!response.ok) {
         // Try to get error details from response body

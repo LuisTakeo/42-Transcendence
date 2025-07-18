@@ -30,7 +30,7 @@ export default async function SettingsPage(): Promise<void> {
 
 		<!-- Caixa 1 -->
 		<div class="w-full md:flex-1 bg-[#1E1B4B] rounded-[5px] p-6">
-		  <div class="w-36 h-36 rounded-full overflow-hidden bg-white mt-6 mb-2 mx-auto relative group">
+		  <div class="w-36 h-36 rounded-full overflow-hidden mt-6 mb-2 mx-auto relative group">
 			<div id="profile-pic-container" class="w-full h-full">
 				${user.avatar_url
 					? `<img src="${user.avatar_url}" alt="${user.name}" class="object-cover w-full h-full" onerror="console.error('Avatar load failed:', '${user.avatar_url}'); this.style.display='none'; this.nextElementSibling.style.display='flex';">
@@ -45,7 +45,6 @@ export default async function SettingsPage(): Promise<void> {
 			  </button>
 			</div>
 
-			<!--<input id="file-input" type="file" accept="image/*" class="hidden" />-- ver se isso esta usando e para que -->
 		  </div>
 
       <div class="w-full mb-2 px-2 md:px-6">

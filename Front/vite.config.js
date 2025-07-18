@@ -17,7 +17,8 @@ export default defineConfig({
       '909f45e01116.ngrok-free.app',  // Host específico atual
       /.*\.ngrok\.io$/,
       /.*\.ngrok-free\.app$/,
-      /.*\.ngrok\.app$/
+      /.*\.ngrok\.app$/,
+      'mycustomfrontendinceptionbestteam.loca.lt'
     ]
   },
   build: {

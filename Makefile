@@ -22,6 +22,8 @@ logs:
 clean:
 	docker compose down -v
 	docker system prune -f
+	pkill -f "lt --port 3142" || true
+	pkill -f "lt --port 5173" || true
 
 # Start in production mode
 prod:
@@ -52,3 +54,11 @@ backend-restart:
 .PHONY: frontend-logs frontend-restart
 # Backend specific commands
 .PHONY: backend-logs backend-restart
+
+# Start both LocalTunnel tunnels
+setup:
+	lt --port 3142 --subdomain mycustombackendinceptionbestteam &
+	lt --port 5173 --subdomain mycustomfrontendinceptionbestteam &
+
+password:
+	@echo "Tunnel password: $$(curl -s https://loca.lt/mytunnelpassword)"
