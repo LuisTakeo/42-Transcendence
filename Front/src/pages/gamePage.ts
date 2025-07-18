@@ -1,9 +1,9 @@
 import { GameType, MainGame } from "../pong-game/game";
 
-export default function gamePage(gameType: GameType): string {
+export default function gamePage(gameType: GameType): void {
     const app = document.getElementById('app');
     if (!app) {
-        return '<h1>Error: App element not found</h1>';
+        return ;
     }
     const canvas = document.createElement('canvas');
     canvas.id = 'gameCanvas';

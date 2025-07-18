@@ -1,5 +1,6 @@
 import { IInputController } from "../ports/IInputController";
 import { Paddle } from "../objects/Paddle";
+import { GameService } from "../game.service";
 
 /**
  * Controlador que simula um input remoto (rede)
@@ -16,6 +17,7 @@ export class RemoteController implements IInputController {
     private downKey: string = "ArrowDown"; // Tecla para mover para baixo
     private _onKeyDown: ((evt: KeyboardEvent) => void) | null = null;
     private _onKeyUp: ((evt: KeyboardEvent) => void) | null = null;
+    private _gameService: GameService | null = null; // Simulação de conexão com servidor remoto
 
     /**
      * Cria um novo controlador remoto
@@ -24,7 +26,15 @@ export class RemoteController implements IInputController {
     constructor(id: string) {
         this.id = id;
         this.paddleSize = { width: 1, height: 4, depth: 10 }; // Tamanho padrão do paddle
+        this._gameService = new GameService("ws://localhost:3001/ws", this.id); // Simulação de serviço de jogo
+    
+    }
 
+    public connect(): void {
+        if (!this._gameService) return;
+
+        this._gameService.connect();
+        console.log(`Controlador remoto ${this.id} conectado`); 
     }
 
     /**
@@ -61,28 +71,22 @@ export class RemoteController implements IInputController {
      * Em uma implementação real, estabeleceria conexão com servidor
      */
     public initialize(): void {
+        if (this.initialized || !this._gameService) return;
         this.initialized = true;
+        this.connect();
+
+        const connectionCheck = setInterval(() => {
+        if (this._gameService?.isConnectedToServer()) {
+                console.log("WebSocket connected, setting up handlers");
+                this.setupEventHandlers();
+                clearInterval(connectionCheck);
+            }
+        }, 500);
         // Simular inicialização de conexão remota
         console.log(`Controlador remoto ${this.id} inicializado`);
+        
 
-        // Configura os event listeners do teclado
-        const handleKeyDown = (evt: KeyboardEvent) => {
-            if (evt.key === this.upKey || evt.key === this.downKey) {
-                this.keyStatus[evt.key] = true;
-            }
-        };
-
-        const handleKeyUp = (evt: KeyboardEvent) => {
-            if (evt.key === this.upKey || evt.key === this.downKey) {
-                this.keyStatus[evt.key] = false;
-            }
-        };
-
-        this._onKeyDown = handleKeyDown;
-        this._onKeyUp = handleKeyUp;
-
-        window.addEventListener("keydown", handleKeyDown);
-        window.addEventListener("keyup", handleKeyUp);
+        
     }
 
     /**
@@ -92,6 +96,31 @@ export class RemoteController implements IInputController {
         if (!this.initialized || !this.paddle) return;
 
         
+    }
+
+    public setupEventHandlers(): void {
+        if (!this._gameService) return;
+        // Configura os event listeners do teclado
+        const handleKeyDown = (evt: KeyboardEvent) => {
+            if (!this._gameService) return;
+            if (evt.key === this.upKey || evt.key === this.downKey) {
+                this.moveDirection = evt.key === this.upKey ? 1 : -1;
+                this._gameService.sendMessage("player_move", { direction: this.moveDirection });
+            }
+        };
+
+        const handleKeyUp = (evt: KeyboardEvent) => {
+            if (evt.key === this.upKey || evt.key === this.downKey) {
+                this.moveDirection = 0;
+                this._gameService?.sendMessage("player_move", { direction: this.moveDirection });
+            }
+        };
+
+        this._onKeyDown = handleKeyDown;
+        this._onKeyUp = handleKeyUp;
+
+        window.addEventListener("keydown", handleKeyDown);
+        window.addEventListener("keyup", handleKeyUp);
     }
 
     /**

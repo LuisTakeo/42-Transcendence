@@ -1,15 +1,28 @@
 export class GameService {
     private websocket: WebSocket | null = null;
     private listeners: { [key: string]: (data: any) => void } = {};
-
+    private isConnected: boolean = false;
     constructor(private serverUrl: string, private userId: string) {}
 
     // Inicializar a conexão WebSocket
     public connect(): void {
-        this.websocket = new WebSocket(`${this.serverUrl}?userId=${this.userId}`);
+        try {
+            console.log(`Attempting to connect to WebSocket at ${this.serverUrl}?userId=${this.userId}`);
+            this.websocket = new WebSocket(`${this.serverUrl}?userId=${this.userId}`);
+            
+            this.setupEventHandlers();
+        } catch (error) {
+            console.error("Failed to create WebSocket connection:", error);
+            this.attemptReconnection();
+        }
+    }
 
+    private setupEventHandlers(): void {
+        if (!this.websocket) return;
+        
         this.websocket.onopen = () => {
-            console.log("Conectado ao WebSocket!");
+            console.log("Connected to WebSocket server!");
+            this.isConnected = true;
         };
 
         this.websocket.onmessage = (event) => {
@@ -21,14 +34,28 @@ export class GameService {
                 this.listeners[data.type](data);
             }
         };
-
-        this.websocket.onclose = () => {
-            console.log("Conexão encerrada.");
-        };
-
+        
         this.websocket.onerror = (error) => {
-            console.error("Erro no WebSocket:", error);
+            console.error("WebSocket error:", error);
+            // Don't attempt reconnect here - wait for onclose
         };
+        
+        this.websocket.onclose = (event) => {
+            console.log(`WebSocket connection closed. Code: ${event.code}, Reason: ${event.reason}`);
+            this.isConnected = false;
+            this.attemptReconnection();
+        };
+    }
+
+    private attemptReconnection(): void {
+        console.log("Attempting to reconnect in 5 seconds...");
+        setTimeout(() => {
+            this.connect();
+        }, 5000);
+    }
+
+    public isConnectedToServer(): boolean {
+        return this.isConnected && this.websocket !== null && this.websocket.readyState === WebSocket.OPEN;
     }
 
     public sendMessage(type: string, payload: any): void {

@@ -18,6 +18,7 @@ interface GameRoom {
 
 // Maps principais
 const gameRooms: Map<string, GameRoom> = new Map();
+
 const userToRoom: Map<string, string> = new Map(); // userId -> roomId
 
 

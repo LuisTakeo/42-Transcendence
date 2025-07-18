@@ -24,6 +24,7 @@ const routesWithSidebar = [
   '/users',
   '/game/local',
   '/game/cpu',
+  '/game/online'
 ];
 
 // Função que renderiza a página correta e controla a sidebar
@@ -65,12 +66,13 @@ function renderRoute(path: string) {
         UsersPage();
         break;
       case '/game/local':
-        // deletar depois
         gamePage(GameType.LOCAL_TWO_PLAYERS);
         break;
       case '/game/cpu':
-        // deletar depois
         gamePage(GameType.LOCAL_VS_AI);
+        break;
+      case '/game/online':
+        gamePage(GameType.REMOTE);
         break;
       default:
         console.log('Route not found in switch:', path); // Debug

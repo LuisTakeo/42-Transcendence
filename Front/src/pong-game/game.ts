@@ -61,6 +61,7 @@ class MainGame {
     private instructionsText: TextBlock;
     private score: { player1: number, player2: number };
     private maxScore: number;
+    private _remoteController: RemoteController | null = null;
 
     /**
      * Constructor for the main class
@@ -230,40 +231,8 @@ class MainGame {
                 break;
 
             case GameType.REMOTE:
-                this.registerControllers({
-                    info: "local_player", 
-                    controller: new KeyboardController(
-                        "local_player", this.scene, "ArrowUp", "ArrowDown", 0.5,
-                        this.tableManager.getTableWidth(),
-                        this.tableManager.getTableDepth()
-                    )
-                },
-                {
-                    info: "remote_player", 
-                    controller: new RemoteController("remote_player")
-                },
-                "Use as setas para mover\n"
-                )
-                this.instructionsText.text = "Use as setas para mover";
-                // Jogo remoto (online)
-                const localController = new KeyboardController(
-                    "local_player",
-                    this.scene,
-                    "ArrowUp",
-                    "ArrowDown"
-                );
-
-                const remoteController = new RemoteController(
-                    "remote_player"
-                );
-
-                this.inputManager.registerController(localController);
-                this.inputManager.registerController(remoteController);
-
-                // Assume que o jogador local é sempre o paddle direito
-                // Isso pode mudar dependendo da sua lógica de rede
-                this.inputManager.connectControllerToPaddle("local_player", rightPaddle);
-                this.inputManager.connectControllerToPaddle("remote_player", leftPaddle);
+                this._remoteController = new RemoteController("remote_controller");
+                this._remoteController.initialize();
                 break;            
             default:
                 console.warn(`Tipo de jogo desconhecido: ${this.gameType}, usando modo dois jogadores.`);
