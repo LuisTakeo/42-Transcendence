@@ -27,12 +27,14 @@ interface Room {
 
 class Game {
     private rooms: Map<number, Room>;
+    private static nextRoomId: number;
 
     constructor() {
         this.rooms = new Map<number, Room>();
+        Game.nextRoomId = 1; 
     }
 
-    createRoom(roomId: number): Room {
+    createRoomWithId(roomId: number): Room {
         if (this.rooms.has(roomId)) {
             throw new Error(`Room with ID ${roomId} already exists`);
         }
@@ -47,6 +49,12 @@ class Game {
         this.rooms.set(roomId, room);
         return room;
     }
+
+    createRoom(): Room {
+        const roomId = Game.nextRoomId++;
+        return this.createRoomWithId(roomId);
+    }
+
 
     joinRoom(roomId: number, player: Player): Room {
         const room = this.rooms.get(roomId);

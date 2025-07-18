@@ -1,4 +1,6 @@
 // Imports
+import gamePage from './pages/gamePage.ts';
+import { GameType } from './pong-game/game.ts';
 import HomePage, { initializeHomePage } from './pages/home.ts';
 import LoginPage, { initializeLoginPage } from './pages/login.ts';
 import ProfilePage from './pages/profile.ts';
@@ -23,7 +25,10 @@ const routesWithSidebar = [
   '/ranking',
   '/settings',
   '/users',
-  '/match-history',
+  '/game/local',
+  '/game/cpu',
+  '/game/online',
+  '/match-history'
 ];
 
 // Função que renderiza a página correta e controla a sidebar
@@ -71,6 +76,15 @@ async function renderRoute(path: string) {
         break;
       case '/match-history':
         await MatchHistoryPage();
+        break;
+      case '/game/local':
+        gamePage(GameType.LOCAL_TWO_PLAYERS);
+        break;
+      case '/game/cpu':
+        gamePage(GameType.LOCAL_VS_AI);
+        break;
+      case '/game/online':
+        gamePage(GameType.REMOTE);
         break;
       default:
         window.history.replaceState(null, '', '/home');

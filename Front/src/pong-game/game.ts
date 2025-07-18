@@ -26,6 +26,22 @@ export enum LevelAI {
     EXPERT = 200, // Expert
 }
 
+interface RemoteStateReceive {
+    paddleLeftPosition: Vector3;  // Posição do paddle esquerdo
+    paddleRightPosition: Vector3; // Posição do paddle direito
+    ballPosition: Vector3;         // Posição da bola
+    ballVelocity: Vector3;         // Velocidade da bola
+    score: { player1: number, player2: number }; // Pontuação atual
+}
+
+export interface RemoteStateSend {
+    paddleMove: {
+        paddleId: string; // ID do paddle que está se movendo
+        direction: "up" | "down"; // Direção do movimento
+    };
+
+}
+
 /**
  * Main class for managing the Babylon.js application
  */
@@ -33,24 +49,19 @@ class MainGame {
     private canvas: HTMLCanvasElement;
     private engine: Engine;
     private scene: Scene;
-
-    // Managers
     private cameraManager: CameraManager;
     private lightManager: LightManager;
     private environmentManager: EnvironmentManager;
     private tableManager: TableManager;
     private inputManager: InputManager;
-
-    // Tipo de jogo
     private gameType: GameType;
 
-    // Textures for GUI
     private advancedTexture: AdvancedDynamicTexture;
     private scoreText: TextBlock;
     private instructionsText: TextBlock;
-    // Score tracking
     private score: { player1: number, player2: number };
     private maxScore: number;
+    private _remoteController: RemoteController | null = null;
 
     /**
      * Constructor for the main class
@@ -220,40 +231,8 @@ class MainGame {
                 break;
 
             case GameType.REMOTE:
-                this.registerControllers({
-                    info: "local_player", 
-                    controller: new KeyboardController(
-                        "local_player", this.scene, "ArrowUp", "ArrowDown", 0.5,
-                        this.tableManager.getTableWidth(),
-                        this.tableManager.getTableDepth()
-                    )
-                },
-                {
-                    info: "remote_player", 
-                    controller: new RemoteController("remote_player")
-                },
-                "Use as setas para mover\n"
-                )
-                this.instructionsText.text = "Use as setas para mover";
-                // Jogo remoto (online)
-                const localController = new KeyboardController(
-                    "local_player",
-                    this.scene,
-                    "ArrowUp",
-                    "ArrowDown"
-                );
-
-                const remoteController = new RemoteController(
-                    "remote_player"
-                );
-
-                this.inputManager.registerController(localController);
-                this.inputManager.registerController(remoteController);
-
-                // Assume que o jogador local é sempre o paddle direito
-                // Isso pode mudar dependendo da sua lógica de rede
-                this.inputManager.connectControllerToPaddle("local_player", rightPaddle);
-                this.inputManager.connectControllerToPaddle("remote_player", leftPaddle);
+                this._remoteController = new RemoteController("remote_controller");
+                this._remoteController.initialize();
                 break;            
             default:
                 console.warn(`Tipo de jogo desconhecido: ${this.gameType}, usando modo dois jogadores.`);
@@ -299,8 +278,10 @@ class MainGame {
     public run(): void {
         this.initializeScene();
 
-        // Loop único para renderização e atualização
-        this.engine.runRenderLoop(this.update.bind(this));
+        if (this.gameType === GameType.REMOTE)
+            this.engine.runRenderLoop(this.updateRemote.bind(this));
+        else 
+            this.engine.runRenderLoop(this.update.bind(this));
 
         // Ajustar tamanho do canvas ao redimensionar janela
         window.addEventListener('resize', () => {
@@ -308,7 +289,26 @@ class MainGame {
         });
     }
 
-    // Refatoração do método update para simplificar lógica
+    public updateRemote(): void
+    {
+        // const paddleLeft = this.tableManager.getPaddleLeft();
+        // console.log("Paddle Left Position:");
+        // console.log(paddleLeft.getMesh().position);
+        // console.log(paddleLeft.getPaddleSize());
+
+        // const paddleRight = this.tableManager.getPaddleRight();
+        // console.log("Paddle Right Position:");
+        // console.log(paddleRight.getMesh().position);
+        // console.log(paddleRight.getPaddleSize());
+
+        // const ball = this.tableManager.getBall();
+        // console.log("Ball Position:");
+        // console.log(ball.getMesh().position);
+        // console.log(ball.getDiameter());
+
+        this.scene.render();
+    }
+
     public update(): void {
         const deltaTime = this.engine.getDeltaTime() / 1000;
 
