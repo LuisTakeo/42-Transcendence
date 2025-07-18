@@ -2,83 +2,107 @@ import { initializeEditField } from "./editField.ts";
 import { initializeTwoFactor } from "./twoFactor.ts";
 import { friendsService } from "../services/friends.service.ts";
 import { usersService } from "../services/users.service.ts";
+import { userService } from "../services/user.service.ts";
 import { getBaseUrl } from "../services/base-api.ts";
 import { showSuccessMessage, showErrorMessage } from './notification.ts';
 
-export default function SettingsPage(): void {
+export default async function SettingsPage(): Promise<void> {
 	const app = document.getElementById("app");
 	if (!app) return;
 
+	// Show loading spinner while fetching user data
+	app.innerHTML = `<div class="flex justify-center items-center min-h-screen"><div class="animate-spin rounded-full h-16 w-16 border-b-2 border-purple-500"></div></div>`;
+
+	// Fetch user data
+	let user;
+	try {
+		user = await userService.getCurrentUser();
+		if (!user) throw new Error('No authenticated user found');
+	} catch (error) {
+		showErrorMessage('Failed to load user data. Please try again.');
+		return;
+	}
+
+	// Now render the settings page with the loaded user data
 	app.innerHTML = `
 	<main class="flex min-h-screen p-10">
 	  <div class="flex w-full gap-8">
 
 		<!-- Caixa 1 -->
-		<div class="flex-1 bg-[#1E1B4B] rounded-[5px] p-6 ">
-		  <div class="w-36 h-36 rounded-full overflow-hidden mt-6 mb-2 mx-auto relative group">
+		<div class="w-full md:flex-1 bg-[#1E1B4B] rounded-[5px] p-6">
+		  <div class="w-36 h-36 rounded-full overflow-hidden bg-white mt-6 mb-2 mx-auto relative group">
 			<div id="profile-pic-container" class="w-full h-full">
-				<!-- Profile photo will be loaded here dynamically -->
+				${user.avatar_url
+					? `<img src="${user.avatar_url}" alt="${user.name}" class="object-cover w-full h-full" onerror="console.error('Avatar load failed:', '${user.avatar_url}'); this.style.display='none'; this.nextElementSibling.style.display='flex';">
+					<div class="w-full h-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-6xl font-bold text-white" style="display: none;">${user.name.charAt(0).toUpperCase()}</div>`
+					: `<div class="w-full h-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-6xl font-bold text-white">${user.name.charAt(0).toUpperCase()}</div>`
+				}
 			</div>
 
 			<div class="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition">
 			  <button id="change-pic-btn" class="text-white font-semibold text-lg px-3 py-1 bg-[#4A4580] rounded hover:bg-[#5C5599]">
-				Select Photo
+				Select photo
 			  </button>
 			</div>
+
+			<!--<input id="file-input" type="file" accept="image/*" class="hidden" />-- ver se isso esta usando e para que -->
 		  </div>
 
-		  <div class="w-full mb-2 p-6">
-			<label class="block text-lg mb-1">Name</label>
-			<div class="flex items-center gap-2">
-			  <input id="nameInput" type="text" value="Beatriz Mota"
-				class="w-full px-4 py-2 rounded-[5px] bg-[#383568] text-white placeholder-white focus:outline-none focus:ring-2 focus:ring-purple-500"
-				disabled />
-
-			  <button data-id="nameInput"
-				class="edit-btn w-10 h-10 p-1 bg-[#4A4580] rounded-[5px] hover:bg-[#5C5599] transition flex items-center justify-center">
-				<img src="../../assets/lapis.png" alt="Editar" class="w-6 h-6" />
-			  </button>
-			</div>
-		  </div>
+      <div class="w-full mb-2 px-2 md:px-6">
+        <label class="block text-lg mb-1">Name</label>
+        <div class="flex items-center gap-2">
+          <input id="nameInput" type="text" value="${user.name}"
+            class="w-full px-4 py-2 rounded-[5px] bg-[#383568] text-white placeholder-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+            disabled />
+          <button data-id="nameInput"
+            class="edit-btn w-10 h-10 p-1 bg-[#4A4580] rounded-[5px] hover:bg-[#5C5599] transition flex items-center justify-center">
+            <img src="../../assets/lapis.png" alt="Editar" class="w-6 h-6" />
+          </button>
+        </div>
+      </div>
 
 		  <div class="w-full mb-2 p-6">
 			<label class="block text-lg mb-1">Username</label>
-			<input id="usernameInput" type="text" value="Bellatrix"
+			<div class="flex items-center gap-2">
+			  <input id="usernameInput" type="text" value="${user.username}"
 				class="w-full px-4 py-2 rounded-[5px] bg-[#383568] text-white placeholder-white focus:outline-none focus:ring-2 focus:ring-purple-500"
 				disabled />
-		  </div>
 
-		  <div id="two-factor-section" class="bg-[#1E1B4B] p-6 rounded-lg w-full max-w-md">
-			<h2 class="text-xl font-bold mb-4">Security</h2>
-
-			<div id="2fa-status" class="mb-4 text-lg text-gray-300">
-			  Two-factor authentication is not enabled.
-			</div>
-
-			<button id="activate-2fa-btn"
-			  class="bg-[#383568] hover:bg-[#4a4480] transition px-4 py-2 rounded-md text-white font-medium shadow-sm hover:shadow-lg">
-			  Enable two-factor authentication
-			</button>
-
-			<div id="2fa-input-section" class="mt-4 hidden">
-			  <label for="2fa-code" class="block mb-2 text-lg">Enter the code you received:</label>
-			  <input
-				type="text"
-				id="2fa-code"
-				class="w-full px-3 py-2 rounded-md bg-gray-100 text-black focus:outline-none"
-				placeholder="123456"
-			  />
-			  <button id="confirm-2fa-btn"
-				class="mt-2 bg-green-600 hover:bg-green-700 transition px-4 py-2 rounded-md text-white font-medium">
-				Confirm
+			<!-- <button data-id="usernameInput"
+				class="edit-btn w-10 h-10 p-1 bg-[#4A4580] rounded-[5px] hover:bg-[#5C5599] transition flex items-center justify-center">
+				<img src="../../assets/lapis.png" alt="Editar" class="w-6 h-6" />
 			  </button>
-			</div>
+			</div> -->
 		  </div>
-		</div>
+
+      <div id="two-factor-section" class="bg-[#1E1B4B] p-6 rounded-lg w-full max-w-md mx-auto">
+        <h2 class="text-xl font-bold mb-4">Security</h2>
+        <div id="2fa-status" class="mb-4 text-lg text-gray-300">
+          Two-factor authentication is not enabled.
+        </div>
+        <button id="activate-2fa-btn"
+          class="bg-[#383568] hover:bg-[#4a4480] transition px-4 py-2 rounded-md text-white font-medium shadow-sm hover:shadow-lg">
+          Enable two-factor authentication
+        </button>
+        <div id="2fa-input-section" class="mt-4 hidden">
+          <label for="2fa-code" class="block mb-2 text-lg">Enter the code you received:</label>
+          <input
+            type="text"
+            id="2fa-code"
+            class="w-full px-3 py-2 rounded-md bg-gray-100 text-black focus:outline-none"
+            placeholder="123456"
+          />
+          <button id="confirm-2fa-btn"
+            class="mt-2 bg-green-600 hover:bg-green-700 transition px-4 py-2 rounded-md text-white font-medium">
+            Confirm
+          </button>
+        </div>
+      </div>
+    </div>
 
 		<!-- Caixa 2 -->
-		<div class="flex-1 bg-[#1E1B4B] rounded-[5px] p-12">
-		  <h1 class="text-5xl text-white font-bold flex justify-center mb-6">Friends</h1>
+		<div class="w-full md:flex-1 bg-[#1E1B4B] rounded-[5px] p-6">
+		  <h1 class="text-4xl md:text-5xl text-white font-bold text-center mb-6">Friends</h1>
 
 		  <div id="friends-container" class="space-y-2">
 			<div class="text-center text-white text-xl">
@@ -112,14 +136,10 @@ export default function SettingsPage(): void {
 			</div>
 		</div>
 	</div>
-
 	`;
 
-	// Load current user data and friends
-	loadCurrentUser();
+	// Load friends
 	loadFriends();
-
-	// Add event delegation for delete friend buttons
 	setupFriendDeleteHandlers();
 
 	// Inicializa as funcionalidades após renderizar o HTML
@@ -174,29 +194,49 @@ function setupFriendDeleteHandlers(): void {
 	});
 }
 
-// Helper function to get current user ID - in a real app this would come from auth/session
-function getCurrentUserId(): number | null {
-  // For testing purposes, return user ID 1
-  // In a real app, this would check localStorage, sessionStorage, or auth context
-  return 1; // Testing as user ID 1
+// Function to update 2FA status UI based on user's current state
+function update2FAStatus(isEnabled: boolean): void {
+	const statusElement = document.getElementById('2fa-status');
+	const enableButton = document.getElementById('activate-2fa-btn');
+	const inputSection = document.getElementById('2fa-input-section');
+
+	if (!statusElement || !enableButton || !inputSection) return;
+
+	if (isEnabled) {
+		// User has 2FA enabled
+		statusElement.textContent = 'Two-factor authentication is enabled.';
+		statusElement.className = 'mb-4 text-lg text-green-400';
+		enableButton.textContent = 'Disable two-factor authentication';
+		enableButton.className = 'bg-red-600 hover:bg-red-700 transition px-4 py-2 rounded-md text-white font-medium shadow-sm hover:shadow-lg';
+		inputSection.classList.add('hidden');
+	} else {
+		// User doesn't have 2FA enabled
+		statusElement.textContent = 'Two-factor authentication is not enabled.';
+		statusElement.className = 'mb-4 text-lg text-gray-300';
+		enableButton.textContent = 'Enable two-factor authentication';
+		enableButton.className = 'bg-[#383568] hover:bg-[#4a4480] transition px-4 py-2 rounded-md text-white font-medium shadow-sm hover:shadow-lg';
+		inputSection.classList.add('hidden');
+	}
+}
+
+// Helper function to get current user ID - checks authentication and returns user ID or null
+async function getCurrentUserId(): Promise<number | null> {
+	const currentUser = await userService.requireAuth();
+	if (!currentUser) {
+		return null; // User will be redirected to login if not authenticated
+	}
+	return currentUser.id;
 }
 
 async function loadCurrentUser(): Promise<void> {
 	try {
-		// Retrieve the current user ID from the authentication context
-		const currentUserId = getCurrentUserId();
+		// Get the current user directly from the user service
+		const user = await userService.getCurrentUser();
 
-		if (!currentUserId) {
-			throw new Error('No user ID found');
+		if (!user) {
+			throw new Error('No authenticated user found');
 		}
 
-		const userResponse = await usersService.getUserById(currentUserId);
-
-		if (!userResponse.success || !userResponse.data) {
-			throw new Error('Failed to load user data');
-		}
-
-		const user = userResponse.data;
 		const profilePicContainer = document.getElementById('profile-pic-container');
 		const nameInput = document.getElementById('nameInput') as HTMLInputElement;
 		const usernameInput = document.getElementById('usernameInput') as HTMLInputElement;
@@ -221,6 +261,9 @@ async function loadCurrentUser(): Promise<void> {
 		usernameInput.value = user.username;
 		usernameInput.dataset.originalValue = user.username;
 
+		// Update 2FA status based on user data
+		update2FAStatus(user.two_factor_enabled === 1);
+
 	} catch (error) {
 		console.error('Error loading current user:', error);
 		showErrorMessage('Failed to load user data. Please try again.');
@@ -230,7 +273,7 @@ async function loadCurrentUser(): Promise<void> {
 async function loadFriends(): Promise<void> {
 	try {
 		// Get current user ID using the helper function
-		const currentUserId = getCurrentUserId();
+		const currentUserId = await getCurrentUserId();
 
 		if (!currentUserId) {
 			throw new Error('No user ID found');
@@ -259,10 +302,10 @@ async function loadFriends(): Promise<void> {
 
 		// Get all unique user IDs from friends
 		const userIds = new Set<number>();
-		friends.forEach(friend => {
+		for (const friend of friends) {
 			if (friend.user1_id !== currentUserId) userIds.add(friend.user1_id);
 			if (friend.user2_id !== currentUserId) userIds.add(friend.user2_id);
-		});
+		}
 
 		// Get user details for all friends
 		const usersResponse = await usersService.getAllUsers();
@@ -479,19 +522,12 @@ async function selectAvatar(avatarName: string): Promise<void> {
 
 async function saveAvatarUrl(avatarName: string): Promise<void> {
 	try {
-		// Get current user ID using the helper function
-		const currentUserId = getCurrentUserId();
-
-		if (!currentUserId) {
-			throw new Error('No user ID found');
-		}
-
-		// Update user's avatar_url in the backend
-		const response = await usersService.updateUser(currentUserId, {
+		// Update user's avatar_url using the user service
+		const updatedUser = await userService.updateProfile({
 			avatar_url: avatarName
 		});
 
-		if (!response.success) {
+		if (!updatedUser) {
 			throw new Error('Failed to save avatar URL');
 		}
 	} catch (error) {

@@ -4,7 +4,7 @@ This document describes the complete CRUD operations for the Users resource.
 
 ## Base URL
 ```
-http://localhost:3143/users
+http://localhost:3142/users
 ```
 
 ## Endpoints
@@ -122,7 +122,6 @@ Creates a new user.
   "name": "John Doe",
   "username": "johndoe",
   "email": "john.doe@example.com",
-  "password_hash": "hashed_password_here",
   "avatar_url": "https://example.com/avatar.jpg" // optional
 }
 ```
@@ -131,7 +130,6 @@ Creates a new user.
 - `name`: Required, minimum 2 characters
 - `username`: Required, 3-20 characters, alphanumeric and underscores only, must be unique
 - `email`: Required, valid email format, must be unique
-- `password_hash`: Required
 - `avatar_url`: Optional
 
 **Response (201 Created):**
@@ -163,7 +161,6 @@ Updates an existing user. All fields are optional.
   "name": "John Updated",
   "username": "johnupdated",
   "email": "john.updated@example.com",
-  "password_hash": "new_hashed_password",
   "avatar_url": "https://example.com/new-avatar.jpg",
   "is_online": 1,
   "last_seen_at": "2025-06-28T10:00:00Z"
@@ -201,10 +198,71 @@ Deletes a user by ID.
 }
 ```
 
-### 6. Update User Online Status
-**PATCH** `/users/:id/status`
+### 6. Get Current User
+**GET** `/users/me`
+
+Returns the currently authenticated user's information.
+
+**Headers:**
+- `Authorization: Bearer <jwt_token>` (Required)
+
+**Response:**
+```json
+{
+  "id": 1,
+  "name": "John Doe",
+  "username": "johndoe",
+  "email": "john.doe@example.com",
+  "avatar_url": "https://example.com/avatar.jpg",
+  "is_online": 1,
+  "last_seen_at": "2025-06-28T10:00:00Z",
+  "two_factor_enabled": 0,
+  "google_id": "123456789",
+  "created_at": "2025-06-28T09:00:00Z"
+}
+```
+
+### 7. Update Current User
+**PUT** `/users/me`
+
+Updates the currently authenticated user's information.
+
+**Headers:**
+- `Authorization: Bearer <jwt_token>` (Required)
+
+**Request Body:**
+```json
+{
+  "name": "John Updated",
+  "username": "johnupdated",
+  "email": "john.updated@example.com",
+  "avatar_url": "https://example.com/new-avatar.jpg"
+}
+```
+
+**Response:**
+```json
+{
+  "id": 1,
+  "name": "John Updated",
+  "username": "johnupdated",
+  "email": "john.updated@example.com",
+  "avatar_url": "https://example.com/new-avatar.jpg",
+  "is_online": 1,
+  "last_seen_at": "2025-06-28T10:00:00Z",
+  "two_factor_enabled": 0,
+  "google_id": "123456789",
+  "created_at": "2025-06-28T09:00:00Z"
+}
+```
+
+### 8. Update User Online Status
+**PATCH** `/users/:id/online-status`
 
 Updates only the online status of a user.
+
+**Headers:**
+- `Authorization: Bearer <jwt_token>` (Required)
 
 **Request Body:**
 ```json
@@ -218,6 +276,57 @@ Updates only the online status of a user.
 {
   "success": true,
   "message": "User online status updated successfully"
+}
+```
+
+### 9. Get Available Avatars
+**GET** `/users/avatars/list`
+
+Returns a list of available avatar images.
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": [
+    "Ariel-Avatar.png",
+    "BB-8-Avatar.png",
+    "Dory-Avatar.png",
+    "Elastigirl-Avatar.png",
+    "Marie-Avatar.png",
+    "Moana-Avatar.png",
+    "Pooh-Avatar.png",
+    "Remi-Avatar.png",
+    "Spider-Man-Avatar.png",
+    "Stitch-Avatar.png",
+    "Sullivan-Avatar.png",
+    "Vanellope-Avatar.png"
+  ]
+}
+```
+
+### 10. Get User Stats
+**GET** `/users/:id/stats`
+
+Returns statistics for a specific user.
+
+**Headers:**
+- `Authorization: Bearer <jwt_token>` (Required)
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "userId": 1,
+    "totalMatches": 25,
+    "wins": 15,
+    "losses": 10,
+    "winRate": 60.0,
+    "totalTournaments": 5,
+    "tournamentWins": 2,
+    "currentStreak": 3
+  }
 }
 ```
 
@@ -270,6 +379,28 @@ Updates only the online status of a user.
 }
 ```
 
+## Two-Factor Authentication (2FA) Endpoints
+
+The following 2FA endpoints are available under the `/users` base URL. For detailed documentation, see [2FA_API.md](./2FA_API.md).
+
+### 2FA Endpoints Summary
+
+- **GET** `/users/2fa/generate-qr` - Generate QR code for 2FA setup
+- **POST** `/users/2fa/enable` - Enable 2FA for the user
+- **POST** `/users/2fa/disable` - Disable 2FA for the user
+- **POST** `/users/2fa/verify` - Verify a 2FA code
+
+### 2FA Authentication
+
+All 2FA endpoints require a valid JWT token in the Authorization header:
+
+```javascript
+const headers = {
+  'Authorization': `Bearer ${jwtToken}`,
+  'Content-Type': 'application/json'
+};
+```
+
 ## Database Schema
 
 The users table has the following structure:
@@ -280,10 +411,12 @@ CREATE TABLE users (
     name TEXT NOT NULL,
     username TEXT UNIQUE NOT NULL,
     email TEXT UNIQUE NOT NULL,
-    password_hash TEXT NOT NULL,
     avatar_url TEXT,
     is_online INTEGER DEFAULT 0,
     last_seen_at DATETIME,
+    two_factor_enabled INTEGER DEFAULT 0,
+    two_factor_secret TEXT,
+    google_id TEXT,
     created_at DATETIME DEFAULT (datetime('now'))
 );
 ```

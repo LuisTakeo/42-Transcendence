@@ -4,7 +4,7 @@ This document describes the complete CRUD operations for the Matches resource.
 
 ## Base URL
 ```
-http://localhost:3143/matches
+http://localhost:3142/matches
 ```
 
 ## Endpoints

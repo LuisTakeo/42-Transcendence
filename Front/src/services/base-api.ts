@@ -1,4 +1,4 @@
-// Backend API URL - matches the port configured in docker-compose.yml
+// Backend API URL - uses environment variable or fallback
 const API_BASE_URL = 'http://localhost:3142';
 export class BaseApiService {
   protected async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {

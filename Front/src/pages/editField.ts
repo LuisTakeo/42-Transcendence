@@ -1,4 +1,5 @@
-import { usersService } from '../services/users.service.ts';
+import { userService } from '../services/user.service.ts';
+import { isRequired, minLength } from './validateInput.ts';
 
 export function initializeEditField() {
   // Inicializa botões de edição de campos
@@ -35,6 +36,20 @@ export function initializeEditField() {
           return;
         }
 
+        // Input validation
+        if (!isRequired(newValue)) {
+          showFieldErrorMessage(inputId);
+          return;
+        }
+        if (inputId === 'usernameInput' && !minLength(newValue, 3)) {
+          showFieldErrorMessage(inputId);
+          return;
+        }
+        if (inputId === 'nameInput' && !minLength(newValue, 2)) {
+          showFieldErrorMessage(inputId);
+          return;
+        }
+
         if (!newValue) {
           // Empty value, restore original
           input.value = originalValue;
@@ -47,10 +62,7 @@ export function initializeEditField() {
         btn.disabled = true;
 
         try {
-          // For now, we'll use user ID 1 as the current user
-          // In a real app, you'd get this from authentication context
-          const currentUserId = 1;
-
+          // Get the field to update
           const updateData: any = {};
 
           // Map input IDs to user fields
@@ -60,9 +72,9 @@ export function initializeEditField() {
             updateData.username = newValue;
           }
 
-          const response = await usersService.updateUser(currentUserId, updateData);
+          const updatedUser = await userService.updateProfile(updateData);
 
-          if (response.success) {
+          if (updatedUser) {
             // Update the original value
             input.dataset.originalValue = newValue;
 
