@@ -10,7 +10,8 @@
 	  "target": "es2022",
 
 	  "strict": true,
-	  "esModuleInterop": true
+	  "esModuleInterop": true,
+	  "allowSyntheticDefaultImports": true
 	},
 	"include": ["src", "src/database", "src/main.ts"]
   }
