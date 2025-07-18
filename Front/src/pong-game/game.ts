@@ -9,6 +9,7 @@ import { AIController } from "./adapters/AIController";
 import { RemoteController } from "./adapters/RemoteController";
 import { TextBlock, AdvancedDynamicTexture, Control, Rectangle } from "@babylonjs/gui";
 import { IInputController } from "./ports/IInputController";
+import { showWinnerModal } from '../pages/gamePage';
 
 /**
  * Tipos de jogo disponíveis
@@ -62,6 +63,8 @@ class MainGame {
     private score: { player1: number, player2: number };
     private maxScore: number;
     private _remoteController: RemoteController | null = null;
+    private player1Alias: string;
+    private player2Alias: string;
 
     /**
      * Constructor for the main class
@@ -69,20 +72,24 @@ class MainGame {
      * @param gameType Tipo de jogo a ser iniciado
      * @param tableWidth Largura da mesa
      * @param tableDepth Profundidade da mesa
-     */    
+     */
     constructor(
         canvasId: string,
         gameType: GameType = GameType.LOCAL_TWO_PLAYERS,
         tableWidth: number = 100,
         tableDepth: number = 80,
-        maxScore: number = 10 
+        maxScore: number = 10,
+        player1Alias: string = 'Player 1',
+        player2Alias: string = 'Player 2'
     ) {
         this.canvas = document.getElementById(canvasId) as unknown as HTMLCanvasElement;
         if (!this.canvas) throw new Error(`Canvas with ID "${canvasId}" not found`);
 
         this.gameType = gameType;
         this.score = { player1: 0, player2: 0 };
-        this.maxScore = maxScore; 
+        this.maxScore = maxScore;
+        this.player1Alias = player1Alias;
+        this.player2Alias = player2Alias;
 
         // Initialize Babylon engine
         this.engine = new Engine(this.canvas, true);
@@ -98,7 +105,7 @@ class MainGame {
         this.inputManager = new InputManager();
         // Inicializa a textura avançada para GUI
         this.advancedTexture = AdvancedDynamicTexture.CreateFullscreenUI("UI");
-        
+
         this.scoreText = new TextBlock("scoreText", "Score: 0 - 0");
         this.instructionsText = new TextBlock("instructionsText", "Use as setas para mover!");
 
@@ -142,19 +149,19 @@ class MainGame {
      */
     private initializeScoreBox(): void {
         const scoreBox = new Rectangle("scoreBox");
-        scoreBox.width = "200px"; // Largura do bloco
-        scoreBox.height = "50px"; // Altura do bloco
-        scoreBox.background = "rgba(0, 0, 0, 0.5)"; // Fundo preto com 50% de transparência
-        scoreBox.cornerRadius = 10; // Bordas arredondadas
-        scoreBox.thickness = 0; // Sem borda
+        scoreBox.width = "420px"; // Increased width for longer text
+        scoreBox.height = "50px";
+        scoreBox.background = "rgba(0, 0, 0, 0.5)";
+        scoreBox.cornerRadius = 10;
+        scoreBox.thickness = 0;
         scoreBox.horizontalAlignment = Control.HORIZONTAL_ALIGNMENT_LEFT;
         scoreBox.verticalAlignment = Control.VERTICAL_ALIGNMENT_TOP;
-        scoreBox.left = "10px"; // Margem da esquerda
-        scoreBox.top = "10px"; // Margem do topo
+        scoreBox.left = "10px";
+        scoreBox.top = "10px";
 
-        // this.scoreText = new TextBlock("scoreText", "Score: 0 - 0");
         this.scoreText.color = "white";
         this.scoreText.fontSize = 20;
+        this.scoreText.textHorizontalAlignment = Control.HORIZONTAL_ALIGNMENT_CENTER;
         scoreBox.addControl(this.scoreText);
 
         this.advancedTexture.addControl(scoreBox);
@@ -192,7 +199,7 @@ class MainGame {
         switch (this.gameType) {
             case GameType.LOCAL_TWO_PLAYERS:
                 this.registerControllers({
-                    info: "player1_keyboard", 
+                    info: "player1_keyboard",
                     controller: new KeyboardController(
                         "player1_keyboard", this.scene, "w", "s", 0.5,
                         this.tableManager.getTableWidth(),
@@ -200,40 +207,40 @@ class MainGame {
                     )
                 },
                 {
-                    info: "player2_keyboard", 
+                    info: "player2_keyboard",
                     controller: new KeyboardController(
                         "player2_keyboard",  this.scene,  "ArrowUp",  "ArrowDown",  0.5,
                         this.tableManager.getTableWidth(),
                         this.tableManager.getTableDepth())
                 },
-                "Use W/S para Jogador 1\nSetas para Jogador 2"
+                `Use W/S para ${this.player1Alias}\nSetas para ${this.player2Alias}`
                 );
                 break;
 
             case GameType.LOCAL_VS_AI:
-                this.registerControllers({   
-                    info: "player_keyboard", 
+                this.registerControllers({
+                    info: "player_keyboard",
                     controller: new KeyboardController( "player_keyboard",
                         this.scene, "ArrowUp", "ArrowDown", 0.5,
                         this.tableManager.getTableWidth(),
                         this.tableManager.getTableDepth()
-                    )}, 
-                    {   
-                        info: "ai_controller", 
+                    )},
+                    {
+                        info: "ai_controller",
                     controller: new AIController(
                         "ai_controller", this.scene, ball, 0.8, 0.5,
                         this.tableManager.getTableWidth(),
                         this.tableManager.getTableDepth(),
                         LevelAI.EXPERT
-                    )}, 
-                    "Use as setas para mover\n"
+                    )},
+                    "Use as setas para mover!"
                 )
                 break;
 
             case GameType.REMOTE:
                 this._remoteController = new RemoteController("remote_controller");
                 this._remoteController.initialize();
-                break;            
+                break;
             default:
                 console.warn(`Tipo de jogo desconhecido: ${this.gameType}, usando modo dois jogadores.`);
                 // Configuração padrão (dois jogadores)
@@ -262,7 +269,7 @@ class MainGame {
     }
 
     private registerControllers(
-        player1: {info: string, controller: IInputController}, 
+        player1: {info: string, controller: IInputController},
         player2: {info: string, controller: IInputController},
         instructions: string): void {
         this.instructionsText.text = instructions;
@@ -280,7 +287,7 @@ class MainGame {
 
         if (this.gameType === GameType.REMOTE)
             this.engine.runRenderLoop(this.updateRemote.bind(this));
-        else 
+        else
             this.engine.runRenderLoop(this.update.bind(this));
 
         // Ajustar tamanho do canvas ao redimensionar janela
@@ -323,19 +330,23 @@ class MainGame {
         }
 
         this.scene.render();
-    } 
+    }
 
     private endGame(): void {
-        const winner = this.score.player1 >= this.maxScore ? "Player 1" : "Player 2";
+        let winner;
+        if (this.gameType === GameType.LOCAL_VS_AI) {
+            winner = this.score.player1 >= this.maxScore ? "You" : "CPU";
+        } else {
+            winner = this.score.player1 >= this.maxScore ? this.player1Alias : this.player2Alias;
+        }
 
-        // Exibir mensagem de vitória
-        const victoryText = new TextBlock("victoryText", `${winner} venceu!`);
-        victoryText.color = "yellow";
-        victoryText.fontSize = 40;
-        victoryText.horizontalAlignment = Control.HORIZONTAL_ALIGNMENT_CENTER;
-        victoryText.verticalAlignment = Control.VERTICAL_ALIGNMENT_CENTER;
-
-        this.advancedTexture.addControl(victoryText);
+        // Remove Babylon.js GUI victory text
+        // Show modal instead
+        showWinnerModal(
+            winner,
+            () => { window.location.reload(); }, // Play Again: reload page
+            () => { window.history.pushState({}, '', '/home'); window.dispatchEvent(new Event('popstate')); } // Go Home
+        );
 
         // Parar o loop de renderização
         this.engine.stopRenderLoop();
@@ -359,7 +370,13 @@ class MainGame {
 
             ball.resetPosition(); // Reset ball position
         }
-        this.scoreText.text = `Score: ${this.score.player1} - ${this.score.player2}`;
+        let leftLabel = this.player1Alias;
+        let rightLabel = this.player2Alias;
+        if (this.gameType === GameType.LOCAL_VS_AI) {
+            leftLabel = "You";
+            rightLabel = "CPU";
+        }
+        this.scoreText.text = `Score: ${leftLabel} ${this.score.player1} - ${this.score.player2} ${rightLabel}`;
     }
 
 
