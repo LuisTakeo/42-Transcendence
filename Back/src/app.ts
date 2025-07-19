@@ -58,7 +58,7 @@ export const startServer = async () => {
 	app.register(messagesRoutes, { prefix: '/messages' });
 	app.register(tournamentRoutes, { prefix: '/tournaments' });
 	app.register(usersRoutes, { prefix: '/users' });
-	app.register(websocketRoutes, { prefix: '/api' });
+	app.register(websocketRoutes, { prefix: '/ws' });
 
 	// app.get('/', async () => ({ hello: 'world' }));
 
