@@ -69,10 +69,27 @@ export const startServer = async () => {
 
 	// Habilitar CORS para seu frontend
 	await app.register(cors, {
-		origin: ['http://localhost:3142', 'http://localhost:3042', '*'], // URLs do frontend
+		origin: (origin, callback) => {
+			const allowedOrigins = [
+				'http://localhost:3142',
+				'http://localhost:3042',
+				'https://integral-phoenix-loosely.ngrok-free.app'
+			];
+
+			// Allow requests with no origin (mobile apps, curl, etc.)
+			if (!origin) return callback(null, true);
+
+			if (allowedOrigins.includes(origin)) {
+				return callback(null, true);
+			}
+
+			return callback(new Error('Not allowed by CORS'), false);
+		},
 		credentials: true,
 		methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-		allowedHeaders: ['Content-Type', 'Authorization']
+		allowedHeaders: ['Content-Type', 'Authorization', 'ngrok-skip-browser-warning'],
+		preflightContinue: false,
+		optionsSuccessStatus: 200
 	});
 
 	// Serve static files from public folder
@@ -99,5 +116,6 @@ export const startServer = async () => {
 	app.log.info(`Server running at http://${host}:${port}`);
 
 	// Setup ngrok tunnels in development
-	await setupNgrok();
+	// Disabled: Using Docker container for ngrok instead
+	// await setupNgrok();
 };

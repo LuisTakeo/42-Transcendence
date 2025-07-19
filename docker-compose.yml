@@ -52,7 +52,6 @@ services:
     environment:
       - NODE_ENV=development
       - FRONT_PORT=${FRONT_PORT}
-    command: dev
 
   ngrok:
     image: ngrok/ngrok:latest

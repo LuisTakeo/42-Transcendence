@@ -108,19 +108,19 @@ export class AIController extends BaseController {
 
         if (!this.lastBallPosition) return;
         if (this.decisions >= this.difficultLevel) return;
-        
+
         this.decisions++;
         const paddlePosition = this.paddle.getMesh().position;
 
         // Decidir movimento com base na última posição capturada
         const targetZ = this.lastBallPosition.z;
-        
-        if (Math.abs(targetZ - paddlePosition.z) < 0.5) 
+
+        if (Math.abs(targetZ - paddlePosition.z) < 0.5)
             return;
-        
+
         const difference = targetZ - paddlePosition.z;
         const border = (this.tableDepth / 2) - (this.paddleSize.depth - 2.5);
-        
+
 
         if (difference > 0) {
             this.paddle.moveUp(border);
@@ -146,9 +146,6 @@ export class AIController extends BaseController {
         // Recalcula reactionSpeed e moveSpeed com base na nova dificuldade
         this.reactionSpeed = 1 - (0.7 * (1 - this.difficultyFactor));
         this.moveSpeed = 0.5 * (0.3 + (0.7 * this.difficultyFactor));
-
-        console.log(`Dificuldade atualizada: ${this.difficultyFactor}`);
-        console.log(`Velocidade de reação: ${this.reactionSpeed}, Velocidade de movimento: ${this.moveSpeed}`);
     }
 
     // ✅ Método para atualizar tamanho da mesa se necessário

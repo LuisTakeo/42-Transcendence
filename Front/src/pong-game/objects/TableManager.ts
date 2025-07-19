@@ -74,11 +74,11 @@ class TableManager {
         const rightBleacher = new BleacherSection(
             this.scene,
             new Vector3(tableHalfWidth + distanceFromTable + 15, 0, 0),
-            this.tableDepth,    
+            this.tableDepth,
             30,
             10,
             15,
-            90  
+            90
         );
 
         this.bleachers.push(rightBleacher);
@@ -207,8 +207,8 @@ class TableManager {
      */
 	private createGameElements(): void {
         // Cria a bola no centro da mesa
-        this.ball = new Ball(this.scene, 
-            new Vector3(0, 12, 0), 
+        this.ball = new Ball(this.scene,
+            new Vector3(0, 12, 0),
             this.ballSpeed,
             { width: this.tableWidth, depth: this.tableDepth });
 
@@ -363,8 +363,6 @@ class TableManager {
      */
     public update(): void {
 		// Atualiza a posição da bola
-        console.log("Ball " + this.ball?.getMesh().position);
-        console.log("Table " + this.table.position);
         if (this.ball) {
             this.ball.update(this.tableWidth, this.tableDepth);
             this.checkBallPaddleCollision();
@@ -378,8 +376,8 @@ class TableManager {
         const paddleRightMesh = this.paddleRight.getMesh();
 
         let velocity = this.ball.getVelocity();
-        
-        const paddleHeight = 10; 
+
+        const paddleHeight = 10;
         // Colisão com paddle esquerdo
         if (ballMesh.intersectsMesh(paddleLeftMesh, false)) {
             if (velocity.x < 0) { // Se estiver se movendo para a esquerda

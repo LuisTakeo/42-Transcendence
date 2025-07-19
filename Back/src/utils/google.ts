@@ -23,7 +23,7 @@ export async function verifyGoogleToken(idToken: string) {
       googleId: payload.sub,
     };
   } catch (err) {
-    console.error("Internal error in verifyGoogleToken: ", err);
+    console.error("Google token verification failed:", err);
     throw err;
   }
 }

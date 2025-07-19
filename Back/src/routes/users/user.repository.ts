@@ -14,7 +14,6 @@ function constructAvatarUrl(avatarFilename: string | null | undefined): string |
 	// const backendPort = process.env.BACK_PORT || '3142';
 	// const baseUrl = `http://localhost:${backendPort}`;
   const baseUrl = process.env.API_BASE_URL;
-  console.log("base url avatar url", baseUrl);
 
 	return `${baseUrl}/public/avatars/${avatarFilename}`;
 }

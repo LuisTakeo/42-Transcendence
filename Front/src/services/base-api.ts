@@ -8,6 +8,9 @@ export class BaseApiService {
     // Start with provided headers
     const headers = { ...options.headers } as Record<string, string>;
 
+    // Add ngrok header for tunnel compatibility
+    headers['ngrok-skip-browser-warning'] = 'true';
+
     // Only add Content-Type header if there's a body and Content-Type isn't already set
     if (options.body && !headers['Content-Type']) {
       headers['Content-Type'] = 'application/json';

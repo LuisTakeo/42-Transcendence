@@ -4,7 +4,7 @@ export function initializeSearchButton() {
 
 	if (searchInput && searchButton) {
 	  searchButton.addEventListener('click', () => {
-		console.log(searchInput.value);
+		// TODO: Implement search functionality
 		searchInput.value = ''; // Limpa o conteúdo do input
 	  });
 	} else {

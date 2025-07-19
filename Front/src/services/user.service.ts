@@ -32,14 +32,13 @@ class UserService {
     try {
       // Clear cache to get fresh data
       this.currentUser = null;
-      console.log(API_BASE_URL);
       const response = await fetch(`${API_BASE_URL}/users/me`, {
         headers: {
           'Authorization': `Bearer ${authService.getAuthToken()}`,
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'ngrok-skip-browser-warning': 'true'
         }
       });
-      console.log("response", response);
       if (!response.ok) {
         if (response.status === 401) {
           // Token is invalid, clear auth
@@ -50,13 +49,11 @@ class UserService {
       }
 
       const user = await response.json();
-      console.log("user:", user);
       this.currentUser = user;
       this.userCache.set(user.id, user);
       return user;
 
     } catch (error) {
-      console.log("errorrr:", error);
       console.error('Error fetching current user:', error);
       this.currentUser = null;
       return null;
@@ -78,7 +75,8 @@ class UserService {
       const response = await fetch(url, {
         headers: {
           'Authorization': `Bearer ${authService.getAuthToken()}`,
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'ngrok-skip-browser-warning': 'true'
         }
       });
 
@@ -113,7 +111,8 @@ class UserService {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${authService.getAuthToken()}`,
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'ngrok-skip-browser-warning': 'true'
         },
         body: JSON.stringify(updates)
       });
@@ -148,7 +147,8 @@ class UserService {
       const response = await fetch(`${API_BASE_URL}/users/me/avatar`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${authService.getAuthToken()}`
+          'Authorization': `Bearer ${authService.getAuthToken()}`,
+          'ngrok-skip-browser-warning': 'true'
         },
         body: formData
       });
@@ -189,7 +189,8 @@ class UserService {
       const response = await fetch(url, {
         headers: {
           'Authorization': `Bearer ${authService.getAuthToken()}`,
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'ngrok-skip-browser-warning': 'true'
         }
       });
 

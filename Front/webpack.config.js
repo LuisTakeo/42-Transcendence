@@ -1,5 +1,5 @@
 const path = require('path');
-console.log('Building with Webpack...');
+
 module.exports = {
   mode: 'development',
   entry: './src/game.ts', // Arquivo de entrada principal
