@@ -3,13 +3,13 @@ export async function setupNgrok(port: number): Promise<string | null> {
     const ngrok = require('ngrok');
 
     // Configurar o authtoken
-    await ngrok.authtoken('301clH3Sd8pU5eBKfXX52Iox3OY_2MjJkjgYSAhTZkSLZunnu');
+    await ngrok.authtoken('303vyKk40lpPLLwC49RSl7DimOn_497U2KV1B4pgVuAsUhJ6h');
 
     // Conectar ao ngrok
     const url = await ngrok.connect({
       addr: port,
       proto: 'http',
-      authtoken: '301clH3Sd8pU5eBKfXX52Iox3OY_2MjJkjgYSAhTZkSLZunnu'
+      authtoken: '303vyKk40lpPLLwC49RSl7DimOn_497U2KV1B4pgVuAsUhJ6h'
     });
 
     console.log(`🚀 Ngrok tunnel opened at: ${url}`);

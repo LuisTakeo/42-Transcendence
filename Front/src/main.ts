@@ -8,6 +8,7 @@ import UsersPage, { initializeUsersPage } from './pages/users.ts';
 import MatchHistoryPage from './pages/matchHistory.ts';
 import { authService } from './services/auth.service.ts';
 import { userService } from './services/user.service.ts';
+import API_BASE_URL from "./services/base-api";
 // import ClassicGamePage from './pages/classicGame.ts';
 // import FastGamePage from './pages/fastGame.ts';
 // import JoquempoPage from './pages/joquempo.ts';
@@ -170,7 +171,7 @@ async function updateLastSeen(): Promise<void> {
     const userId = payload.id;
 
     if (userId) {
-      await fetch(`http://localhost:3142/users/${userId}`, {
+      await fetch(`${API_BASE_URL}/users/${userId}`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,

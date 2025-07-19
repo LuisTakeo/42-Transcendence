@@ -25,7 +25,7 @@ if [ "$NODE_ENV" = "development" ]; then
     echo "🌐 Setting up ngrok for frontend..."
 
     # Configurar authtoken do ngrok
-    npx ngrok config add-authtoken 301clH3Sd8pU5eBKfXX52Iox3OY_2MjJkjgYSAhTZkSLZunnu
+    npx ngrok config add-authtoken 303vyKk40lpPLLwC49RSl7DimOn_497U2KV1B4pgVuAsUhJ6h
 
     # Iniciar ngrok tunnel em background
     npx ngrok http ${FRONT_PORT:-3042} --log stdout &

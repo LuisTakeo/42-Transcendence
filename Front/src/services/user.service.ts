@@ -1,4 +1,5 @@
 import { authService } from './auth.service.ts';
+import API_BASE_URL from './base-api';
 
 export interface User {
   id: number;
@@ -31,14 +32,14 @@ class UserService {
     try {
       // Clear cache to get fresh data
       this.currentUser = null;
-
-      const response = await fetch('http://localhost:3142/users/me', {
+      console.log(API_BASE_URL);
+      const response = await fetch(`${API_BASE_URL}/users/me`, {
         headers: {
           'Authorization': `Bearer ${authService.getAuthToken()}`,
           'Content-Type': 'application/json'
         }
       });
-
+      console.log("response", response);
       if (!response.ok) {
         if (response.status === 401) {
           // Token is invalid, clear auth
@@ -49,11 +50,13 @@ class UserService {
       }
 
       const user = await response.json();
+      console.log("user:", user);
       this.currentUser = user;
       this.userCache.set(user.id, user);
       return user;
 
     } catch (error) {
+      console.log("errorrr:", error);
       console.error('Error fetching current user:', error);
       this.currentUser = null;
       return null;
@@ -70,7 +73,7 @@ class UserService {
     }
 
     try {
-      const url = `http://localhost:3142/users/${userId}`;
+      const url = `${API_BASE_URL}/users/${userId}`;
 
       const response = await fetch(url, {
         headers: {
@@ -106,7 +109,7 @@ class UserService {
     }
 
     try {
-      const response = await fetch(`http://localhost:3142/users/me`, {
+      const response = await fetch(`${API_BASE_URL}/users/me`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${authService.getAuthToken()}`,
@@ -142,7 +145,7 @@ class UserService {
       const formData = new FormData();
       formData.append('avatar', file);
 
-      const response = await fetch(`http://localhost:3142/users/me/avatar`, {
+      const response = await fetch(`${API_BASE_URL}/users/me/avatar`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${authService.getAuthToken()}`
@@ -181,7 +184,7 @@ class UserService {
     }
 
     try {
-      const url = `http://localhost:3142/matches/player/${targetUserId}/stats`;
+      const url = `${API_BASE_URL}/matches/player/${targetUserId}/stats`;
 
       const response = await fetch(url, {
         headers: {

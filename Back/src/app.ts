@@ -27,27 +27,27 @@ async function setupNgrok() {
   if (process.env.NODE_ENV === 'development') {
     try {
       const ngrok = require('ngrok');
-      await ngrok.authtoken('301clH3Sd8pU5eBKfXX52Iox3OY_2MjJkjgYSAhTZkSLZunnu');
-      
+      await ngrok.authtoken('303vyKk40lpPLLwC49RSl7DimOn_497U2KV1B4pgVuAsUhJ6h');
+
       // Tunnel para o frontend - usando o nome do serviço Docker
       const frontendPort = process.env.FRONT_PORT || '3042';
       const frontendUrl = await ngrok.connect({
         addr: `frontend:${frontendPort}`,
         proto: 'http',
-        authtoken: '301clH3Sd8pU5eBKfXX52Iox3OY_2MjJkjgYSAhTZkSLZunnu'
+        authtoken: '303vyKk40lpPLLwC49RSl7DimOn_497U2KV1B4pgVuAsUhJ6h'
       });
-      
+
       // Tunnel para o backend
       const backendUrl = await ngrok.connect({
         addr: process.env.BACK_PORT,
         proto: 'http',
-        authtoken: '301clH3Sd8pU5eBKfXX52Iox3OY_2MjJkjgYSAhTZkSLZunnu'
+        authtoken: '303vyKk40lpPLLwC49RSl7DimOn_497U2KV1B4pgVuAsUhJ6h'
       });
-      
+
       console.log(`🎯 Frontend ngrok tunnel: ${frontendUrl}`);
       console.log(`⚙️  Backend ngrok tunnel: ${backendUrl}`);
       console.log(`📊 Ngrok dashboard: http://localhost:4040`);
-      
+
       return { frontendUrl, backendUrl };
     } catch (error) {
       console.error('❌ Error setting up ngrok:', error);
@@ -97,7 +97,7 @@ export const startServer = async () => {
 
 	await app.listen({ port, host });
 	app.log.info(`Server running at http://${host}:${port}`);
-	
+
 	// Setup ngrok tunnels in development
 	await setupNgrok();
 };
