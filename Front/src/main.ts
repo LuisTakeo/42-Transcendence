@@ -10,6 +10,7 @@ import { authService } from './services/auth.service.ts';
 import { userService } from './services/user.service.ts';
 import { logOutButton } from "./pages/button.ts";
 import HowToPlay from './pages/howToPlay.ts';
+import Tournament from './pages/tournament.ts';
 
 document.addEventListener("DOMContentLoaded", () => {
   logOutButton();
@@ -30,6 +31,7 @@ const routesWithSidebar = [
   '/settings',
   '/users',
   '/howToPlay',
+  '/tournament',
 //  '/Game/vsCPU',
 //  '/Tournament',
   '/match-history',
@@ -71,6 +73,13 @@ async function renderRoute(path: string) {
 				window.dispatchEvent(new Event('popstate'));
 			});
 			}
+		const tournamentBtn = document.getElementById('tournament-btn');
+			if (tournamentBtn) {
+			tournamentBtn.addEventListener('click', () => {
+				window.history.pushState(null, '', '/tournament');
+				window.dispatchEvent(new Event('popstate'));
+			});
+			}
         break;
       case '/profile':
         ProfilePage();
@@ -85,12 +94,15 @@ async function renderRoute(path: string) {
         app.innerHTML = UsersPage();
 		initializeUsersPage();
         break;
-	case '/match-history':
+	  case '/match-history':
 		await MatchHistoryPage();
 		break;
 	  case '/howToPlay':
         HowToPlay();
         break;
+	  case '/tournament':
+		Tournament();
+		break;
       default:
         window.history.replaceState(null, '', '/home');
         await renderRoute('/home');
