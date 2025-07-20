@@ -14,13 +14,49 @@ import messagesRoutes from './messages/messages.routes';
 import { tournamentRoutes } from './tournaments/tournaments.routes';
 import usersRoutes from './routes/users/users.routes';
 import websocketRoutes from './websockets/websocket.routes';
-// import outros módulos aqui futuramente
+
 
 import { registerRoutes } from './routes/routes-controller'
 import { runMigrations } from './database/database';
 
-// Load environment variables from .env files using dotenv. Docker Compose passes environment variables to the container.
+
 dotenv.config();
+
+
+async function setupNgrok() {
+
+  const ngrokAuthToken = process.env.NGROK_AUTHTOKEN;
+
+  if (!ngrokAuthToken) {
+    console.log('ℹ️  NGROK_AUTHTOKEN not found - skipping ngrok setup');
+    return;
+  }
+
+  try {
+    const ngrok = require('ngrok');
+    await ngrok.authtoken(ngrokAuthToken);
+
+    const frontendPort = process.env.FRONT_PORT || '3042';
+    const frontendUrl = await ngrok.connect({
+      addr: `frontend:${frontendPort}`,
+      proto: 'http',
+      authtoken: ngrokAuthToken
+    });
+
+    const backendUrl = await ngrok.connect({
+      addr: process.env.BACK_PORT,
+      proto: 'http',
+      authtoken: ngrokAuthToken
+    });
+
+    console.log(`🎯 Frontend ngrok tunnel: ${frontendUrl}`);
+    console.log(`⚙️  Backend ngrok tunnel: ${backendUrl}`);
+
+    return { frontendUrl, backendUrl };
+  } catch (error) {
+    console.error('❌ Error setting up ngrok:', error);
+  }
+}
 
 export const startServer = async () => {
 	const app = fastify({ logger: true });
@@ -34,7 +70,6 @@ export const startServer = async () => {
 
 	app.register(registerRoutes);
 
-	// Habilitar CORS para seu frontend
 	await app.register(cors, {
 		origin: ['http://localhost:3142', 'http://localhost:3042', '*'], // URLs do frontend
 		credentials: true,
@@ -42,7 +77,7 @@ export const startServer = async () => {
 		allowedHeaders: ['Content-Type', 'Authorization']
 	});
 
-	// Serve static files from public folder
+
 	await app.register(fastifyStatic, {
 		root: path.join(__dirname, '../public'),
 		prefix: '/public/'
@@ -50,7 +85,6 @@ export const startServer = async () => {
 
 	await app.register(websocket);
 
-	// Run migrations
 	await runMigrations();
 	app.register(matchesRoutes, { prefix: '/matches' });
 	app.register(friendsRoutes, { prefix: '/friends' });
@@ -60,8 +94,8 @@ export const startServer = async () => {
 	app.register(usersRoutes, { prefix: '/users' });
 	app.register(websocketRoutes, { prefix: '/ws' });
 
-	// app.get('/', async () => ({ hello: 'world' }));
-
 	await app.listen({ port, host });
 	app.log.info(`Server running at http://${host}:${port}`);
+
+	await setupNgrok();
 };
