@@ -26,15 +26,15 @@ export class RemoteController implements IInputController {
     constructor(id: string) {
         this.id = id;
         this.paddleSize = { width: 1, height: 4, depth: 10 }; // Tamanho padrão do paddle
-        this._gameService = new GameService("ws://localhost:3001/ws", this.id); // Simulação de serviço de jogo
-    
+        this._gameService = new GameService("ws://localhost:3142/ws", this.id); // Simulação de serviço de jogo
+
     }
 
     public connect(): void {
         if (!this._gameService) return;
 
         this._gameService.connect();
-        console.log(`Controlador remoto ${this.id} conectado`); 
+        console.log(`Controlador remoto ${this.id} conectado`);
     }
 
     /**
@@ -84,9 +84,10 @@ export class RemoteController implements IInputController {
         }, 500);
         // Simular inicialização de conexão remota
         console.log(`Controlador remoto ${this.id} inicializado`);
-        
 
-        
+
+
+
     }
 
     /**
@@ -95,7 +96,7 @@ export class RemoteController implements IInputController {
     public update(deltaTime: number): void {
         if (!this.initialized || !this.paddle) return;
 
-        
+
     }
 
     public setupEventHandlers(): void {
