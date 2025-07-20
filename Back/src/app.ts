@@ -92,7 +92,7 @@ export const startServer = async () => {
 	app.register(messagesRoutes, { prefix: '/messages' });
 	app.register(tournamentRoutes, { prefix: '/tournaments' });
 	app.register(usersRoutes, { prefix: '/users' });
-	app.register(websocketRoutes, { prefix: '/api' });
+	app.register(websocketRoutes, { prefix: '/ws' });
 
 	await app.listen({ port, host });
 	app.log.info(`Server running at http://${host}:${port}`);

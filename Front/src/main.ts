@@ -1,4 +1,6 @@
 // Imports
+import gamePage from './pages/gamePage.ts';
+import { GameType } from './pong-game/game.ts';
 import HomePage, { initializeHomePage } from './pages/home.ts';
 import LoginPage, { initializeLoginPage } from './pages/login.ts';
 import ProfilePage from './pages/profile.ts';
@@ -8,6 +10,13 @@ import UsersPage, { initializeUsersPage } from './pages/users.ts';
 import MatchHistoryPage from './pages/matchHistory.ts';
 import { authService } from './services/auth.service.ts';
 import { userService } from './services/user.service.ts';
+import { logOutButton } from "./pages/button.ts";
+import HowToPlay from './pages/howToPlay.ts';
+import Tournament from './pages/tournament.ts';
+
+document.addEventListener("DOMContentLoaded", () => {
+  logOutButton();
+});
 // import ClassicGamePage from './pages/classicGame.ts';
 // import FastGamePage from './pages/fastGame.ts';
 // import JoquempoPage from './pages/joquempo.ts';
@@ -23,7 +32,13 @@ const routesWithSidebar = [
   '/ranking',
   '/settings',
   '/users',
-  '/match-history',
+  '/game/local',
+  '/game/cpu',
+  '/game/online',
+  '/howToPlay',
+  '/tournament',
+//  '/Game/vsCPU',
+  '/match-history'
 ];
 
 // Função que renderiza a página correta e controla a sidebar
@@ -55,6 +70,20 @@ async function renderRoute(path: string) {
       case '/home':
         app.innerHTML = HomePage();
         initializeHomePage();
+		const howToPlayBtn = document.getElementById('how-to-play');
+			if (howToPlayBtn) {
+			howToPlayBtn.addEventListener('click', () => {
+				window.history.pushState(null, '', '/howToPlay');
+				window.dispatchEvent(new Event('popstate'));
+			});
+			}
+		const tournamentBtn = document.getElementById('tournament-btn');
+			if (tournamentBtn) {
+			tournamentBtn.addEventListener('click', () => {
+				window.history.pushState(null, '', '/tournament');
+				window.dispatchEvent(new Event('popstate'));
+			});
+			}
         break;
       case '/profile':
         ProfilePage();
@@ -67,10 +96,25 @@ async function renderRoute(path: string) {
         break;
       case '/users':
         app.innerHTML = UsersPage();
-        initializeUsersPage();
+		initializeUsersPage();
         break;
-      case '/match-history':
-        await MatchHistoryPage();
+	  case '/match-history':
+		await MatchHistoryPage();
+		break;
+	  case '/howToPlay':
+        HowToPlay();
+        break;
+	  case '/tournament':
+		Tournament();
+		break;
+      case '/game/local':
+        gamePage(GameType.LOCAL_TWO_PLAYERS);
+        break;
+      case '/game/cpu':
+        gamePage(GameType.LOCAL_VS_AI);
+        break;
+      case '/game/online':
+        gamePage(GameType.REMOTE);
         break;
       default:
         window.history.replaceState(null, '', '/home');
@@ -201,7 +245,7 @@ document.addEventListener('click', resetActivityTimer);
 document.addEventListener('scroll', resetActivityTimer);
 
 // Start activity tracking when page loads
-resetActivityTimer();
+resetActivityTimer();  
 
 // Inicializa a aplicação com a rota atual
 onRouteChange();

@@ -85,6 +85,10 @@ class Paddle {
     public setSpeed(speed: number): void {
         this.speed = speed;
     }
+
+    public updatePosition(position: Vector3): void {
+        this.mesh.position = position;
+    }
 }
 
 export { Paddle };
