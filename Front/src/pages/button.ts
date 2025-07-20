@@ -11,3 +11,23 @@ export function initializeSearchButton() {
 	  console.error('Não foi possível encontrar os elementos necessários!');
 	}
 }
+
+export function logOutButton() {
+	const logoutBtn = document.getElementById("logoutBtn");
+	const modal = document.getElementById("logoutModal");
+	const confirmBtn = document.getElementById("confirmLogout");
+	const cancelBtn = document.getElementById("cancelLogout");
+
+	logoutBtn?.addEventListener("click", (event) => {
+		event.preventDefault();
+		modal?.classList.remove("hidden"); // mostra modal
+	});
+
+	confirmBtn?.addEventListener("click", () => {
+		window.location.href = "/login";
+	});
+
+	cancelBtn?.addEventListener("click", () => {
+		modal?.classList.add("hidden"); // esconde modal
+	});
+}

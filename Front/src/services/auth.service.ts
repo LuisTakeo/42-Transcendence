@@ -109,7 +109,7 @@ export class AuthService extends BaseApiService {
     return userId ? parseInt(userId, 10) : null;
   }
 
-  private async updateOnlineStatus(isOnline: boolean): Promise<void> {
+  public async updateOnlineStatus(isOnline: boolean): Promise<void> {
     try {
       const token = this.getAuthToken();
       if (!token) return;

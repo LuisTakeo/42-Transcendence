@@ -10,6 +10,13 @@ import UsersPage, { initializeUsersPage } from './pages/users.ts';
 import MatchHistoryPage from './pages/matchHistory.ts';
 import { authService } from './services/auth.service.ts';
 import { userService } from './services/user.service.ts';
+import { logOutButton } from "./pages/button.ts";
+import HowToPlay from './pages/howToPlay.ts';
+import Tournament from './pages/tournament.ts';
+
+document.addEventListener("DOMContentLoaded", () => {
+  logOutButton();
+});
 // import ClassicGamePage from './pages/classicGame.ts';
 // import FastGamePage from './pages/fastGame.ts';
 // import JoquempoPage from './pages/joquempo.ts';
@@ -28,6 +35,9 @@ const routesWithSidebar = [
   '/game/local',
   '/game/cpu',
   '/game/online',
+  '/howToPlay',
+  '/tournament',
+//  '/Game/vsCPU',
   '/match-history'
 ];
 
@@ -60,6 +70,20 @@ async function renderRoute(path: string) {
       case '/home':
         app.innerHTML = HomePage();
         initializeHomePage();
+		const howToPlayBtn = document.getElementById('how-to-play');
+			if (howToPlayBtn) {
+			howToPlayBtn.addEventListener('click', () => {
+				window.history.pushState(null, '', '/howToPlay');
+				window.dispatchEvent(new Event('popstate'));
+			});
+			}
+		const tournamentBtn = document.getElementById('tournament-btn');
+			if (tournamentBtn) {
+			tournamentBtn.addEventListener('click', () => {
+				window.history.pushState(null, '', '/tournament');
+				window.dispatchEvent(new Event('popstate'));
+			});
+			}
         break;
       case '/profile':
         ProfilePage();
@@ -72,11 +96,17 @@ async function renderRoute(path: string) {
         break;
       case '/users':
         app.innerHTML = UsersPage();
-        initializeUsersPage();
+		initializeUsersPage();
         break;
-      case '/match-history':
-        await MatchHistoryPage();
+	  case '/match-history':
+		await MatchHistoryPage();
+		break;
+	  case '/howToPlay':
+        HowToPlay();
         break;
+	  case '/tournament':
+		Tournament();
+		break;
       case '/game/local':
         gamePage(GameType.LOCAL_TWO_PLAYERS);
         break;
@@ -215,7 +245,7 @@ document.addEventListener('click', resetActivityTimer);
 document.addEventListener('scroll', resetActivityTimer);
 
 // Start activity tracking when page loads
-resetActivityTimer();
+resetActivityTimer();  
 
 // Inicializa a aplicação com a rota atual
 onRouteChange();
