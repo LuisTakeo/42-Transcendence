@@ -1,5 +1,6 @@
 import { userService } from "../services/user.service.ts";
 import { showErrorMessage } from './notification.ts';
+import { renderAchievements } from "./cards.ts";
 import { friendsService } from '../services/friends.service.ts';
 
 export default async function ProfilePage(userId?: number): Promise<void> {
@@ -53,19 +54,19 @@ export default async function ProfilePage(userId?: number): Promise<void> {
         <div class="flex items-center justify-center text-white gap-5 text-center">
           <div class="flex flex-col items-center space-y-1">
             <img src="../../assets/battle.png" alt="battle icon" class="mx-auto w-8 h-8 mb-2" />
-            <p id="total-matches" class="text-4xl font-bold">-</p>
+            <p id="total-matches" class="text-2xl font-bold">-</p>
             <p class="text-2xl">battles</p>
           </div>
           <div class="text-6xl font-light px-2">|</div>
           <div class="flex flex-col items-center space-y-1">
             <img src="../../assets/win.png" alt="win icon" class="mx-auto w-8 h-8 mb-2" />
-            <p id="total-wins" class="text-4xl font-bold">-</p>
+            <p id="total-wins" class="text-2xl font-bold">-</p>
             <p class="text-2xl">wins</p>
           </div>
           <div class="text-6xl font-light px-2">|</div>
           <div class="flex flex-col items-center space-y-1">
             <img src="../../assets/percent.png" alt="win rate icon" class="mx-auto w-8 h-8 mb-2" />
-            <p id="win-rate" class="text-4xl font-bold">-</p>
+            <p id="win-rate" class="text-2xl font-bold">-</p>
             <p class="text-2xl whitespace-nowrap">win‑rate</p>
           </div>
         </div>
@@ -127,7 +128,36 @@ export default async function ProfilePage(userId?: number): Promise<void> {
 
   app.appendChild(main);
 
-  // Now load the rest of the profile data (stats, matches, achievements)
+  // Load user data if userId is provided
+  if (userId !== undefined && !isNaN(userId)) {
+    loadUserProfile(userId, currentUser.id);
+	renderAchievements(userId); 
+  } else {
+    // Show current user's profile (you can implement this later)
+    const userName = document.getElementById("user-name") as HTMLParagraphElement;
+    const userUsername = document.getElementById("user-username") as HTMLParagraphElement;
+    if (userName) userName.textContent = "My Profile";
+    if (userUsername) userUsername.textContent = "@myprofile";
+  }
+
+  // Show a button to return to users page
+  const returnButtonContainer = document.createElement('div');
+  returnButtonContainer.className = 'flex flex-col items-center';
+  returnButtonContainer.innerHTML = `
+    <button id='back-to-users' class=' px-6 py-3 bg-[#1E1B4B] text-white rounded hover:bg-purple-700 transition text-lg'>
+      Return to Users
+    </button>
+  `;
+  main.appendChild(returnButtonContainer);
+
+  const backBtn = document.getElementById('back-to-users');
+  if (backBtn) {
+    backBtn.addEventListener('click', () => {
+      window.history.pushState({}, '', '/users');
+      window.dispatchEvent(new Event('popstate'));
+    });
+  }
+   //Now load the rest of the profile data (stats, matches, achievements)
   await loadUserProfile(userToLoad, currentUser);
 }
 
@@ -204,6 +234,7 @@ async function loadUserProfile(userId: number, currentUser: any): Promise<void> 
       }
 
       // Check and update achievements
+	  renderAchievements(userId); 
       await updateAchievements(user, stats);
 
             // Update matches list
