@@ -41,7 +41,9 @@ export default function Tournament(): void {
       <!-- RIGHT SIDE: MATCHES -->
       <div class="w-full md:w-1/2 bg-[#1E1B4B] p-8 md:p-10 rounded-2xl text-white text-center flex flex-col items-center gap-6">
         <h1 class="font-semibold text-3xl">Matches</h1>
-        <!-- Conteúdo das partidas pode ir aqui -->
+		<ul id="matches-list" class="w-full max-w-md space-y-2">
+		  <!-- Matches here -->
+        <span id="no-matches-message" class="text-gray-400 block">No matches generated yet.</span>
       </div>
     </div>
 
