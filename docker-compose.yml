@@ -1,20 +1,5 @@
 
 services:
-  # nginx:
-  #   build:
-  #     context: ./Nginx
-  #     dockerfile: Dockerfile
-  #   platform: linux/arm64/v8
-  #   environment:
-  #     - DOMAIN=fazai.dev
-  #   ports:
-  #     - "${NGINX_PORT}:80"
-  #     - "443:443"
-  #   depends_on:
-  #     - frontend
-  #     - backend
-  #   restart: unless-stopped
-
   frontend:
     build:
       context: ./Front
@@ -45,8 +30,8 @@ services:
       - /backend/node_modules
     ports:
       - "${BACK_PORT}:${BACK_PORT}"
-      - "4040:4040"  # ngrok web interface
     environment:
       - NODE_ENV=development
       - FRONT_PORT=${FRONT_PORT}
+      - NGROK_AUTHTOKEN=${NGROK_AUTHTOKEN}
     command: dev

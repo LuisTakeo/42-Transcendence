@@ -14,44 +14,47 @@ import messagesRoutes from './messages/messages.routes';
 import { tournamentRoutes } from './tournaments/tournaments.routes';
 import usersRoutes from './routes/users/users.routes';
 import websocketRoutes from './websockets/websocket.routes';
-// import outros módulos aqui futuramente
+
 
 import { registerRoutes } from './routes/routes-controller'
 import { runMigrations } from './database/database';
 
-// Load environment variables from .env files using dotenv. Docker Compose passes environment variables to the container.
+
 dotenv.config();
 
-// Setup ngrok function
+
 async function setupNgrok() {
-  if (process.env.NODE_ENV === 'development') {
-    try {
-      const ngrok = require('ngrok');
-      await ngrok.authtoken('301clH3Sd8pU5eBKfXX52Iox3OY_2MjJkjgYSAhTZkSLZunnu');
-      
-      // Tunnel para o frontend - usando o nome do serviço Docker
-      const frontendPort = process.env.FRONT_PORT || '3042';
-      const frontendUrl = await ngrok.connect({
-        addr: `frontend:${frontendPort}`,
-        proto: 'http',
-        authtoken: '301clH3Sd8pU5eBKfXX52Iox3OY_2MjJkjgYSAhTZkSLZunnu'
-      });
-      
-      // Tunnel para o backend
-      const backendUrl = await ngrok.connect({
-        addr: process.env.BACK_PORT,
-        proto: 'http',
-        authtoken: '301clH3Sd8pU5eBKfXX52Iox3OY_2MjJkjgYSAhTZkSLZunnu'
-      });
-      
-      console.log(`🎯 Frontend ngrok tunnel: ${frontendUrl}`);
-      console.log(`⚙️  Backend ngrok tunnel: ${backendUrl}`);
-      console.log(`📊 Ngrok dashboard: http://localhost:4040`);
-      
-      return { frontendUrl, backendUrl };
-    } catch (error) {
-      console.error('❌ Error setting up ngrok:', error);
-    }
+
+  const ngrokAuthToken = process.env.NGROK_AUTHTOKEN;
+
+  if (!ngrokAuthToken) {
+    console.log('ℹ️  NGROK_AUTHTOKEN not found - skipping ngrok setup');
+    return;
+  }
+
+  try {
+    const ngrok = require('ngrok');
+    await ngrok.authtoken(ngrokAuthToken);
+
+    const frontendPort = process.env.FRONT_PORT || '3042';
+    const frontendUrl = await ngrok.connect({
+      addr: `frontend:${frontendPort}`,
+      proto: 'http',
+      authtoken: ngrokAuthToken
+    });
+
+    const backendUrl = await ngrok.connect({
+      addr: process.env.BACK_PORT,
+      proto: 'http',
+      authtoken: ngrokAuthToken
+    });
+
+    console.log(`🎯 Frontend ngrok tunnel: ${frontendUrl}`);
+    console.log(`⚙️  Backend ngrok tunnel: ${backendUrl}`);
+
+    return { frontendUrl, backendUrl };
+  } catch (error) {
+    console.error('❌ Error setting up ngrok:', error);
   }
 }
 
@@ -67,7 +70,6 @@ export const startServer = async () => {
 
 	app.register(registerRoutes);
 
-	// Habilitar CORS para seu frontend
 	await app.register(cors, {
 		origin: ['http://localhost:3142', 'http://localhost:3042', '*'], // URLs do frontend
 		credentials: true,
@@ -75,7 +77,7 @@ export const startServer = async () => {
 		allowedHeaders: ['Content-Type', 'Authorization']
 	});
 
-	// Serve static files from public folder
+
 	await app.register(fastifyStatic, {
 		root: path.join(__dirname, '../public'),
 		prefix: '/public/'
@@ -83,7 +85,6 @@ export const startServer = async () => {
 
 	await app.register(websocket);
 
-	// Run migrations
 	await runMigrations();
 	app.register(matchesRoutes, { prefix: '/matches' });
 	app.register(friendsRoutes, { prefix: '/friends' });
@@ -93,11 +94,8 @@ export const startServer = async () => {
 	app.register(usersRoutes, { prefix: '/users' });
 	app.register(websocketRoutes, { prefix: '/api' });
 
-	// app.get('/', async () => ({ hello: 'world' }));
-
 	await app.listen({ port, host });
 	app.log.info(`Server running at http://${host}:${port}`);
-	
-	// Setup ngrok tunnels in development
+
 	await setupNgrok();
 };
