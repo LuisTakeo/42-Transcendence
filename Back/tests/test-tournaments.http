@@ -1,0 +1,109 @@
+### TOURNAMENTS API TESTS
+
+@baseUrl = http://localhost:3142
+@contentType = application/json
+
+### Get all tournaments
+GET {{baseUrl}}/tournaments
+Content-Type: {{contentType}}
+
+###
+
+### Get active tournaments only
+GET {{baseUrl}}/tournaments/active
+Content-Type: {{contentType}}
+
+###
+
+### Get tournament by ID (detailed view)
+GET {{baseUrl}}/tournaments/1
+Content-Type: {{contentType}}
+
+###
+
+### Create new tournament
+POST {{baseUrl}}/tournaments
+Content-Type: {{contentType}}
+
+{
+  "name": "Weekend Championship",
+  "owner_id": 1
+}
+
+###
+
+### Join tournament (user 2 joins tournament 1)
+POST {{baseUrl}}/tournaments/1/join
+Content-Type: {{contentType}}
+
+{
+  "user_id": 2
+}
+
+###
+
+### Join tournament (user 3 joins tournament 1)
+POST {{baseUrl}}/tournaments/1/join
+Content-Type: {{contentType}}
+
+{
+  "user_id": 3
+}
+
+###
+
+### Start tournament (generate first round matches)
+POST {{baseUrl}}/tournaments/1/start
+Content-Type: {{contentType}}
+
+###
+
+### Get tournaments for specific user
+GET {{baseUrl}}/tournaments/user/1
+Content-Type: {{contentType}}
+
+###
+
+### Get tournament details after starting
+GET {{baseUrl}}/tournaments/1
+Content-Type: {{contentType}}
+
+###
+
+### Test error cases
+
+### Try to join non-existent tournament
+POST {{baseUrl}}/tournaments/999/join
+Content-Type: {{contentType}}
+
+{
+  "user_id": 1
+}
+
+###
+
+### Try to join already ongoing tournament
+POST {{baseUrl}}/tournaments/2/join
+Content-Type: {{contentType}}
+
+{
+  "user_id": 1
+}
+
+###
+
+### Try to start tournament with insufficient players
+POST {{baseUrl}}/tournaments/3/start
+Content-Type: {{contentType}}
+
+###
+
+### Try to create tournament with invalid data
+POST {{baseUrl}}/tournaments
+Content-Type: {{contentType}}
+
+{
+  "name": ""
+}
+
+###

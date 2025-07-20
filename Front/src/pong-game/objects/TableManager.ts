@@ -27,6 +27,9 @@ class TableManager {
 	private tableWidth: number;
 	private tableDepth: number;
 
+    private colorPrimary: Color3;
+    private colorSecondary: Color3;
+
 
     /**
      * Construtor do gerenciador da mesa
@@ -37,6 +40,9 @@ class TableManager {
         this.scene = scene;
         this.tableWidth = tableWidth;
         this.tableDepth = tableDepth;
+
+        this.colorPrimary = new Color3(0.2, 0.2, 0.2);
+        this.colorSecondary = new Color3(1, 1, 1);
     }
 
     /**
@@ -65,12 +71,12 @@ class TableManager {
         // Exemplo: Criar uma arquibancada no lado direito
         const rightBleacher = new BleacherSection(
             this.scene,
-            new Vector3(tableHalfWidth + distanceFromTable, 0, 0),
-            this.tableDepth, // Largura alinhada com a profundidade da mesa
-            30, // Profundidade da arquibancada
-            6,  // Número de fileiras
-            15, // Assentos por fileira
-            90  // Rotação em graus
+            new Vector3(tableHalfWidth + distanceFromTable + 15, 0, 0),
+            this.tableDepth,    
+            30,
+            10,
+            15,
+            90  
         );
 
         this.bleachers.push(rightBleacher);
@@ -79,16 +85,79 @@ class TableManager {
         // Por exemplo, para colocar nos outros lados:
 
         // Lado esquerdo (exemplo)
-        // const leftBleacher = new BleacherSection(
-        //     this.scene,
-        //     new Vector3(-(tableHalfWidth + distanceFromTable), 0, 0),
-        //     this.tableDepth,
-        //     20,
-        //     5,
-        //     10,
-        //     -90
-        // );
-        // this.bleachers.push(leftBleacher);
+        const leftBleacher = new BleacherSection(
+            this.scene,
+            new Vector3(-(tableHalfWidth + distanceFromTable + 15), 0, 0),
+            this.tableDepth,
+            30,
+            10,
+            15,
+            -90
+        );
+        this.bleachers.push(leftBleacher);
+
+        const frontBleacher1 = new BleacherSection(
+            this.scene,
+            new Vector3(-80, 0, tableHalfDepth + distanceFromTable),
+            this.tableWidth,
+            30,
+            10,
+            15,
+            0
+        );
+        const frontBleacher2 = new BleacherSection(
+            this.scene,
+            new Vector3(10, 0, tableHalfDepth + distanceFromTable),
+            this.tableWidth,
+            30,
+            10,
+            15,
+            0
+        );
+        const frontBleacher3 = new BleacherSection(
+            this.scene,
+            new Vector3(100, 0, tableHalfDepth + distanceFromTable),
+            this.tableWidth,
+            30,
+            10,
+            15,
+            0
+        );
+
+        this.bleachers.push(frontBleacher1);
+        this.bleachers.push(frontBleacher2);
+        this.bleachers.push(frontBleacher3);
+
+        const backBleacher1 = new BleacherSection(
+            this.scene,
+            new Vector3(-80, 0, -(tableHalfDepth + distanceFromTable)),
+            this.tableWidth,
+            30,
+            10,
+            15,
+            180
+        );
+        const backBleacher2 = new BleacherSection(
+            this.scene,
+            new Vector3(10, 0, -(tableHalfDepth + distanceFromTable)),
+            this.tableWidth,
+            30,
+            10,
+            15,
+            180
+        );
+        const backBleacher3 = new BleacherSection(
+            this.scene,
+            new Vector3(100, 0, -(tableHalfDepth + distanceFromTable)),
+            this.tableWidth,
+            30,
+            10,
+            15,
+            180
+        );
+        this.bleachers.push(backBleacher1);
+        this.bleachers.push(backBleacher2);
+        this.bleachers.push(backBleacher3);
     }
 
     public setShadowGenerator(shadowGenerator: ShadowGenerator): void {
@@ -136,7 +205,10 @@ class TableManager {
      */
 	private createGameElements(): void {
         // Cria a bola no centro da mesa
-        this.ball = new Ball(this.scene, new Vector3(0, 12, 0), this.ballSpeed);
+        this.ball = new Ball(this.scene, 
+            new Vector3(0, 12, 0), 
+            this.ballSpeed,
+            { width: this.tableWidth, depth: this.tableDepth });
 
         // Cria os paddles em cada extremidade da mesa
         this.paddleLeft = new Paddle(this.scene, 'left', this.tableWidth, this.tableDepth);
@@ -157,7 +229,7 @@ class TableManager {
         this.table.position.z = 0;
 
         const tableTopMaterial = new StandardMaterial('tableTopMat', this.scene);
-        tableTopMaterial.diffuseColor = new Color3(0.3, 0, 0.8);
+        tableTopMaterial.diffuseColor = this.colorPrimary;
         tableTopMaterial.specularColor = new Color3(0, 0.4, 0.8);
         this.table.material = tableTopMaterial;
     }
@@ -195,7 +267,7 @@ class TableManager {
         ];
 
         const legMaterial = new StandardMaterial('legMat', this.scene);
-        legMaterial.diffuseColor = new Color3(0.3, 0, 0.8);
+        legMaterial.diffuseColor = this.colorPrimary;
 
         legPositions.forEach((position, index) => {
             const leg = MeshBuilder.CreateCylinder(`leg${index}`, {
@@ -234,8 +306,8 @@ class TableManager {
         );
 
         const lineMaterial = new StandardMaterial('lineMat', this.scene);
-        lineMaterial.diffuseColor = new Color3(1, 1, 1);
-        lineMaterial.specularColor = new Color3(1, 1, 1);
+        lineMaterial.diffuseColor = this.colorSecondary;
+        lineMaterial.specularColor = this.colorSecondary;
         this.centerLine.material = lineMaterial;
     }
 
@@ -264,8 +336,8 @@ class TableManager {
         );
 
         const sideBarMaterial = new StandardMaterial('sideBarMat', this.scene);
-        sideBarMaterial.diffuseColor = new Color3(0, 0.4, 0.8);
-        sideBarMaterial.specularColor = new Color3(0, 0.4, 0.8);
+        sideBarMaterial.diffuseColor = this.colorSecondary;
+        sideBarMaterial.specularColor = this.colorSecondary;
         this.sideBarA.material = sideBarMaterial;
 
         // Barra lateral B
@@ -293,13 +365,9 @@ class TableManager {
         console.log("Table " + this.table.position);
         if (this.ball) {
             this.ball.update(this.tableWidth, this.tableDepth);
-
-            // Você pode adicionar detecção de colisão com os paddles aqui
             this.checkBallPaddleCollision();
         }
 
-        // Você pode adicionar controles para os paddles aqui
-        this.updatePaddleControls();
 	}
 
 	private checkBallPaddleCollision(): void {
@@ -307,46 +375,66 @@ class TableManager {
         const paddleLeftMesh = this.paddleLeft.getMesh();
         const paddleRightMesh = this.paddleRight.getMesh();
 
-        // Verifica se a bola colidiu com o paddle esquerdo
+        let velocity = this.ball.getVelocity();
+        
+        const paddleHeight = 10; 
+        // Colisão com paddle esquerdo
         if (ballMesh.intersectsMesh(paddleLeftMesh, false)) {
-            const velocity = this.ball.getVelocity();
-            if (velocity.x < 0) { // Só inverte se estiver indo para a esquerda
-                velocity.x *= -1;
+            if (velocity.x < 0) { // Se estiver se movendo para a esquerda
+                // Calcular ponto de colisão relativo ao centro do paddle
+                const hitPoint = (ballMesh.position.z - paddleLeftMesh.position.z) / (paddleHeight / 2);
+
+                // Limitar hitPoint entre -1 e 1
+                const clampedHitPoint = Math.max(-1, Math.min(1, hitPoint));
+
+                // Ângulo de rebatimento baseado no ponto de impacto
+                // Varia entre -30° a 30° (convertido para radianos)
+                const bounceAngle = clampedHitPoint * (Math.PI / 6);
+
+                // Calcular nova direção baseada no ângulo
+                const speed = Math.sqrt(velocity.x * velocity.x + velocity.z * velocity.z);
+                const newSpeed = Math.min(speed * 1.05, 1.5); // Aumenta velocidade em 5% até o limite
+
+                // Aplicar nova velocidade com direção calculada
+                velocity.x = Math.cos(bounceAngle) * newSpeed;
+                velocity.z = Math.sin(bounceAngle) * newSpeed;
+
+                // Reproduzir som de colisão (se implementar no futuro)
+                // this.playSound('paddleHit');
+
                 this.ball.setVelocity(velocity);
             }
         }
 
-        // Verifica se a bola colidiu com o paddle direito
-        if (ballMesh.intersectsMesh(paddleRightMesh, false)) {
-            const velocity = this.ball.getVelocity();
-            if (velocity.x > 0) { // Só inverte se estiver indo para a direita
-                velocity.x *= -1;
+        // Colisão com paddle direito (mesma lógica, só invertendo o X)
+        else if (ballMesh.intersectsMesh(paddleRightMesh, false)) {
+            if (velocity.x > 0) { // Se estiver se movendo para a direita
+                // Calcular ponto de colisão relativo ao centro do paddle
+                const hitPoint = (ballMesh.position.z - paddleRightMesh.position.z) / (paddleHeight / 2);
+
+                // Limitar hitPoint entre -1 e 1
+                const clampedHitPoint = Math.max(-1, Math.min(1, hitPoint));
+
+                // Ângulo de rebatimento baseado no ponto de impacto
+                const bounceAngle = clampedHitPoint * (Math.PI / 6);
+
+                // Calcular nova direção baseada no ângulo
+                const speed = Math.sqrt(velocity.x * velocity.x + velocity.z * velocity.z);
+                const newSpeed = Math.min(speed * 1.05, 1.5); // Aumenta velocidade em 5% até o limite
+
+                // Aplicar nova velocidade com direção calculada
+                velocity.x = -Math.cos(bounceAngle) * newSpeed; // Nota o sinal negativo
+                velocity.z = Math.sin(bounceAngle) * newSpeed;
+
+                // Reproduzir som de colisão (se implementar no futuro)
+                // this.playSound('paddleHit');
+
                 this.ball.setVelocity(velocity);
             }
         }
     }
 
-	/**
-     * Atualiza os controles dos paddles
-     */
-    private updatePaddleControls(): void {
-        // Esta é uma implementação básica para testes
-        // Você pode substituir por controles reais baseados em inputs do usuário
 
-        // Define o limite de movimento com base na mesa
-        const moveLimit = (this.tableDepth / 2) - 5;
-
-        // Exemplo de movimentação automatizada do paddle esquerdo (IA simples)
-        const ballPosition = this.ball.getMesh().position;
-        if (ballPosition.z > this.paddleLeft.getMesh().position.z + 2) {
-            this.paddleLeft.moveUp(moveLimit);
-        } else if (ballPosition.z < this.paddleLeft.getMesh().position.z - 2) {
-            this.paddleLeft.moveDown(moveLimit);
-        }
-
-        // Para o paddle direito, você pode implementar controles do jogador
-        // Aqui seria onde você conectaria inputs do teclado, por exemplo
-    }
 
     /**
      * Obtém a referência para o paddle esquerdo
@@ -367,6 +455,20 @@ class TableManager {
      */
     public getBall(): Ball {
         return this.ball;
+    }
+
+    /**
+     * Obtém a largura da mesa
+     */
+    public getTableWidth(): number {
+        return this.tableWidth;
+    }
+
+    /**
+     * Obtém a profundidade da mesa
+     */
+    public getTableDepth(): number {
+        return this.tableDepth;
     }
 }
 

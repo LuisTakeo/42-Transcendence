@@ -1,0 +1,74 @@
+# Test file for Users CRUD operations
+# You can use this with VS Code REST Client extension or any HTTP client
+
+### Get all users (default pagination)
+GET http://localhost:3142/users
+
+### Get users with pagination (page 1, limit 5)
+GET http://localhost:3142/users?page=1&limit=5
+
+### Get users with pagination (page 2, limit 5)
+GET http://localhost:3142/users?page=2&limit=5
+
+### Search users by name/username/email
+GET http://localhost:3142/users?search=john
+
+### Search users with pagination
+GET http://localhost:3142/users?search=john&page=1&limit=3
+
+### Get all users without pagination (simple list)
+GET http://localhost:3142/users/all
+
+### Get user by ID
+GET http://localhost:3142/users/1
+
+### Create a new user
+POST http://localhost:3142/users
+Content-Type: application/json
+
+{
+  "name": "teste John Doe",
+  "username": "tjohndoe",
+  "email": "tjohn.doe@example.com",
+  "avatar_url": "https://example.com/avatar.jpg"
+}
+
+### Update user
+PUT http://localhost:3142/users/1
+Content-Type: application/json
+
+{
+  "name": "John Updated",
+  "avatar_url": "https://example.com/new-avatar.jpg"
+}
+
+### Update user online status
+PATCH http://localhost:3142/users/1/status
+Content-Type: application/json
+
+{
+  "is_online": true
+}
+
+### Delete user
+DELETE http://localhost:3142/users/3
+
+### Test validation - Create user with invalid email
+POST http://localhost:3142/users
+Content-Type: application/json
+
+{
+  "name": "Jane Doe",
+  "username": "janedoe",
+  "email": "invalid-email",
+}
+
+### Test validation - Create user with invalid username
+POST http://localhost:3142/users
+Content-Type: application/json
+
+{
+  "name": "Bob Smith",
+  "username": "a",
+  "email": "bob@example.com",
+}

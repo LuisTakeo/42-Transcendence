@@ -1,0 +1,126 @@
+# Test file for Messages CRUD operations
+# You can use this with VS Code REST Client extension or any HTTP client
+
+### Get all messages (default pagination)
+GET http://localhost:3142/messages
+
+### Get messages with pagination (page 1, limit 5)
+GET http://localhost:3142/messages?page=1&limit=5
+
+### Search messages by content
+GET http://localhost:3142/messages?search=oi
+
+### Get all messages without pagination (simple list)
+GET http://localhost:3142/messages/all
+
+### Get message by ID
+GET http://localhost:3142/messages/1
+
+### Get messages by conversation ID (conversation 1)
+GET http://localhost:3142/messages/conversation/1
+
+### Get messages by conversation ID with pagination
+GET http://localhost:3142/messages/conversation/1?page=1&limit=10
+
+### Get messages by user ID (Alice's messages)
+GET http://localhost:3142/messages/user/1
+
+### Get messages by user ID (Bob's messages)
+GET http://localhost:3142/messages/user/2
+
+### Get recent messages (activity feed)
+GET http://localhost:3142/messages/recent
+
+### Get recent messages with limit
+GET http://localhost:3142/messages/recent?limit=10
+
+### Search messages by content
+GET http://localhost:3142/messages/search?q=oi
+
+### Search messages with pagination
+GET http://localhost:3142/messages/search?q=bem&page=1&limit=5
+
+### Create a new message (Alice to Bob)
+POST http://localhost:3142/messages
+Content-Type: application/json
+
+{
+  "conversation_id": 1,
+  "sender_id": 1,
+  "content": "Hello Bob! How are you today?"
+}
+
+### Create another message (Bob replies to Alice)
+POST http://localhost:3142/messages
+Content-Type: application/json
+
+{
+  "conversation_id": 1,
+  "sender_id": 2,
+  "content": "Hi Alice! I'm doing great, thanks for asking. How about you?"
+}
+
+### Create a message in a new conversation
+POST http://localhost:3142/messages
+Content-Type: application/json
+
+{
+  "conversation_id": 3,
+  "sender_id": 2,
+  "content": "Hey John, want to play a game later?"
+}
+
+### Test validation - Empty content
+POST http://localhost:3142/messages
+Content-Type: application/json
+
+{
+  "conversation_id": 1,
+  "sender_id": 1,
+  "content": ""
+}
+
+### Test validation - Missing required fields
+POST http://localhost:3142/messages
+Content-Type: application/json
+
+{
+  "sender_id": 1,
+  "content": "This should fail - missing conversation_id"
+}
+
+### Test validation - Invalid conversation_id
+POST http://localhost:3142/messages
+Content-Type: application/json
+
+{
+  "conversation_id": 999,
+  "sender_id": 1,
+  "content": "This should fail - invalid conversation_id"
+}
+
+### Test validation - Invalid sender_id
+POST http://localhost:3142/messages
+Content-Type: application/json
+
+{
+  "conversation_id": 1,
+  "sender_id": 999,
+  "content": "This should fail - invalid sender_id"
+}
+
+### Test validation - Content too long (over 1000 characters)
+POST http://localhost:3142/messages
+Content-Type: application/json
+
+{
+  "conversation_id": 1,
+  "sender_id": 1,
+  "content": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo. Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt. Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit, sed quia non numquam eius modi tempora incidunt ut labore et dolore magnam aliquam quaerat voluptatem. This should definitely exceed 1000 characters and fail validation."
+}
+
+### Test validation - Invalid message ID
+GET http://localhost:3142/messages/abc
+
+### Test validation - Search without query
+GET http://localhost:3142/messages/search

@@ -8,7 +8,10 @@ CREATE TABLE IF NOT EXISTS users (
     avatar_url TEXT,
     is_online INTEGER DEFAULT 0,
     last_seen_at DATETIME,
-    created_at DATETIME DEFAULT (datetime('now'))
+    created_at DATETIME DEFAULT (datetime('now')),
+    two_factor_enabled INTEGER DEFAULT 0,
+    two_factor_secret TEXT,
+    google_id TEXT UNIQUE
 );
 
 -- conversations
