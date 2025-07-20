@@ -1,12 +1,12 @@
 -- Insert additional users and tournament mock data after tournament tables are created
 
 -- Inserindo usuários adicionais para torneios
-INSERT INTO users (name, username, email, avatar_url, is_online, last_seen_at)
-SELECT 'John Doe', 'johndoe', 'john@example.com', 'Spider-Man-Avatar.png', 1, datetime('now')
+INSERT INTO users (name, username, email, password_hash, avatar_url, is_online, last_seen_at)
+SELECT 'John Doe', 'johndoe', 'john@example.com', '$2b$10$dummyhashforjohndoe1234567890', 'Spider-Man-Avatar.png', 1, datetime('now')
 WHERE NOT EXISTS (SELECT 1 FROM users WHERE email = 'john@example.com');
 
-INSERT INTO users (name, username, email, avatar_url, is_online, last_seen_at)
-SELECT 'Maria Silva', 'maria', 'maria@example.com', 'Moana-Avatar.png', 0, datetime('now', '-30 minutes')
+INSERT INTO users (name, username, email, password_hash, avatar_url, is_online, last_seen_at)
+SELECT 'Maria Silva', 'maria', 'maria@example.com', '$2b$10$dummyhashformaria1234567890abcd', 'Moana-Avatar.png', 0, datetime('now', '-30 minutes')
 WHERE NOT EXISTS (SELECT 1 FROM users WHERE email = 'maria@example.com');
 
 -- Inserindo torneios (tournaments)
