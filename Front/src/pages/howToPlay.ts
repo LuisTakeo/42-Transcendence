@@ -1,3 +1,5 @@
+import "../style.css";
+
 export default function HowToPlay(): void {
 	const app = document.getElementById("app");
   	if (!app) return;
@@ -39,19 +41,6 @@ export default function HowToPlay(): void {
 		<button class="p-4 mb-12 border-2 border-[#1E1B4B] rounded-xl border-spacing-2 bg-green-600 hover:bg-green-700 text-white text-2xl md:text-3xl font-bold transition">
 			Start
 		</button>
-
-	<style>
-	.key {
-		display: inline-block;
-		padding: 0.25rem 0.6rem;
-		margin: 0 0.2rem;
-		border-radius: 0.25rem;
-		background-color: #ffffff22;
-		border: 1px solid #ffffff66;
-		font-weight: bold;
-		font-family: monospace;
-	} 
-	</style>
 
 	`;
 	app.appendChild(main);
