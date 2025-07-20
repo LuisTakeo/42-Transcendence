@@ -39,21 +39,38 @@ export function setupTournamentEvents() {
 
 	if (generateMatchesBtn) {
 		generateMatchesBtn.addEventListener("click", () => {
-			console.log("Gerando partidas...");
-			showGenerateMatchesModal();
-	
-	
-			setTimeout(() => { //remover esse modal quando tiver a lógica 
-				modal.classList.add("hidden");
-			}, 5000);
-			modal.classList.add("hidden");
+			if (playerList.children.length <= 3) {
+				showErrorModal("You cannot create a tournament with less than 3 players.");
+				return;
+			} else if (playerList.children.length > 8) {
+				showErrorModal("You cannot create a tournament with more than 8 players.");
+				return;
+			} else {
+				showGenerateMatchesModal();
+			}
 		});
+
+		//GERAR PARTIDAS AQUI 
+		setTimeout(() => { //remover esse modal quando tiver a lógica 
+			modal.classList.add("hidden");
+		}, 5000);
+		modal.classList.add("hidden");
 	}
 }
 
 
 function addPlayer(name: string, playerList: HTMLUListElement): void {
 	if (!playerList) return;
+
+	const alreadyExists = Array.from(playerList.children).some((li) => {
+		const span = li.querySelector("span");
+		return span?.textContent?.trim().toLowerCase() === name.trim().toLowerCase();
+		});
+
+	if (alreadyExists) {
+		showErrorModal("Player with this username already exists.");
+		return;
+	}
   
 	const li: HTMLLIElement = document.createElement("li");
 	li.className =
@@ -83,6 +100,7 @@ function addPlayer(name: string, playerList: HTMLUListElement): void {
 export function showGenerateMatchesModal() {
 	const modal = document.getElementById("generate-matches-modal");
 	if (!modal) return;
+
 
 	modal.classList.remove("hidden");
 
@@ -117,6 +135,29 @@ function addMatches(player1: string, player2: string, matchesList: HTMLUListElem
 		startMatch.addEventListener("click", () =>  li.remove()); //mudar para o codigo de iniciar a partida
 	}
 	
-	matchesList.appendChild(li);
-	
+	matchesList.appendChild(li);	
 }
+
+function showErrorModal(message: string, duration: number = 5000): void {
+	const modal = document.getElementById("errors-modal");
+	const messageEl = document.getElementById("errors-message");
+  
+	if (!modal || !messageEl) return;
+  
+	messageEl.textContent = message;
+	modal.classList.remove("hidden");
+  
+}
+  
+window.addEventListener("DOMContentLoaded", () => {
+	const modal = document.getElementById("errors-modal");
+	const box = document.getElementById("errors-box");
+  
+	if (!modal || !box) return;
+  
+	modal.addEventListener("click", (event) => {
+		if (event.target === modal) {
+			modal.classList.add("hidden");
+		}
+	});
+});
