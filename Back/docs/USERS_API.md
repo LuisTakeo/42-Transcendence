@@ -330,6 +330,15 @@ Returns statistics for a specific user.
 }
 ```
 
+## Reserved User IDs
+- **999998**: Local Player 2 (used for local two-player games)
+- **999999**: AI Opponent (used for player vs CPU games)
+- These reserved users are never shown in user lists, rankings, or friends, and are only used for match records.
+
+## Filtering Reserved Users
+- All user-facing endpoints, lists, rankings, and friends exclude reserved users (999998, 999999).
+- Reserved users are only used internally for match records and never shown to real users.
+
 ## Error Responses
 
 ### 400 Bad Request

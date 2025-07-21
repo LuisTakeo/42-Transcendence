@@ -270,3 +270,12 @@ Returns the final ranking for a tournament, applying tiebreaker rules.
 5. Rankings calculated with tiebreakers
 6. Tournament finished
 ```
+
+## Reserved User IDs
+- **999998**: Local Player 2 (used for local two-player games)
+- **999999**: AI Opponent (used for player vs CPU games)
+- Reserved users are never included in tournament player lists or rankings.
+
+## Tournament Logic
+- Tournament progression is round-robin only. There is no knockout/elimination or round advancement logic.
+- All players play each other, and final rankings are determined by points and tiebreakers as described below.
