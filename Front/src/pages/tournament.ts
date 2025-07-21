@@ -60,7 +60,7 @@ export default function Tournament(): void {
       </button>
     </div>
 
-    <!-- MODAL ADD PLAYER -->
+    <!-- MODAL - ADD PLAYER -->
     <div id="add-player-modal" class="hidden fixed inset-0 flex items-center justify-center bg-black bg-opacity-70 z-50">
       <div class="bg-[#1E1B4B] p-6 rounded space-y-4 text-center w-80">
         <p>Digite o nome do jogador:</p>
@@ -72,7 +72,7 @@ export default function Tournament(): void {
       </div>
     </div>
 
-    <!-- MODAL GENERATING MATCHES -->
+    <!-- MODAL - GENERATING MATCHES -->
     <div id="generate-matches-modal" class="hidden fixed inset-0 flex items-center justify-center bg-black bg-opacity-70 z-50">
       <div class="bg-[#1E1B4B] p-6 rounded space-y-4 text-center w-80 text-white">
         <p id="generate-matches-message" class="text-xl">Generating matches ... </p>
@@ -80,10 +80,17 @@ export default function Tournament(): void {
       </div>
     </div>
 
-	<!-- MODAL ERRORS -->
+	<!-- MODAL - ERRORS -->
     <div id="errors-modal" class="hidden fixed inset-0 flex items-center justify-center bg-black bg-opacity-70 z-50">
       <div id="errors-box" class="bg-[#1E1B4B] p-6 rounded space-y-4 text-center w-80 text-white">
         <p id="errors-message" class="text-xl"></p>
+      </div>
+    </div>
+
+	<!-- MODAL - COUNTER -->
+    <div id="counter-modal" class="hidden fixed inset-0 flex items-center justify-center bg-black bg-opacity-70 z-50">
+      <div id="counter-box" class="bg-[#1E1B4B] p-6 rounded space-y-4 text-center w-80 text-white">
+        <p id="counter-message" class="text-xl"></p>
       </div>
     </div>
 	`;

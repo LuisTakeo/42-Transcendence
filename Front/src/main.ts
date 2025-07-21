@@ -70,20 +70,6 @@ async function renderRoute(path: string) {
       case '/home':
         app.innerHTML = HomePage();
         initializeHomePage();
-		const howToPlayBtn = document.getElementById('how-to-play');
-			if (howToPlayBtn) {
-			howToPlayBtn.addEventListener('click', () => {
-				window.history.pushState(null, '', '/howToPlay');
-				window.dispatchEvent(new Event('popstate'));
-			});
-			}
-		const tournamentBtn = document.getElementById('tournament-btn');
-			if (tournamentBtn) {
-			tournamentBtn.addEventListener('click', () => {
-				window.history.pushState(null, '', '/tournament');
-				window.dispatchEvent(new Event('popstate'));
-			});
-			}
         break;
       case '/profile':
         ProfilePage();

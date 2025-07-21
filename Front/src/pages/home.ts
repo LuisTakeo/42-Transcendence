@@ -5,7 +5,7 @@ export default function HomePage(): string {
 	<div class="min-h-screen flex-1">
 	  <div class="grid grid-cols-1 md:grid-cols-2 gap-12 p-8 h-auto min-h-screen">
 		<!-- Botão 1 -->
-		<button class="h-full relative flex flex-col items-center justify-center
+		<button id="remote-btn" class="h-full relative flex flex-col items-center justify-center
 		  bg-[#1E1B4B] hover:bg-[#4A4180] rounded-[5px]
 		  transition duration-300 transform hover:scale-[1.02] hover:shadow-2xl overflow-hidden">
 		  <img src="../../assets/raquet.png" alt="Fast Game" class="absolute inset-0 w-full h-full object-cover opacity-60" />
@@ -14,7 +14,7 @@ export default function HomePage(): string {
 		</button>
 
 		<!-- Botão 2 -->
-		<button id="how-to-play" class="h-full relative flex flex-col items-center justify-center
+		<button id="how-to-play" onclick="window.location.href='/howToPlay'" class="h-full relative flex flex-col items-center justify-center
 		  bg-[#1E1B4B] hover:bg-[#4A4180] rounded-[5px]
 		  transition duration-300 transform hover:scale-[1.02] hover:shadow-2xl overflow-hidden">
 		  <img src="../../assets/pong-players-happy.png" alt="Classic Game" class="absolute inset-0 w-full h-full object-cover opacity-60" />
@@ -23,7 +23,7 @@ export default function HomePage(): string {
 		</button>
 
 		<!-- Botão 3 -->
-		<button class="h-full relative flex flex-col items-center justify-center
+		<button id="cpu-btn"  onclick="window.location.href='/game/cpu'" class="h-full relative flex flex-col items-center justify-center
 		  bg-[#1E1B4B] hover:bg-[#4A4180] rounded-[5px]
 		  transition duration-300 transform hover:scale-[1.02] hover:shadow-2xl overflow-hidden">
 		  <img src="../../assets/evilPc.png" alt="One Computer Game" class="absolute inset-0 w-full h-full object-cover opacity-60" />
@@ -32,7 +32,7 @@ export default function HomePage(): string {
 		</button>
 
 		<!-- Botão 4 -->
-		<button id="tournament-btn" class="h-full relative flex flex-col items-center justify-center
+		<button id="tournament-btn" onclick="window.location.href='/tournament'" class="h-full relative flex flex-col items-center justify-center
 		  bg-[#1E1B4B] hover:bg-[#4A4180] rounded-[5px]
 		  transition duration-300 transform hover:scale-[1.02] hover:shadow-2xl overflow-hidden">
 		  <img src="../../assets/tournament-league-cut.png" alt="league" class="absolute inset-0 w-full h-full object-cover opacity-60" />

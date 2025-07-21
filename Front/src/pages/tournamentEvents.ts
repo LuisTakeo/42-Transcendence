@@ -132,7 +132,9 @@ function addMatches(player1: string, player2: string, matchesList: HTMLUListElem
 
 	const startMatch = li.querySelector("button");
 	if (startMatch) {
-		startMatch.addEventListener("click", () =>  li.remove()); //mudar para o codigo de iniciar a partida
+		startMatch.addEventListener("click", () => {
+			startCountdown(5, '/home'); // add a rota da partida aqui
+		});
 	}
 	
 	matchesList.appendChild(li);	
@@ -161,3 +163,26 @@ window.addEventListener("DOMContentLoaded", () => {
 		}
 	});
 });
+
+
+function startCountdown(seconds: number, redirectUrl: string) {
+	const modal = document.getElementById("counter-modal");
+	const messageEl = document.getElementById("counter-message");
+
+	if (!modal || !messageEl) return;
+
+	modal.classList.remove("hidden");
+
+	let current = seconds;
+	messageEl.textContent = 'Starting match in ' + current.toString() + ' seconds...';
+
+	const interval = setInterval(() => {
+		current--;
+		if (current <= 0) {
+			clearInterval(interval);
+			window.location.href = redirectUrl;
+		} else {
+			messageEl.textContent = 'Starting match in ' + current.toString() + ' seconds...';
+		}
+	}, 1000);
+}

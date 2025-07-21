@@ -38,7 +38,7 @@ export default function HowToPlay(): void {
 	</div>
 
 	<!-- BOTÃO START -->
-		<button class="p-4 mb-12 border-2 border-[#1E1B4B] rounded-xl border-spacing-2 bg-green-600 hover:bg-green-700 text-white text-2xl md:text-3xl font-bold transition">
+		<button onclick="window.location.href='/game/local'" class="p-4 mb-12 border-2 border-[#1E1B4B] rounded-xl border-spacing-2 bg-green-600 hover:bg-green-700 text-white text-2xl md:text-3xl font-bold transition">
 			Start
 		</button>
 
