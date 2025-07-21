@@ -86,7 +86,6 @@ export async function initializeLoginPage(): Promise<void> {
           const payload = JSON.parse(atob(loginResponse.token.split('.')[1]));
           if (payload && payload.id) {
             localStorage.setItem('currentUserId', payload.id.toString());
-            console.log('[DEBUG] Set currentUserId in localStorage:', payload.id);
           }
         } catch (e) {
           console.error('[DEBUG] Failed to decode JWT for user ID:', e);
