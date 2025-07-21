@@ -13,6 +13,7 @@ import { userService } from './services/user.service.ts';
 import { logOutButton } from "./pages/button.ts";
 import HowToPlay from './pages/howToPlay.ts';
 import Tournament from './pages/tournament.ts';
+import API_BASE_URL from './services/base-api.ts';
 
 document.addEventListener("DOMContentLoaded", () => {
   logOutButton();
@@ -214,7 +215,7 @@ async function updateLastSeen(): Promise<void> {
     const userId = payload.id;
 
     if (userId) {
-      await fetch(`http://localhost:3142/users/${userId}`, {
+      await fetch(`${API_BASE_URL}/users/${userId}`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -245,7 +246,7 @@ document.addEventListener('click', resetActivityTimer);
 document.addEventListener('scroll', resetActivityTimer);
 
 // Start activity tracking when page loads
-resetActivityTimer();  
+resetActivityTimer();
 
 // Inicializa a aplicação com a rota atual
 onRouteChange();

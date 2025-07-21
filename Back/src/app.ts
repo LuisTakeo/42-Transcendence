@@ -68,15 +68,15 @@ export const startServer = async () => {
 	  secret: process.env.FASTIFY_SECRET,
 	});
 
-	app.register(registerRoutes);
 
 	await app.register(cors, {
-		origin: ['http://localhost:3142', 'http://localhost:3042', '*'], // URLs do frontend
+    origin: true,
 		credentials: true,
 		methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
 		allowedHeaders: ['Content-Type', 'Authorization']
 	});
 
+  app.register(registerRoutes);
 
 	await app.register(fastifyStatic, {
 		root: path.join(__dirname, '../public'),

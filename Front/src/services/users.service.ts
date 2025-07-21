@@ -33,7 +33,6 @@ export class UsersService extends BaseApiService {
     if (search) {
       params.append('search', search);
     }
-	console.log("bateu aqui - get Users ");
 
 
     return this.request<PaginatedResponse<User>>(`/users?${params.toString()}`);
