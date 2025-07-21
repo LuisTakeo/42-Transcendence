@@ -1,7 +1,15 @@
+export interface GameState {
+    ball: { x: number, y: number, vx: number, vy: number };
+    player1: { y: number };
+    player2: { y: number };
+    score: { player1: number, player2: number };
+}
+
 export class GameService {
     private websocket: WebSocket | null = null;
     private listeners: { [key: string]: (data: any) => void } = {};
     private isConnected: boolean = false;
+    private gameState: GameState | null = null;
     constructor(private serverUrl: string, private userId: string) {}
 
     // Inicializar a conexão WebSocket
@@ -27,12 +35,18 @@ export class GameService {
 
         this.websocket.onmessage = (event) => {
             const data = JSON.parse(event.data);
-            console.log("Mensagem recebida:", data);
+            // console.log("Mensagem recebida:", data);
 
+            // Atualizar o estado do jogo se for uma atualização do backend
+            if (data.type === 'game_update' && data.gameState) {
+                this.setGameState(data.gameState);
+            }
             // Notificar os listeners registrados
             if (data.type && this.listeners[data.type]) {
                 this.listeners[data.type](data);
             }
+    // Atualiza o estado do jogo recebido do backend
+    
         };
         
         this.websocket.onerror = (error) => {
@@ -45,6 +59,15 @@ export class GameService {
             this.isConnected = false;
             this.attemptReconnection();
         };
+    }
+
+    public setGameState(state: GameState): void {
+        this.gameState = state;
+    }
+
+    // Recupera o estado mais recente do jogo
+    public getGameState(): GameState | null {
+        return this.gameState;
     }
 
     private attemptReconnection(): void {

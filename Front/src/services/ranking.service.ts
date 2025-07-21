@@ -13,6 +13,8 @@ export interface RankingUser {
   winRate: number;
 }
 
+const RESERVED_USER_IDS = [999998, 999999];
+
 export class RankingService extends BaseApiService {
   // Get all users ranked by their performance
   async getRanking(): Promise<SimpleResponse<RankingUser>> {
@@ -24,7 +26,7 @@ export class RankingService extends BaseApiService {
         throw new Error('Failed to fetch users');
       }
 
-      const users = usersResponse.data;
+      const users = usersResponse.data.filter(user => !RESERVED_USER_IDS.includes(user.id));
       const userIds = users.map(user => user.id);
 
       // Get bulk stats for all users in a single request

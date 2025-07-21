@@ -7,10 +7,15 @@ interface WebSocketQuery {
     userId: string;
 }
 
+
+
 function handleWebSocketConn(connection: WebSocket, 
     req: FastifyRequest<{Querystring: WebSocketQuery}>){
     
     const userId = req.query.userId as string;
+    // dar join room em alguma sala
+    const roomInfo =joinGameRoom(connection);
+    console.log(`New WebSocket connection from user: ${userId} in room: ${roomInfo.room}`);
     connection.on('message', (message: string) => {
         console.log(`Message received from ${userId}: ${message}`);
         
@@ -19,21 +24,13 @@ function handleWebSocketConn(connection: WebSocket,
             if (!data || !data.type)
                 throw new Error('Invalid message format');
             switch (data.type) {
-                case 'create_game_room':
-                    createGameRoom(userId, connection);
-                    break;
-                
-                case 'join_game_room':
-                    joinGameRoom(userId, connection, data.roomId);
-                    break;
-                
                 // AQUI: Escutar movimento dos jogadores
                 case 'player_move':
-                    handlePlayerMove(userId, data);
+                    handlePlayerMove(connection, data);
                     break;
                 
                 case 'leave_game':
-                    leaveGameRoom(userId);
+                    leaveGameRoom(connection);
                     break;
                 
                 default:
@@ -42,6 +39,11 @@ function handleWebSocketConn(connection: WebSocket,
         } catch (error) {
             connection.send(`Echo: ${message}`);
         }
+    });
+
+    connection.on('close', () => {
+        console.log(`Connection closed for user ${userId}`);
+        leaveGameRoom(connection);
     });
 }
 

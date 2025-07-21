@@ -1,6 +1,6 @@
 import { IInputController } from "../ports/IInputController";
 import { Paddle } from "../objects/Paddle";
-import { GameService } from "../game.service";
+import { GameService, GameState } from "../game.service";
 
 /**
  * Controlador que simula um input remoto (rede)
@@ -26,15 +26,15 @@ export class RemoteController implements IInputController {
     constructor(id: string) {
         this.id = id;
         this.paddleSize = { width: 1, height: 4, depth: 10 }; // Tamanho padrão do paddle
-        this._gameService = new GameService("ws://localhost:3001/ws", this.id); // Simulação de serviço de jogo
-    
+        this._gameService = new GameService("ws://localhost:3142/ws", this.id); // Simulação de serviço de jogo
+
     }
 
     public connect(): void {
         if (!this._gameService) return;
 
         this._gameService.connect();
-        console.log(`Controlador remoto ${this.id} conectado`); 
+        console.log(`Controlador remoto ${this.id} conectado`);
     }
 
     /**
@@ -84,9 +84,21 @@ export class RemoteController implements IInputController {
         }, 500);
         // Simular inicialização de conexão remota
         console.log(`Controlador remoto ${this.id} inicializado`);
-        
 
-        
+
+
+
+    }
+
+    public getGameState(): GameState | null {
+        return this._gameService?.getGameState() || null;
+    }
+
+    /**
+     * Obtém o GameService para configurar listeners externos
+     */
+    public getGameService(): GameService | null {
+        return this._gameService;
     }
 
     /**
@@ -95,7 +107,7 @@ export class RemoteController implements IInputController {
     public update(deltaTime: number): void {
         if (!this.initialized || !this.paddle) return;
 
-        
+
     }
 
     public setupEventHandlers(): void {
@@ -104,15 +116,22 @@ export class RemoteController implements IInputController {
         const handleKeyDown = (evt: KeyboardEvent) => {
             if (!this._gameService) return;
             if (evt.key === this.upKey || evt.key === this.downKey) {
-                this.moveDirection = evt.key === this.upKey ? 1 : -1;
-                this._gameService.sendMessage("player_move", { direction: this.moveDirection });
+                const direction = evt.key === this.upKey ? "up" : "down";
+                this._gameService.sendMessage("player_move", { 
+                    direction: direction,
+                    pressed: true 
+                });
             }
         };
 
         const handleKeyUp = (evt: KeyboardEvent) => {
+            if (!this._gameService) return;
             if (evt.key === this.upKey || evt.key === this.downKey) {
-                this.moveDirection = 0;
-                this._gameService?.sendMessage("player_move", { direction: this.moveDirection });
+                const direction = evt.key === this.upKey ? "up" : "down";
+                this._gameService.sendMessage("player_move", { 
+                    direction: direction,
+                    pressed: false 
+                });
             }
         };
 
@@ -137,8 +156,19 @@ export class RemoteController implements IInputController {
      */
     public dispose(): void {
         console.log(`Controlador remoto ${this.id} desconectado`);
+        
+        // Remover event listeners se foram adicionados
+        if (this._onKeyDown) {
+            window.removeEventListener('keydown', this._onKeyDown);
+            this._onKeyDown = null;
+        }
+
+        if (this._onKeyUp) {
+            window.removeEventListener('keyup', this._onKeyUp);
+            this._onKeyUp = null;
+        }
+        
         this.paddle = null;
         this.initialized = false;
-
     }
 }

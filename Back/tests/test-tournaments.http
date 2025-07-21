@@ -52,7 +52,48 @@ Content-Type: {{contentType}}
 
 ###
 
-### Start tournament (generate first round matches)
+### Join tournament (user 4-9 join tournament 1 to test player limit)
+POST {{baseUrl}}/tournaments/1/join
+Content-Type: {{contentType}}
+
+{
+  "user_id": 4
+}
+###
+POST {{baseUrl}}/tournaments/1/join
+Content-Type: {{contentType}}
+{
+  "user_id": 5
+}
+###
+POST {{baseUrl}}/tournaments/1/join
+Content-Type: {{contentType}}
+{
+  "user_id": 6
+}
+###
+POST {{baseUrl}}/tournaments/1/join
+Content-Type: {{contentType}}
+{
+  "user_id": 7
+}
+###
+POST {{baseUrl}}/tournaments/1/join
+Content-Type: {{contentType}}
+{
+  "user_id": 8
+}
+###
+POST {{baseUrl}}/tournaments/1/join
+Content-Type: {{contentType}}
+{
+  "user_id": 9
+}
+# This should fail (max 8 players)
+
+###
+
+### Start tournament (should succeed with 2-8 players, fail with >8)
 POST {{baseUrl}}/tournaments/1/start
 Content-Type: {{contentType}}
 
@@ -66,6 +107,12 @@ Content-Type: {{contentType}}
 
 ### Get tournament details after starting
 GET {{baseUrl}}/tournaments/1
+Content-Type: {{contentType}}
+
+###
+
+### Get final ranking for tournament 1
+GET {{baseUrl}}/tournaments/1/final-ranking
 Content-Type: {{contentType}}
 
 ###
@@ -95,6 +142,13 @@ Content-Type: {{contentType}}
 ### Try to start tournament with insufficient players
 POST {{baseUrl}}/tournaments/3/start
 Content-Type: {{contentType}}
+
+###
+
+### Try to start tournament with more than 8 players (should fail)
+POST {{baseUrl}}/tournaments/1/start
+Content-Type: {{contentType}}
+# (Assume >8 players joined above)
 
 ###
 
