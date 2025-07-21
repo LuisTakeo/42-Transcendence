@@ -1,4 +1,5 @@
 import { BaseApiService } from './base-api.ts';
+import API_BASE_URL from './base-api.ts';
 
 export interface GoogleLoginResponse {
   success?: boolean;
@@ -119,7 +120,7 @@ export class AuthService extends BaseApiService {
       const userId = payload.id;
 
       if (userId) {
-        await fetch(`http://localhost:3142/users/${userId}/online-status`, {
+        await fetch(`${API_BASE_URL}/users/${userId}/online-status`, {
           method: 'PATCH',
           headers: {
             'Authorization': `Bearer ${token}`,
