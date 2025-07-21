@@ -23,9 +23,6 @@ import { runMigrations } from './database/database';
 dotenv.config();
 
 
-// NOTE: The ngrok tunnel is now managed by Docker Compose services (see docker-compose.yml).
-// This setupNgrok function is no longer needed and is kept here for reference only.
-/*
 async function setupNgrok() {
 
   const ngrokAuthToken = process.env.NGROK_AUTHTOKEN;
@@ -46,23 +43,22 @@ async function setupNgrok() {
       authtoken: ngrokAuthToken
     });
 
-    // const backendUrl = await ngrok.connect({
-    //   addr: process.env.BACK_PORT,
-    //   proto: 'http',
-    //   authtoken: ngrokAuthToken,
-    //   domain: 'integral-phoenix-loosely.ngrok-free.app'
-    // });
+    const backendUrl = await ngrok.connect({
+      addr: process.env.BACK_PORT,
+      proto: 'http',
+      authtoken: ngrokAuthToken,
+      domain: 'integral-phoenix-loosely.ngrok-free.app'
+    });
 
     console.log(`🎯 Frontend ngrok tunnel: ${frontendUrl}`);
-    // console.log(`⚙️  Backend ngrok tunnel: ${backendUrl}`);
+    console.log(`⚙️  Backend ngrok tunnel: ${backendUrl}`);
 
-    // return { frontendUrl, backendUrl };
+    return { frontendUrl, backendUrl };
     return { frontendUrl };
   } catch (error) {
     console.error('❌ Error setting up ngrok:', error);
   }
 }
-*/
 
 export const startServer = async () => {
 	const app = fastify({ logger: true });
@@ -103,5 +99,5 @@ export const startServer = async () => {
 	await app.listen({ port, host });
 	app.log.info(`Server running at http://${host}:${port}`);
 
-	// await setupNgrok();
+	await setupNgrok();
 };
