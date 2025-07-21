@@ -93,7 +93,7 @@ export class AIController extends BaseController {
     /**
      * Atualiza a posição do paddle baseada na posição da bola
      */
-    public update(): void {
+    public update(deltaTime: number): void {
         if (!this.paddle || !this.ball) return;
 
         const currentTime = Date.now();
@@ -123,9 +123,9 @@ export class AIController extends BaseController {
         
 
         if (difference > 0) {
-            this.paddle.moveUp(border);
+            this.paddle.moveUp(border, 1/60); // deltaTime padrão para AI
         } else if (difference < 0) {
-            this.paddle.moveDown(border);
+            this.paddle.moveDown(border, 1/60); // deltaTime padrão para AI
         }
     }
 

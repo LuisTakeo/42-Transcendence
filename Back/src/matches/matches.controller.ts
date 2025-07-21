@@ -4,7 +4,7 @@ import * as repository from './match.repository';
 import { CreateMatchData, UpdateMatchData } from './match.repository';
 import { TournamentRepository } from '../tournaments/tournament.repository';
 
-const RESERVED_USER_IDS = [999998, 999999];
+const RESERVED_USER_IDS = [4, 5];
 
 // Validation helper functions
 const isValidScore = (score: number): boolean => {
@@ -315,7 +315,7 @@ export async function createMatch(request: FastifyRequest, reply: FastifyReply) 
 			});
 		}
 
-		// Allow player2_id to be a valid user ID or a reserved user ID (999998, 999999)
+		// Allow player2_id to be a valid user ID or a reserved user ID (4, 5)
 		if (!isValidPlayerId(player2_id) && !RESERVED_USER_IDS.includes(player2_id)) {
 			return reply.status(400).send({
 				success: false,

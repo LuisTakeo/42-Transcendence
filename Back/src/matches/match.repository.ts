@@ -1,7 +1,7 @@
 // src/matches/match.repository.ts
 import { openDb } from '../database/database';
 
-const RESERVED_USER_IDS = [999998, 999999];
+const RESERVED_USER_IDS = [4, 5];
 
 // Interface for Match data
 export interface Match {

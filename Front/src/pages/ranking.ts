@@ -42,7 +42,7 @@ async function getCurrentUserId(): Promise<number | null> {
 	return currentUser.id;
 }
 
-const RESERVED_USER_IDS = [999998, 999999];
+const RESERVED_USER_IDS = [4, 5];
 
 function filterReservedUsers(users: any[]): any[] {
   return users.filter(user => !RESERVED_USER_IDS.includes(user.id));

@@ -15,6 +15,7 @@ services:
       - "${FRONT_PORT}:${FRONT_PORT}"
     environment:
       - NODE_ENV=development
+      - VITE_API_BASE_URL=${VITE_API_BASE_URL}
     depends_on:
       - backend
 
@@ -26,6 +27,7 @@ services:
         - BACK_PORT=${BACK_PORT}
         - FASTIFY_SECRET=${FASTIFY_SECRET}
         - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+        - API_BASE_URL=${API_BASE_URL}
     volumes:
       - ./Back:/backend
       - /backend/node_modules

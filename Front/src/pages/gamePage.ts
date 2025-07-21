@@ -8,8 +8,8 @@ interface GamePageOptions {
 }
 
 function getDisplayName(userId: number, alias: string): string {
-  if (userId === 999999) return 'AI Opponent';
-  if (userId === 999998) return 'Local Player 2';
+  if (userId === 4) return 'AI Opponent';
+  if (userId === 5) return 'Local Player 2';
   return alias;
 }
 
@@ -31,7 +31,7 @@ export default function gamePage(options: GamePageOptions): void {
         options.gameType,
         100, // tableWidth
         80,  // tableDepth
-        2,   // maxScore
+        10,   // maxScore
         {
           player1: getDisplayName(options.playerIds?.player1 ?? 0, options.playerAliases.player1),
           player2: getDisplayName(options.playerIds?.player2 ?? 0, options.playerAliases.player2)
