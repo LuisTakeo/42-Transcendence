@@ -53,7 +53,6 @@ async function setupNgrok() {
     console.log(`⚙️  Backend ngrok tunnel: ${backendUrl}`);
 
     return { frontendUrl, backendUrl };
-    return { frontendUrl };
   } catch (error) {
     console.error('❌ Error setting up ngrok:', error);
   }
