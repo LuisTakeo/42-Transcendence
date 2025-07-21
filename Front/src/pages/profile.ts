@@ -3,7 +3,7 @@ import { showErrorMessage } from './notification.ts';
 import { renderAchievements } from "./cards.ts";
 import { friendsService } from '../services/friends.service.ts';
 
-const RESERVED_USER_IDS = [999998, 999999];
+const RESERVED_USER_IDS = [4, 5];
 
 interface Match {
   player2_id: number;

@@ -81,7 +81,6 @@ class MainGame {
     // Match data for when game ends
     private matchData: MatchData | null = null;
     private playerSide: 'left' | 'right' | null = null; // Lado do jogador no modo remoto
-    private gameEnded: boolean = false; // Flag para evitar múltiplas mensagens de vitória
 
     /**
      * Constructor for the main class
@@ -149,6 +148,7 @@ class MainGame {
      * Save match to database when game ends
      */
     private async saveMatchToDatabase(): Promise<void> {
+        console.log('[debug] saveMatchToDatabase called', this.matchData, this.gameType);
         if (!this.matchData) return;
 
         try {
@@ -160,9 +160,9 @@ class MainGame {
             let player2_id = this.matchData.player2_id;
             if (!player2_id) {
                 if (this.gameType === GameType.LOCAL_TWO_PLAYERS) {
-                    player2_id = 999998;
+                    player2_id = 4;
                 } else if (this.gameType === GameType.LOCAL_VS_AI) {
-                    player2_id = 999999;
+                    player2_id = 5;
                 } else {
                     player2_id = 0; // fallback, should never happen for remote
                 }
@@ -182,20 +182,27 @@ class MainGame {
                 tournament_id: this.matchData.tournament_id
             };
 
+            if (this.gameType === GameType.REMOTE) {
+                console.log('[debug] Saving remote match to DB:', matchData);
+            }
+
+            console.log('[debug] Sending POST /matches with:', matchData);
             const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/matches`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+                    'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+                    'ngrok-skip-browser-warning': 'true'
                 },
                 body: JSON.stringify(matchData)
             });
-
+            console.log('[debug] Response status:', response.status);
             if (response.ok) {
                 const result = await response.json();
+                console.log('[debug] Match save response:', result);
             } else {
                 const errorText = await response.text();
-                console.error('Failed to save match:', response.status, errorText);
+                console.error('[debug] Failed to save match:', response.status, errorText);
             }
         } catch (error) {
             console.error('Error saving match:', error);
@@ -329,12 +336,29 @@ class MainGame {
 
             case GameType.REMOTE:
                 console.log("Iniciando jogo remoto...");
-                this._remoteController = new RemoteController("remote_controller");
+                let realUserId = localStorage.getItem('currentUserId');
+                if (!realUserId) {
+                    // Try to get from JWT token if available
+                    const token = localStorage.getItem('authToken');
+                    if (token) {
+                        try {
+                            const payload = JSON.parse(atob(token.split('.')[1]));
+                            if (payload && payload.id) {
+                                realUserId = payload.id.toString();
+                                localStorage.setItem('currentUserId', realUserId);
+                                console.log('[DEBUG] Set currentUserId in localStorage (from token):', realUserId);
+                            }
+                        } catch (e) {
+                            console.error('[DEBUG] Failed to decode JWT for user ID:', e);
+                        }
+                    }
+                }
+                console.log('[DEBUG] Using userId for remote game:', realUserId);
+                this._remoteController = new RemoteController((realUserId ?? 'unknown').toString());
                 this._remoteController.initialize();
-                
                 // Configurar listeners para mensagens de vitória
                 this.setupRemoteVictoryListeners();
-                break;            
+                break;
             default:
                 console.warn(`Tipo de jogo desconhecido: ${this.gameType}, usando modo dois jogadores.`);
                 // Configuração padrão (dois jogadores)
@@ -395,7 +419,7 @@ class MainGame {
         if (this.gameEnded) {
             return;
         }
-        
+
         if (!this._remoteController) {
             console.log('RemoteController não inicializado');
             return;
@@ -416,7 +440,7 @@ class MainGame {
             // Atualizar placar, se desejar
             this.scoreText.text = `Score: ${state.score.player1} - ${state.score.player2}`;
 
-        }        
+        }
         this.scene.render();
     }
 
@@ -443,12 +467,6 @@ class MainGame {
         if (this.gameEnded) return;
         this.gameEnded = true;
 
-        // Verificar se o jogo já terminou
-        if (this.gameEnded) return;
-        
-        // Marcar que o jogo terminou
-        this.gameEnded = true;
-        
         const winner = this.score.player1 >= this.maxScore ? "Player 1" : "Player 2";
 
         // Update match in database with final results
@@ -491,20 +509,28 @@ class MainGame {
 
         // Listener para quando entrar em uma sala - para saber qual lado você está
         gameService.onMessage('room_created', (data: any) => {
-            console.log('Sala criada, você está do lado:', data.side);
+            console.log('[DEBUG] room_created data:', data);
             this.playerSide = data.side;
+            if (this.gameType === GameType.REMOTE && this.matchData) {
+                this.matchData.player1_id = data.side === 'left' ? parseInt(data.userId) : parseInt(data.opponentId);
+                this.matchData.player2_id = data.side === 'right' ? parseInt(data.userId) : parseInt(data.opponentId);
+            }
         });
 
         gameService.onMessage('room_joined', (data: any) => {
-            console.log('Entrou em uma sala, você está do lado:', data.side);
+            console.log('[DEBUG] room_joined data:', data);
             this.playerSide = data.side;
+            if (this.gameType === GameType.REMOTE && this.matchData) {
+                this.matchData.player1_id = data.side === 'left' ? parseInt(data.userId) : parseInt(data.opponentId);
+                this.matchData.player2_id = data.side === 'right' ? parseInt(data.userId) : parseInt(data.opponentId);
+            }
         });
     }
 
     /**
      * Manipula a exibição de vitória no modo remoto
      */
-    private handleRemoteVictory(winner: string, finalScore: any, reason: string): void {
+    private async handleRemoteVictory(winner: string, finalScore: any, reason: string): Promise<void> {
         // Verificar se o jogo já terminou para evitar múltiplas mensagens
         if (this.gameEnded) {
             console.log('Jogo já terminou, ignorando nova mensagem de vitória');
@@ -513,10 +539,14 @@ class MainGame {
 
         // Marcar que o jogo terminou
         this.gameEnded = true;
+
+        // Save the match to the database
+        await this.saveMatchToDatabase();
+
         // Determinar se você ganhou ou perdeu
         let victoryMessage = '';
         let messageColor = 'yellow';
-        
+
         if (this.playerSide && winner === this.playerSide) {
             victoryMessage = '🎉 VOCÊ VENCEU! 🎉';
             messageColor = 'purple';
@@ -564,7 +594,7 @@ class MainGame {
         if (finalScore) {
             const leftScore = finalScore.player1;
             const rightScore = finalScore.player2;
-            scoreText = new TextBlock("scoreText", 
+            scoreText = new TextBlock("scoreText",
                 `Pontuação Final: ${leftScore} - ${rightScore}`);
             scoreText.color = "lightblue";
             scoreText.fontSize = 14;
@@ -575,7 +605,7 @@ class MainGame {
         // Texto informativo sobre o lado do jogador
         let sideText: TextBlock | null = null;
         if (this.playerSide) {
-            sideText = new TextBlock("sideText", 
+            sideText = new TextBlock("sideText",
                 `Você estava jogando como: ${this.playerSide === 'left' ? 'Esquerda' : 'Direita'}`);
             sideText.color = "lightgray";
             sideText.fontSize = 12;

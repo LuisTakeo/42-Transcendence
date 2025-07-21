@@ -17,7 +17,7 @@ export class GameService {
         try {
             console.log(`Attempting to connect to WebSocket at ${this.serverUrl}?userId=${this.userId}`);
             this.websocket = new WebSocket(`${this.serverUrl}?userId=${this.userId}`);
-            
+
             this.setupEventHandlers();
         } catch (error) {
             console.error("Failed to create WebSocket connection:", error);
@@ -27,7 +27,7 @@ export class GameService {
 
     private setupEventHandlers(): void {
         if (!this.websocket) return;
-        
+
         this.websocket.onopen = () => {
             console.log("Connected to WebSocket server!");
             this.isConnected = true;
@@ -46,14 +46,14 @@ export class GameService {
                 this.listeners[data.type](data);
             }
     // Atualiza o estado do jogo recebido do backend
-    
+
         };
-        
+
         this.websocket.onerror = (error) => {
             console.error("WebSocket error:", error);
             // Don't attempt reconnect here - wait for onclose
         };
-        
+
         this.websocket.onclose = (event) => {
             console.log(`WebSocket connection closed. Code: ${event.code}, Reason: ${event.reason}`);
             this.isConnected = false;

@@ -124,7 +124,8 @@ export class AuthService extends BaseApiService {
           method: 'PATCH',
           headers: {
             'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            'ngrok-skip-browser-warning': 'true'
           },
           body: JSON.stringify({ is_online: isOnline })
         });

@@ -15,6 +15,7 @@ services:
       - "${FRONT_PORT}:${FRONT_PORT}"
     environment:
       - NODE_ENV=development
+      - VITE_API_BASE_URL=${VITE_API_BASE_URL}
     depends_on:
       - backend
 
@@ -26,6 +27,7 @@ services:
         - BACK_PORT=${BACK_PORT}
         - FASTIFY_SECRET=${FASTIFY_SECRET}
         - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+        - API_BASE_URL=${API_BASE_URL}
     volumes:
       - ./Back:/backend
       - /backend/node_modules
@@ -36,3 +38,17 @@ services:
       - FRONT_PORT=${FRONT_PORT}
       - NGROK_AUTHTOKEN=${NGROK_AUTHTOKEN}
     command: dev
+    # NOTE: Programmatic ngrok setup in backend code is now commented out/removed. Use the ngrok service below.
+
+  # Single ngrok service for both backend (static domain) and frontend (random domain)
+  ngrok:
+    image: ngrok/ngrok:latest
+    volumes:
+      - ./ngrok.yml:/ngrok.yml
+    command: start --all --config /ngrok.yml
+    environment:
+      - NGROK_AUTHTOKEN=${NGROK_AUTHTOKEN}
+    depends_on:
+      - backend
+      - frontend
+    # Check logs or ngrok dashboard for tunnel URLs
