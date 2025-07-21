@@ -470,28 +470,7 @@ export async function updateMatch(request: FastifyRequest, reply: FastifyReply) 
 			});
 		}
 
-		// Handle tournament progression if this is a tournament match and it's completed
-		if (updatedMatch.tournament_id && cleanedData.winner_id !== undefined && cleanedData.winner_id !== null) {
-			try {
-				const tournamentRepo = new TournamentRepository();
-
-				// Get the match details to determine loser
-				const player1_id = updatedMatch.player1_id;
-				const player2_id = updatedMatch.player2_id;
-				const winner_id = cleanedData.winner_id;
-				const loser_id = winner_id === player1_id ? player2_id : player1_id;
-				const round_number = updatedMatch.round_number || 1;
-
-				// Eliminate the loser
-				await tournamentRepo.eliminatePlayer(updatedMatch.tournament_id, loser_id, round_number);
-
-				// Check if round is complete and advance tournament if needed
-				await tournamentRepo.advanceToNextRound(updatedMatch.tournament_id);
-			} catch (tournamentError) {
-				console.error('Error processing tournament progression:', tournamentError);
-				// Don't fail the match update, just log the error
-			}
-		}
+		// Removed obsolete knockout/advancement logic for tournaments
 
 		reply.send({
 			success: true,
