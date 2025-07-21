@@ -46,8 +46,7 @@ async function setupNgrok() {
     const backendUrl = await ngrok.connect({
       addr: process.env.BACK_PORT,
       proto: 'http',
-      authtoken: ngrokAuthToken,
-      domain: 'integral-phoenix-loosely.ngrok-free.app'
+      authtoken: ngrokAuthToken
     });
 
     console.log(`🎯 Frontend ngrok tunnel: ${frontendUrl}`);
