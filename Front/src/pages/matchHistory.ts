@@ -95,7 +95,7 @@ function createMatchHistoryTable(matches: any[], userId: number): HTMLElement {
   const thead = document.createElement('thead');
   thead.className = 'bg-[#3B3567] text-base md:text-xl uppercase';
   const headRow = document.createElement('tr');
-  const headers = ['Opponent', 'Your Score', 'Opponent Score', 'Winner', 'Date'];
+  const headers = ['Opponent', 'Opponent Alias', 'Your Alias', 'Your Score', 'Opponent Score', 'Winner', 'Date'];
   headers.forEach(header => {
     const th = document.createElement('th');
     th.className = 'px-2 md:px-6 py-3';
@@ -112,6 +112,8 @@ function createMatchHistoryTable(matches: any[], userId: number): HTMLElement {
     row.className = 'bg-[#2D2856]';
     const isPlayer1 = match.player1_id === userId;
     const opponent = isPlayer1 ? match.player2_username : match.player1_username;
+    const opponentAlias = isPlayer1 ? match.player2_alias : match.player1_alias;
+    const yourAlias = isPlayer1 ? match.player1_alias : match.player2_alias;
     const yourScore = isPlayer1 ? match.player1_score : match.player2_score;
     const opponentScore = isPlayer1 ? match.player2_score : match.player1_score;
     const winner = match.winner_username;
@@ -128,6 +130,16 @@ function createMatchHistoryTable(matches: any[], userId: number): HTMLElement {
     tdOpponent.className = 'px-6 py-4';
     tdOpponent.textContent = opponent ? `@${opponent}` : '-';
     row.appendChild(tdOpponent);
+    // Opponent Alias
+    const tdOpponentAlias = document.createElement('td');
+    tdOpponentAlias.className = 'px-6 py-4';
+    tdOpponentAlias.textContent = opponentAlias || '-';
+    row.appendChild(tdOpponentAlias);
+    // Your Alias
+    const tdYourAlias = document.createElement('td');
+    tdYourAlias.className = 'px-6 py-4';
+    tdYourAlias.textContent = yourAlias || '-';
+    row.appendChild(tdYourAlias);
     // Your Score
     const tdYourScore = document.createElement('td');
     tdYourScore.className = 'px-6 py-4';

@@ -22,8 +22,6 @@ scrollbar-width: thin;        /* barra fina */
 scrollbar-color: #888 transparent; /* cor da barrinha e do fundo */
 }
 
-/* Remove global #app centering */
-
 .game-active {
   display: flex !important;
   justify-content: center;

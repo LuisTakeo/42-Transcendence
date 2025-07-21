@@ -120,14 +120,7 @@ async function renderRoute(path: string) {
           }
         }
 
-        gamePage({
-          gameType: GameType.LOCAL_TWO_PLAYERS,
-          playerAliases: { player1: "Player 1", player2: "Player 2" },
-          playerIds: {
-            player1: currentUser?.id,
-            player2: 999998 // Reserved user for Local Player 2
-          }
-        });
+        gamePage(GameType.LOCAL_TWO_PLAYERS);
         break;
       case '/game/cpu':
         let currentUserForAI = userService.getCachedCurrentUser();
@@ -141,20 +134,10 @@ async function renderRoute(path: string) {
           }
         }
 
-        gamePage({
-          gameType: GameType.LOCAL_VS_AI,
-          playerAliases: { player1: "Player", player2: "AI" },
-          playerIds: {
-            player1: currentUserForAI?.id,
-            player2: 999999 // Reserved user for AI Opponent
-          }
-        });
+        gamePage(GameType.LOCAL_VS_AI);
         break;
       case '/game/online':
-        gamePage({
-          gameType: GameType.REMOTE,
-          playerAliases: { player1: "Player 1", player2: "Player 2" }
-        });
+        gamePage(GameType.REMOTE);
         break;
       default:
         window.history.replaceState(null, '', '/home');

@@ -90,13 +90,20 @@ class MainGame {
      * @param gameType Tipo de jogo a ser iniciado
      * @param tableWidth Largura da mesa
      * @param tableDepth Profundidade da mesa
+     * @param maxScore Pontuação máxima
+     * @param playerAliases Aliases dos jogadores (player1, player2)
+     * @param playerIds IDs dos jogadores (player1, player2) - opcional
+     * @param tournamentId ID do torneio se for jogo de torneio - opcional
      */
     constructor(
         canvasId: string,
         gameType: GameType = GameType.LOCAL_TWO_PLAYERS,
         tableWidth: number = 100,
         tableDepth: number = 80,
-        maxScore: number = 10
+        maxScore: number = 10,
+        playerAliases: { player1: string, player2: string },
+        playerIds?: { player1?: number, player2?: number },
+        tournamentId?: number
     ) {
         this.canvas = document.getElementById(canvasId) as unknown as HTMLCanvasElement;
         if (!this.canvas) throw new Error(`Canvas with ID "${canvasId}" not found`);
@@ -104,6 +111,20 @@ class MainGame {
         this.gameType = gameType;
         this.score = { player1: 0, player2: 0 };
         this.maxScore = maxScore;
+        this.player1Alias = playerAliases.player1;
+        this.player2Alias = playerAliases.player2;
+
+        // Store match data for when game ends
+        this.matchData = {
+            player1_id: playerIds?.player1,
+            player2_id: playerIds?.player2,
+            player1_alias: playerAliases.player1,
+            player2_alias: playerAliases.player2,
+            winner_id: null,
+            player1_score: 0,
+            player2_score: 0,
+            tournament_id: tournamentId || null
+        };
 
         // Initialize Babylon engine
         this.engine = new Engine(this.canvas, true);
@@ -132,10 +153,14 @@ class MainGame {
      * Save match to database when game ends
      */
     private async saveMatchToDatabase(): Promise<void> {
-        if (!this.matchData) return;
+        if (!this.matchData) {
+            console.log('[Match Save] No matchData present.');
+            return;
+        }
 
         try {
             if (!this.matchData.player1_id) {
+                console.log('[Match Save] No player1_id in matchData:', this.matchData);
                 return;
             }
 
@@ -165,23 +190,28 @@ class MainGame {
                 tournament_id: this.matchData.tournament_id
             };
 
+            const authToken = localStorage.getItem('authToken');
+            console.log('[Match Save] Sending matchData:', matchData);
+            console.log('[Match Save] Using authToken:', authToken);
+
             const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/matches`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+                    'Authorization': `Bearer ${authToken}`
                 },
                 body: JSON.stringify(matchData)
             });
 
             if (response.ok) {
                 const result = await response.json();
+                console.log('[Match Save] Match saved successfully:', result);
             } else {
                 const errorText = await response.text();
-                console.error('Failed to save match:', response.status, errorText);
+                console.error('[Match Save] Failed to save match:', response.status, errorText);
             }
         } catch (error) {
-            console.error('Error saving match:', error);
+            console.error('[Match Save] Error saving match:', error);
         }
     }
 
@@ -412,21 +442,30 @@ class MainGame {
         if (this.gameEnded) return;
         this.gameEnded = true;
 
-        const winner = this.score.player1 >= this.maxScore ? "Player 1" : "Player 2";
+        const winner = this.score.player1 >= this.maxScore ? this.player1Alias : this.player2Alias;
 
         // Update match in database with final results
         await this.saveMatchToDatabase();
 
-        // Exibir mensagem de vitória
-        const victoryText = new TextBlock("victoryText", `${winner} venceu!`);
-        victoryText.color = "yellow";
-        victoryText.fontSize = 40;
-        victoryText.horizontalAlignment = Control.HORIZONTAL_ALIGNMENT_CENTER;
-        victoryText.verticalAlignment = Control.VERTICAL_ALIGNMENT_CENTER;
+        // Show the HTML winner modal
+        showWinnerModal(
+            winner,
+            () => { window.location.reload(); }, // Play again
+            () => {
+                window.history.pushState({}, '', '/home');
+                window.dispatchEvent(new Event('popstate'));
+            }
+        );
 
-        this.advancedTexture.addControl(victoryText);
+        // Optionally, keep or remove the BabylonJS overlay
+        // const victoryText = new TextBlock("victoryText", `${winner} venceu!`);
+        // victoryText.color = "yellow";
+        // victoryText.fontSize = 40;
+        // victoryText.horizontalAlignment = Control.HORIZONTAL_ALIGNMENT_CENTER;
+        // victoryText.verticalAlignment = Control.VERTICAL_ALIGNMENT_CENTER;
+        // this.advancedTexture.addControl(victoryText);
 
-        // Parar o loop de renderização
+        // Stop the render loop
         this.engine.stopRenderLoop();
     }
 
