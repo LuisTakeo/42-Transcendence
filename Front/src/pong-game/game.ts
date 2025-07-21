@@ -346,14 +346,13 @@ class MainGame {
                             if (payload && payload.id) {
                                 realUserId = payload.id.toString();
                                 localStorage.setItem('currentUserId', realUserId);
-                                console.log('[DEBUG] Set currentUserId in localStorage (from token):', realUserId);
                             }
                         } catch (e) {
                             console.error('[DEBUG] Failed to decode JWT for user ID:', e);
                         }
                     }
                 }
-                console.log('[DEBUG] Using userId for remote game:', realUserId);
+
                 this._remoteController = new RemoteController((realUserId ?? 'unknown').toString());
                 this._remoteController.initialize();
                 // Configurar listeners para mensagens de vitória
@@ -509,7 +508,6 @@ class MainGame {
 
         // Listener para quando entrar em uma sala - para saber qual lado você está
         gameService.onMessage('room_created', (data: any) => {
-            console.log('[DEBUG] room_created data:', data);
             this.playerSide = data.side;
             if (this.gameType === GameType.REMOTE && this.matchData) {
                 this.matchData.player1_id = data.side === 'left' ? parseInt(data.userId) : parseInt(data.opponentId);
@@ -518,7 +516,6 @@ class MainGame {
         });
 
         gameService.onMessage('room_joined', (data: any) => {
-            console.log('[DEBUG] room_joined data:', data);
             this.playerSide = data.side;
             if (this.gameType === GameType.REMOTE && this.matchData) {
                 this.matchData.player1_id = data.side === 'left' ? parseInt(data.userId) : parseInt(data.opponentId);
