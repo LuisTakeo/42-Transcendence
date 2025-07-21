@@ -8,15 +8,16 @@ interface Tournament {
     created_at?: string;
 }
 
+// Update TournamentPlayer interface
 interface TournamentPlayer {
     tournament_id: number;
     user_id: number;
     username: string;
     name: string;
-    status: string;
-    eliminated_in_round: number | null;
+    points: number;
 }
 
+// Remove TournamentMatch round_number, match_position
 interface TournamentMatch {
     id: number;
     player1_id: number;
@@ -27,8 +28,6 @@ interface TournamentMatch {
     player1_score: number;
     player2_score: number;
     tournament_id: number;
-    round_number: number;
-    match_position: number;
     played_at: string;
 }
 
@@ -73,15 +72,14 @@ export class TournamentRepository {
         return created;
     }
 
-    // Get tournament players
+    // Get tournament players (remove status/eliminated_in_round)
     async getTournamentPlayers(tournamentId: number): Promise<TournamentPlayer[]> {
         const db = await openDb();
         const query = `
-            SELECT tp.*, u.username, u.name
+            SELECT tp.tournament_id, tp.user_id, u.username, u.name, tp.points
             FROM tournament_players tp
             JOIN users u ON tp.user_id = u.id
             WHERE tp.tournament_id = ?
-            ORDER BY tp.status ASC, tp.eliminated_in_round ASC
         `;
         return db.all(query, [tournamentId]);
     }
@@ -99,17 +97,17 @@ export class TournamentRepository {
         return result || null;
     }
 
-    // Add player to tournament
+    // Add player to tournament (set points to 0)
     async addPlayer(tournamentId: number, userId: number): Promise<void> {
         const db = await openDb();
         const query = `
-            INSERT INTO tournament_players (tournament_id, user_id)
-            VALUES (?, ?)
+            INSERT INTO tournament_players (tournament_id, user_id, points)
+            VALUES (?, ?, 0)
         `;
         await db.run(query, [tournamentId, userId]);
     }
 
-    // Get tournament matches
+    // Get tournament matches (remove round_number/match_position)
     async getTournamentMatches(tournamentId: number): Promise<TournamentMatch[]> {
         const db = await openDb();
         const query = `
@@ -122,20 +120,73 @@ export class TournamentRepository {
             JOIN users u2 ON m.player2_id = u2.id
             LEFT JOIN users w ON m.winner_id = w.id
             WHERE m.tournament_id = ?
-            ORDER BY m.round_number, m.match_position
         `;
         return db.all(query, [tournamentId]);
     }
 
-    // Get tournament standings
-    async getTournamentStandings(tournamentId: number): Promise<any[]> {
+    // Get number of victories for a player in a tournament
+    async getPlayerVictories(tournamentId: number, userId: number): Promise<number> {
         const db = await openDb();
         const query = `
-            SELECT * FROM tournament_standings
-            WHERE tournament_id = ?
-            ORDER BY ranking_order
+            SELECT COUNT(*) as victories
+            FROM matches
+            WHERE tournament_id = ? AND winner_id = ?
         `;
-        return db.all(query, [tournamentId]);
+        const result = await db.get(query, [tournamentId, userId]);
+        return result?.victories || 0;
+    }
+
+    // Get points difference and total points made for a player
+    async getPlayerPointsStats(tournamentId: number, userId: number): Promise<{diff: number, made: number}> {
+        const db = await openDb();
+        const query = `
+            SELECT
+                SUM(CASE WHEN player1_id = ? THEN player1_score WHEN player2_id = ? THEN player2_score ELSE 0 END) as made,
+                SUM(CASE WHEN player1_id = ? THEN player2_score WHEN player2_id = ? THEN player1_score ELSE 0 END) as suffered
+            FROM matches
+            WHERE tournament_id = ?
+        `;
+        const result = await db.get(query, [userId, userId, userId, userId, tournamentId]);
+        return { diff: (result?.made || 0) - (result?.suffered || 0), made: result?.made || 0 };
+    }
+
+    // Get final ranking with tiebreakers
+    async getFinalRanking(tournamentId: number): Promise<Array<{
+        tournament_id: number;
+        user_id: number;
+        username: string;
+        name: string;
+        points: number;
+        victories: number;
+        diff: number;
+        made: number;
+        rank: number;
+    }>> {
+        const players = await this.getTournamentPlayers(tournamentId);
+        const stats = await Promise.all(players.map(async (p) => {
+            const victories = await this.getPlayerVictories(tournamentId, p.user_id);
+            const { diff, made } = await this.getPlayerPointsStats(tournamentId, p.user_id);
+            return { ...p, victories, diff, made };
+        }));
+        // Sort by points, then victories, then diff, then made
+        stats.sort((a, b) => {
+            if (b.points !== a.points) return b.points - a.points;
+            if (b.victories !== a.victories) return b.victories - a.victories;
+            if (b.diff !== a.diff) return b.diff - a.diff;
+            if (b.made !== a.made) return b.made - a.made;
+            return 0;
+        });
+        // Add rank (position) to each player
+        const rankedStats = stats.map((p, i) => ({ ...p, rank: i + 1 }));
+        // Check for full tie
+        if (rankedStats.length > 1) {
+            const top = rankedStats[0];
+            const allTied = rankedStats.every(p => p.points === top.points && p.victories === top.victories && p.diff === top.diff && p.made === top.made);
+            if (allTied) {
+                console.log('All requirements are tied, a new game is needed to determine the winner.');
+            }
+        }
+        return rankedStats;
     }
 
     // Update tournament status
@@ -167,8 +218,7 @@ export class TournamentRepository {
         const db = await openDb();
         const query = `
             SELECT DISTINCT t.*, u.username as owner_username,
-                   CASE WHEN tp.user_id IS NOT NULL THEN 'player' ELSE 'owner' END as user_role,
-                   tp.status as player_status
+                   CASE WHEN tp.user_id IS NOT NULL THEN 'player' ELSE 'owner' END as user_role
             FROM tournaments t
             JOIN users u ON t.owner_id = u.id
             LEFT JOIN tournament_players tp ON t.id = tp.tournament_id AND tp.user_id = ?
@@ -178,118 +228,30 @@ export class TournamentRepository {
         return db.all(query, [userId, userId, userId]);
     }
 
-    // Generate first round matches for tournament
-    async generateFirstRound(tournamentId: number): Promise<void> {
+    // Generate all-play-all matches for round-robin
+    async generateRoundRobinMatches(tournamentId: number): Promise<void> {
         const db = await openDb();
-        // Get active players
         const players = await db.all(`
             SELECT tp.user_id, u.username
             FROM tournament_players tp
             JOIN users u ON tp.user_id = u.id
-            WHERE tp.tournament_id = ? AND tp.status = 'active'
+            WHERE tp.tournament_id = ?
         `, [tournamentId]);
-
-        if (players.length < 2) {
-            throw new Error('Not enough players to generate matches');
-        }
-
-        // Create tournament round
-        await db.run(`
-            INSERT INTO tournament_rounds (tournament_id, round_number)
-            VALUES (?, 1)
-        `, [tournamentId]);
-
-        // Shuffle players for random matchmaking
-        const shuffledPlayers = [...players].sort(() => Math.random() - 0.5);
-
-        // Generate matches (pair players)
-        for (let i = 0; i < shuffledPlayers.length - 1; i += 2) {
-            if (i + 1 < shuffledPlayers.length) {
-                const player1 = shuffledPlayers[i];
-                const player2 = shuffledPlayers[i + 1];
-
+        for (let i = 0; i < players.length; i++) {
+            for (let j = i + 1; j < players.length; j++) {
+                const player1 = players[i];
+                const player2 = players[j];
                 await db.run(`
                     INSERT INTO matches (
                         player1_id, player2_id, player1_alias, player2_alias,
-                        player1_score, player2_score, tournament_id, round_number, match_position
-                    ) VALUES (?, ?, ?, ?, 0, 0, ?, 1, ?)
+                        player1_score, player2_score, tournament_id
+                    ) VALUES (?, ?, ?, ?, 0, 0, ?)
                 `, [
                     player1.user_id, player2.user_id,
                     player1.username, player2.username,
-                    tournamentId, Math.floor(i / 2) + 1
+                    tournamentId
                 ]);
             }
         }
-    }
-
-    // Advance tournament to next round
-    async advanceToNextRound(tournamentId: number): Promise<void> {
-        const db = await openDb();
-        // Get current round number
-        const currentRound = await db.get(`
-            SELECT MAX(round_number) as current_round
-            FROM tournament_rounds
-            WHERE tournament_id = ?
-        `, [tournamentId]);
-
-        const roundNumber = currentRound?.current_round || 0;
-
-        // Get winners from current round
-        const winners = await db.all(`
-            SELECT winner_id, u.username
-            FROM matches m
-            JOIN users u ON m.winner_id = u.id
-            WHERE m.tournament_id = ? AND m.round_number = ? AND m.winner_id IS NOT NULL
-        `, [tournamentId, roundNumber]);
-
-        if (winners.length < 2) {
-            // Tournament finished
-            if (winners.length === 1) {
-                await db.run(`
-                    UPDATE tournament_players
-                    SET status = 'winner'
-                    WHERE tournament_id = ? AND user_id = ?
-                `, [tournamentId, winners[0].winner_id]);
-
-                await this.updateStatus(tournamentId, 'finished');
-            }
-            return;
-        }
-
-        // Create next round
-        const nextRound = roundNumber + 1;
-        await db.run(`
-            INSERT INTO tournament_rounds (tournament_id, round_number)
-            VALUES (?, ?)
-        `, [tournamentId, nextRound]);
-
-        // Generate next round matches
-        for (let i = 0; i < winners.length - 1; i += 2) {
-            if (i + 1 < winners.length) {
-                const player1 = winners[i];
-                const player2 = winners[i + 1];
-
-                await db.run(`
-                    INSERT INTO matches (
-                        player1_id, player2_id, player1_alias, player2_alias,
-                        player1_score, player2_score, tournament_id, round_number, match_position
-                    ) VALUES (?, ?, ?, ?, 0, 0, ?, ?, ?)
-                `, [
-                    player1.winner_id, player2.winner_id,
-                    player1.username, player2.username,
-                    tournamentId, nextRound, Math.floor(i / 2) + 1
-                ]);
-            }
-        }
-    }
-
-    // Eliminate player from tournament
-    async eliminatePlayer(tournamentId: number, userId: number, roundNumber: number): Promise<void> {
-        const db = await openDb();
-        await db.run(`
-            UPDATE tournament_players
-            SET status = 'eliminated', eliminated_in_round = ?
-            WHERE tournament_id = ? AND user_id = ?
-        `, [roundNumber, tournamentId, userId]);
     }
 }

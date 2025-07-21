@@ -44,6 +44,20 @@ export interface RemoteStateSend {
 }
 
 /**
+ * Interface for match data
+ */
+interface MatchData {
+    player1_id?: number;
+    player2_id?: number;
+    player1_alias: string;
+    player2_alias: string;
+    winner_id?: number | null;
+    player1_score: number;
+    player2_score: number;
+    tournament_id?: number | null;
+}
+
+/**
  * Main class for managing the Babylon.js application
  */
 class MainGame {
@@ -65,6 +79,10 @@ class MainGame {
     private _remoteController: RemoteController | null = null;
     private player1Alias: string;
     private player2Alias: string;
+    private gameEnded: boolean = false;
+
+    // Match data for when game ends
+    private matchData: MatchData | null = null;
 
     /**
      * Constructor for the main class
@@ -78,9 +96,7 @@ class MainGame {
         gameType: GameType = GameType.LOCAL_TWO_PLAYERS,
         tableWidth: number = 100,
         tableDepth: number = 80,
-        maxScore: number = 10,
-        player1Alias: string = 'Player 1',
-        player2Alias: string = 'Player 2'
+        maxScore: number = 10
     ) {
         this.canvas = document.getElementById(canvasId) as unknown as HTMLCanvasElement;
         if (!this.canvas) throw new Error(`Canvas with ID "${canvasId}" not found`);
@@ -88,8 +104,6 @@ class MainGame {
         this.gameType = gameType;
         this.score = { player1: 0, player2: 0 };
         this.maxScore = maxScore;
-        this.player1Alias = player1Alias;
-        this.player2Alias = player2Alias;
 
         // Initialize Babylon engine
         this.engine = new Engine(this.canvas, true);
@@ -112,7 +126,66 @@ class MainGame {
         // Inicializa os elementos de GUI
         this.initializeScoreBox();
         this.initializeInstructionsBox();
-    }    /**
+    }
+
+    /**
+     * Save match to database when game ends
+     */
+    private async saveMatchToDatabase(): Promise<void> {
+        if (!this.matchData) return;
+
+        try {
+            if (!this.matchData.player1_id) {
+                return;
+            }
+
+            // Use correct reserved user ID for player2_id if missing
+            let player2_id = this.matchData.player2_id;
+            if (!player2_id) {
+                if (this.gameType === GameType.LOCAL_TWO_PLAYERS) {
+                    player2_id = 999998;
+                } else if (this.gameType === GameType.LOCAL_VS_AI) {
+                    player2_id = 999999;
+                } else {
+                    player2_id = 0; // fallback, should never happen for remote
+                }
+            }
+
+            const winnerId = this.score.player1 >= this.maxScore ?
+                this.matchData.player1_id : player2_id;
+
+            const matchData = {
+                player1_id: this.matchData.player1_id,
+                player2_id: player2_id,
+                player1_alias: this.matchData.player1_alias,
+                player2_alias: this.matchData.player2_alias,
+                winner_id: winnerId,
+                player1_score: this.score.player1,
+                player2_score: this.score.player2,
+                tournament_id: this.matchData.tournament_id
+            };
+
+            const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/matches`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+                },
+                body: JSON.stringify(matchData)
+            });
+
+            if (response.ok) {
+                const result = await response.json();
+            } else {
+                const errorText = await response.text();
+                console.error('Failed to save match:', response.status, errorText);
+            }
+        } catch (error) {
+            console.error('Error saving match:', error);
+        }
+    }
+
+    /**
      * Initialize the scene with basic elements
      */
     private initializeScene(): void {
@@ -233,7 +306,7 @@ class MainGame {
                         this.tableManager.getTableDepth(),
                         LevelAI.EXPERT
                     )},
-                    "Use as setas para mover!"
+                    "Use as setas para mover\n"
                 )
                 break;
 
@@ -279,7 +352,7 @@ class MainGame {
         this.inputManager.connectControllerToPaddle(player2.info, this.tableManager.getPaddleRight());
     }
 
-    /**
+        /**
      * Start the rendering loop
      */
     public run(): void {
@@ -325,28 +398,33 @@ class MainGame {
         this.updateScore();
         if (this.isFinished())
         {
-            this.endGame();
+            this.endGame().catch(error => {
+                console.error('Error ending game:', error);
+            });
             // return ;
         }
 
         this.scene.render();
     }
 
-    private endGame(): void {
-        let winner;
-        if (this.gameType === GameType.LOCAL_VS_AI) {
-            winner = this.score.player1 >= this.maxScore ? "You" : "CPU";
-        } else {
-            winner = this.score.player1 >= this.maxScore ? this.player1Alias : this.player2Alias;
-        }
+    private async endGame(): Promise<void> {
+        // Prevent multiple calls
+        if (this.gameEnded) return;
+        this.gameEnded = true;
 
-        // Remove Babylon.js GUI victory text
-        // Show modal instead
-        showWinnerModal(
-            winner,
-            () => { window.location.reload(); }, // Play Again: reload page
-            () => { window.history.pushState({}, '', '/home'); window.dispatchEvent(new Event('popstate')); } // Go Home
-        );
+        const winner = this.score.player1 >= this.maxScore ? "Player 1" : "Player 2";
+
+        // Update match in database with final results
+        await this.saveMatchToDatabase();
+
+        // Exibir mensagem de vitória
+        const victoryText = new TextBlock("victoryText", `${winner} venceu!`);
+        victoryText.color = "yellow";
+        victoryText.fontSize = 40;
+        victoryText.horizontalAlignment = Control.HORIZONTAL_ALIGNMENT_CENTER;
+        victoryText.verticalAlignment = Control.VERTICAL_ALIGNMENT_CENTER;
+
+        this.advancedTexture.addControl(victoryText);
 
         // Parar o loop de renderização
         this.engine.stopRenderLoop();

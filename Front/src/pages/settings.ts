@@ -310,7 +310,14 @@ async function loadFriends(): Promise<void> {
 		// Get user details for all friends
 		const usersResponse = await usersService.getAllUsers();
 		const users = usersResponse.success ? usersResponse.data : [];
-		const userMap = new Map(users.map(user => [user.id, user]));
+		const RESERVED_USER_IDS = [999998, 999999];
+
+		function filterReservedUsers(users: any[]): any[] {
+			return users.filter(user => !RESERVED_USER_IDS.includes(user.id));
+		}
+
+		const filteredUsers = filterReservedUsers(users);
+		const userMap = new Map(filteredUsers.map(user => [user.id, user]));
 
 		// Render friends
 		friendsContainer.innerHTML = friends.map(friend => {

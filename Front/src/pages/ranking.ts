@@ -42,16 +42,22 @@ async function getCurrentUserId(): Promise<number | null> {
 	return currentUser.id;
 }
 
+const RESERVED_USER_IDS = [999998, 999999];
+
+function filterReservedUsers(users: any[]): any[] {
+  return users.filter(user => !RESERVED_USER_IDS.includes(user.id));
+}
+
 function renderRows(): string {
-  return rankingData
+  return filterReservedUsers(rankingData)
     .map(
       (u) => `
       <tr class="bg-[#2D2856]">
-        <td class="px-6 py-4">${u.position}.</td>
-        <td class="px-6 py-4">${u.username}</td>
-        <td class="px-6 py-4">${u.totalMatches}</td>
-        <td class="px-6 py-4">${u.wins}</td>
-        <td class="px-6 py-4">
+        <td class="px-3 py-2 md:px-6 md:py-4 text-sm md:text-2xl">${u.position}.</td>
+        <td class="px-3 py-2 md:px-6 md:py-4 text-sm md:text-2xl">${u.username}</td>
+        <td class="px-3 py-2 md:px-6 md:py-4 text-sm md:text-2xl">${u.totalMatches}</td>
+        <td class="px-3 py-2 md:px-6 md:py-4 text-sm md:text-2xl">${u.wins}</td>
+        <td class="px-3 py-2 md:px-6 md:py-4 text-sm md:text-2xl">
           <div class="flex gap-6 justify-center">
             <button class="add-friend-btn" data-user-id="${u.id}" title="Add friend"><img src="../../assets/add-friend.png" alt="add friend" class="w-8 h-8"/></button>
             <button class="remove-friend-btn" data-user-id="${u.id}" title="Remove friend"><img src="../../assets/remove-user.png" alt="remove friend" class="w-8 h-8"/></button>
@@ -70,7 +76,7 @@ export default function RankingPage(): void {
   app.innerHTML = ""; // Clear existing content
 
   const main = document.createElement("main");
-  main.className = "main-content p-4 md:p-4 lg:p-10 flex justify-center items-center min-h-screen";
+  main.className = "main-content p-4 md:p-8 lg:p-12 flex justify-center items-center min-h-screen";
   main.innerHTML = `
     <div class="w-full md:p-2 lg:p-12 bg-[#1E1B4B] rounded-lg p-8">
       <h1 class="text-5xl font-bold mb-6 text-center">Ranking</h1>
@@ -132,20 +138,22 @@ async function loadRanking(): Promise<void> {
 
       if (rankingContent) {
         rankingContent.innerHTML = `
-          <table class="w-full text-center text-white rounded-lg overflow-hidden">
+		<div id="ranking-content" class="overflow-x-auto">
+          <table class="w-full min-w-full text-center text-white rounded-lg overflow-hidden">
             <thead class="bg-[#3B3567] text-2xl uppercase">
               <tr>
-                <th class="px-6 py-3">Pos</th>
-                <th class="px-6 py-3">User</th>
-                <th class="px-6 py-3">Matches</th>
-                <th class="px-6 py-3">Wins</th>
-                <th class="px-6 py-3">Options</th>
+                <th class="px-3 py-2 md:px-6 md:py-3 text-sm md:text-2xl uppercase">Pos</th>
+                <th class="px-3 py-2 md:px-6 md:py-3 text-sm md:text-2xl uppercase">User</th>
+                <th class="px-3 py-2 md:px-6 md:py-3 text-sm md:text-2xl uppercase">Matches</th>
+                <th class="px-3 py-2 md:px-6 md:py-3 text-sm md:text-2xl uppercase">Wins</th>
+                <th class="px-3 py-2 md:px-6 md:py-3 text-sm md:text-2xl uppercase">Options</th>
               </tr>
             </thead>
             <tbody class="text-2xl">
               ${renderRows()}
             </tbody>
           </table>
+		</div>
         `;
       }
     } else {

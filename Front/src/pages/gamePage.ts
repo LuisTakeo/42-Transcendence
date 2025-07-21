@@ -1,4 +1,17 @@
 import { GameType, MainGame } from "../pong-game/game";
+
+interface GamePageOptions {
+    gameType: GameType;
+    playerAliases: { player1: string; player2: string };
+    playerIds?: { player1?: number; player2?: number };
+    tournamentId?: number;
+}
+
+function getDisplayName(userId: number, alias: string): string {
+  if (userId === 999999) return 'AI Opponent';
+  if (userId === 999998) return 'Local Player 2';
+  return alias;
+}
 import { showAliasModal } from "./alias-modal";
 
 export function showWinnerModal(winner: string, onPlayAgain: () => void, onHome: () => void) {
@@ -41,7 +54,7 @@ export default async function gamePage(gameType: GameType): Promise<void> {
     if (sidebar) sidebar.style.display = 'none';
     if (app) app.style.marginLeft = '0';
     if (!app) {
-        return ;
+        return;
     }
     // Add centering class for game page
     app.classList.add('game-active');
@@ -58,77 +71,13 @@ export default async function gamePage(gameType: GameType): Promise<void> {
     scoreBar.innerHTML = `<span class="score-left"></span><span class="score-center">0 - 0</span><span class="score-right"></span>`;
     container.appendChild(scoreBar);
 
+
     const canvas = document.createElement('canvas');
     canvas.id = 'gameCanvas';
     canvas.style.width = '100%';
     canvas.style.height = '100%';
-    container.appendChild(canvas);
-
-    // Create and insert instruction bar below the canvas
-    const instructionBar = document.createElement('div');
-    instructionBar.id = 'instruction-bar';
-    // Set initial instruction text based on game type
-    if (gameType === GameType.LOCAL_TWO_PLAYERS) {
-      instructionBar.innerHTML = 'Use W/S for Player 1 | Arrows for Player 2';
-    } else {
-      instructionBar.innerHTML = '<i class="fa-solid fa-up-down" style="margin-right:8px; color: #fff;"></i>Use arrows to move!';
-    }
-    container.appendChild(instructionBar);
-
-    app.appendChild(container);
-
-    // Helper to update the score bar
-    function updateScoreBar(leftLabel: string, scoreText: string, rightLabel: string) {
-        const left = scoreBar.querySelector('.score-left') as HTMLElement;
-        const center = scoreBar.querySelector('.score-center') as HTMLElement;
-        const right = scoreBar.querySelector('.score-right') as HTMLElement;
-        if (left) left.textContent = leftLabel;
-        if (center) center.textContent = scoreText;
-        if (right) right.textContent = rightLabel;
-    }
-
-    if (gameType === GameType.LOCAL_TWO_PLAYERS) {
-        const aliases = await showAliasModal();
-        if (!aliases) {
-            // User cancelled, go back to home
-            app.classList.remove('game-active');
-            window.history.pushState({}, '', '/home');
-            window.dispatchEvent(new Event('popstate'));
-            return;
-        }
-        // Set initial labels
-        updateScoreBar(aliases.player1, '0 - 0', aliases.player2);
-        // Update instruction bar with aliases
-        instructionBar.innerHTML = `Use W/S for ${aliases.player1} | Arrows for ${aliases.player2}`;
-        // Patch MainGame to update score bar
-        const game = new MainGame('gameCanvas', gameType, 100, 80, 10, aliases.player1, aliases.player2);
-        // Add a public getScore method if not present
-        (game as any).getScore = function() { return { ...this.score }; };
-        const origUpdateScore = game['updateScore'].bind(game);
-        game['updateScore'] = function() {
-            origUpdateScore();
-            const score = (this as any).getScore();
-            updateScoreBar(aliases.player1, `${score.player1} - ${score.player2}`, aliases.player2);
-        };
-        game.run();
-    } else {
-        // Set initial labels for CPU
-        updateScoreBar('You', '0 - 0', 'CPU');
-        // Patch MainGame to update score bar
-        const game = new MainGame('gameCanvas', gameType);
-        (game as any).getScore = function() { return { ...this.score }; };
-        const origUpdateScore = game['updateScore'].bind(game);
-        game['updateScore'] = function() {
-            origUpdateScore();
-            const score = (this as any).getScore();
-            updateScoreBar('You', `${score.player1} - ${score.player2}`, 'CPU');
-        };
-        game.run();
-    }
-
-    // Optionally, restore sidebar when leaving the game page
-    window.addEventListener('popstate', () => {
-        if (sidebar) sidebar.style.display = '';
-        if (app) app.style.marginLeft = '80px';
-    }, { once: true });
+    app.innerHTML = '';
+    app.appendChild(canvas);
+    const game = new MainGame('gameCanvas', gameType);
+    game.run();
 }

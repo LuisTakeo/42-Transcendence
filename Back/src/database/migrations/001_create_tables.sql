@@ -1,16 +1,17 @@
 -- users
 CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT,
+    name TEXT NOT NULL,
     username TEXT UNIQUE NOT NULL,
     email TEXT UNIQUE NOT NULL,
+    password_hash TEXT,
     avatar_url TEXT,
+    is_online INTEGER DEFAULT 0,
     last_seen_at DATETIME,
+    created_at DATETIME DEFAULT (datetime('now')),
     two_factor_enabled INTEGER DEFAULT 0,
     two_factor_secret TEXT,
-    google_id TEXT UNIQUE,
-    created_at DATETIME DEFAULT (datetime('now')),
-    is_online INTEGER DEFAULT 0
+    google_id TEXT UNIQUE
 );
 
 -- conversations
@@ -57,7 +58,6 @@ CREATE TABLE IF NOT EXISTS matches (
     player1_score INTEGER NOT NULL,
     player2_score INTEGER NOT NULL,
     played_at DATETIME DEFAULT (datetime('now')),
-    CHECK (player1_id <> player2_id),
     FOREIGN KEY (player1_id) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (player2_id) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (winner_id) REFERENCES users(id)
