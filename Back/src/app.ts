@@ -70,10 +70,10 @@ export const startServer = async () => {
 
 
 	await app.register(cors, {
-    origin: true,
+    origin: process.env.FRONT_URL || true,
 		credentials: true,
 		methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-		allowedHeaders: ['Content-Type', 'Authorization']
+		allowedHeaders: ['Content-Type', 'Authorization', 'ngrok-skip-browser-warning']
 	});
 
   app.register(registerRoutes);

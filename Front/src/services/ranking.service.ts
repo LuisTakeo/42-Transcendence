@@ -13,7 +13,7 @@ export interface RankingUser {
   winRate: number;
 }
 
-const RESERVED_USER_IDS = [999998, 999999];
+const RESERVED_USER_IDS = [4, 5];
 
 export class RankingService extends BaseApiService {
   // Get all users ranked by their performance

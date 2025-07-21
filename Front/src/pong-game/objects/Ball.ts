@@ -133,6 +133,11 @@ class Ball {
         this.mesh.position = position;
     }
 
+    public updatePositionRemote(positionX: number, positionZ: number): void {
+        this.mesh.position.x = positionX;
+        this.mesh.position.z = positionZ;
+    }
+
     public getDiameter(): number {
         return this.diameter; // Retorna o diâmetro da bola
     }   

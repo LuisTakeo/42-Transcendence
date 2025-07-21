@@ -8,8 +8,8 @@ interface GamePageOptions {
 }
 
 function getDisplayName(userId: number, alias: string): string {
-  if (userId === 999999) return 'AI Opponent';
-  if (userId === 999998) return 'Local Player 2';
+  if (userId === 4) return 'AI Opponent';
+  if (userId === 5) return 'Local Player 2';
   return alias;
 }
 

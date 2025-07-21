@@ -120,7 +120,14 @@ async function renderRoute(path: string) {
           }
         }
 
-        gamePage(GameType.LOCAL_TWO_PLAYERS);
+        gamePage({
+          gameType: GameType.LOCAL_TWO_PLAYERS,
+          playerAliases: { player1: "Player 1", player2: "Player 2" },
+          playerIds: {
+            player1: currentUser?.id,
+            player2: 4 // Reserved user for Local Player 2
+          }
+        });
         break;
       case '/game/cpu':
         let currentUserForAI = userService.getCachedCurrentUser();
@@ -134,7 +141,14 @@ async function renderRoute(path: string) {
           }
         }
 
-        gamePage(GameType.LOCAL_VS_AI);
+        gamePage({
+          gameType: GameType.LOCAL_VS_AI,
+          playerAliases: { player1: "Player", player2: "AI" },
+          playerIds: {
+            player1: currentUserForAI?.id,
+            player2: 5 // Reserved user for AI Opponent
+          }
+        });
         break;
       case '/game/online':
         gamePage(GameType.REMOTE);
@@ -241,7 +255,8 @@ async function updateLastSeen(): Promise<void> {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'ngrok-skip-browser-warning': 'true'
         },
         body: JSON.stringify({ last_seen_at: new Date().toISOString() })
       });

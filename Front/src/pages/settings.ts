@@ -310,7 +310,7 @@ async function loadFriends(): Promise<void> {
 		// Get user details for all friends
 		const usersResponse = await usersService.getAllUsers();
 		const users = usersResponse.success ? usersResponse.data : [];
-		const RESERVED_USER_IDS = [999998, 999999];
+		const RESERVED_USER_IDS = [4, 5];
 
 		function filterReservedUsers(users: any[]): any[] {
 			return users.filter(user => !RESERVED_USER_IDS.includes(user.id));

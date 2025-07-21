@@ -19,7 +19,7 @@ export function createAchievementCard(title: string, imgSrc: string, isUnlocked:
 
 
 export async function renderAchievements(userId: number) {
-	const RESERVED_USER_IDS = [999998, 999999];
+	const RESERVED_USER_IDS = [4, 5];
 	if (RESERVED_USER_IDS.includes(userId)) {
 	  const container = document.getElementById('achievements-container');
 	  if (container) container.innerHTML = `<div class='text-center text-gray-400'>No achievements for this user.</div>`;

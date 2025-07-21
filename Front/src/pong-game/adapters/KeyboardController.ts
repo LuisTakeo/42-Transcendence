@@ -117,11 +117,10 @@ export class KeyboardController extends BaseController {
         if (direction !== 0) {
             const moveLimit = (this.tableDepth / 2) - (this.paddleSize.depth - 2.5); // Deixa uma margem de 5 unidades
 
-
             if (direction < 0) {
-                this.paddle.moveUp(moveLimit);
+                this.paddle.moveUp(moveLimit, deltaTime);
             } else {
-                this.paddle.moveDown(moveLimit);
+                this.paddle.moveDown(moveLimit, deltaTime);
             }
         }
     }

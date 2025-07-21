@@ -22,7 +22,7 @@ export interface UserStats {
 	topRanked: boolean;
   }
 
-const RESERVED_USER_IDS = [999998, 999999];
+const RESERVED_USER_IDS = [4, 5];
 
 export class UsersService extends BaseApiService {
   // Get users with pagination and search
