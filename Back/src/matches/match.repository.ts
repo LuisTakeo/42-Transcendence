@@ -1,6 +1,8 @@
 // src/matches/match.repository.ts
 import { openDb } from '../database/database';
 
+const RESERVED_USER_IDS = [999998, 999999];
+
 // Interface for Match data
 export interface Match {
 	id?: number;
@@ -253,6 +255,9 @@ export async function getUserStats(userId: number): Promise<{
 	losses: number;
 	winRate: number;
 }> {
+	if (RESERVED_USER_IDS.includes(userId)) {
+		return { totalMatches: 0, wins: 0, losses: 0, winRate: 0 };
+	}
 	const db = await openDb();
 
 	const totalMatches = await db.get(
@@ -285,12 +290,13 @@ export async function getBulkUserStats(userIds: number[]): Promise<Map<number, {
 	losses: number;
 	winRate: number;
 }>> {
-	if (userIds.length === 0) {
+	const filteredUserIds = userIds.filter(id => !RESERVED_USER_IDS.includes(id));
+	if (filteredUserIds.length === 0) {
 		return new Map();
 	}
 
 	const db = await openDb();
-	const placeholders = userIds.map(() => '?').join(',');
+	const placeholders = filteredUserIds.map(() => '?').join(',');
 
 	// Get total matches for all users
 	const totalMatchesQuery = `
@@ -315,8 +321,8 @@ export async function getBulkUserStats(userIds: number[]): Promise<Map<number, {
 		GROUP BY winner_id
 	`;
 
-	const totalMatchesResults = await db.all(totalMatchesQuery, [...userIds, ...userIds]);
-	const winsResults = await db.all(winsQuery, userIds);
+	const totalMatchesResults = await db.all(totalMatchesQuery, [...filteredUserIds, ...filteredUserIds]);
+	const winsResults = await db.all(winsQuery, filteredUserIds);
 
 	// Create maps for easy lookup
 	const totalMatchesMap = new Map();
@@ -332,7 +338,7 @@ export async function getBulkUserStats(userIds: number[]): Promise<Map<number, {
 
 	// Build result map
 	const result = new Map();
-	userIds.forEach(userId => {
+	filteredUserIds.forEach(userId => {
 		const totalMatches = totalMatchesMap.get(userId) || 0;
 		const wins = winsMap.get(userId) || 0;
 		const losses = totalMatches - wins;

@@ -4,6 +4,8 @@ import * as repository from './match.repository';
 import { CreateMatchData, UpdateMatchData } from './match.repository';
 import { TournamentRepository } from '../tournaments/tournament.repository';
 
+const RESERVED_USER_IDS = [999998, 999999];
+
 // Validation helper functions
 const isValidScore = (score: number): boolean => {
 	return Number.isInteger(score) && score >= 0;
@@ -173,6 +175,13 @@ export async function getPlayerStats(request: FastifyRequest, reply: FastifyRepl
 			});
 		}
 
+		if (RESERVED_USER_IDS.includes(playerIdNum)) {
+			return reply.status(404).send({
+				success: false,
+				error: 'Stats not available for reserved users'
+			});
+		}
+
 		// Get both stats and recent matches
 		const [stats, recentMatches] = await Promise.all([
 			repository.getUserStats(playerIdNum),
@@ -244,7 +253,15 @@ export async function getBulkUserStats(request: FastifyRequest, reply: FastifyRe
 			});
 		}
 
-		const statsMap = await repository.getBulkUserStats(userIds);
+		const filteredUserIds = userIds.filter(id => !RESERVED_USER_IDS.includes(id));
+		if (filteredUserIds.length === 0) {
+			return reply.send({
+				success: true,
+				data: {}
+			});
+		}
+
+		const statsMap = await repository.getBulkUserStats(filteredUserIds);
 
 		// Convert Map to object for JSON response
 		const statsObject: Record<number, any> = {};
@@ -295,7 +312,8 @@ export async function createMatch(request: FastifyRequest, reply: FastifyReply) 
 			});
 		}
 
-		if (!isValidPlayerId(player2_id)) {
+		// Allow player2_id = 0 for AI games, otherwise must be valid player ID
+		if (player2_id !== 0 && !isValidPlayerId(player2_id)) {
 			return reply.status(400).send({
 				success: false,
 				error: 'Invalid player2_id'

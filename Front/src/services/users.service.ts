@@ -22,6 +22,8 @@ export interface UserStats {
 	topRanked: boolean;
   }
 
+const RESERVED_USER_IDS = [999998, 999999];
+
 export class UsersService extends BaseApiService {
   // Get users with pagination and search
   async getUsers(page: number = 1, limit: number = 10, search?: string): Promise<PaginatedResponse<User>> {
@@ -36,12 +38,20 @@ export class UsersService extends BaseApiService {
 	console.log("bateu aqui - get Users ");
 
 
-    return this.request<PaginatedResponse<User>>(`/users?${params.toString()}`);
+    const response = await this.request<PaginatedResponse<User>>(`/users?${params.toString()}`);
+    if (response.success && response.data) {
+      response.data = response.data.filter(user => !RESERVED_USER_IDS.includes(user.id));
+    }
+    return response;
   }
 
   // Get all users without pagination
   async getAllUsers(): Promise<SimpleResponse<User>> {
-    return this.request<SimpleResponse<User>>('/users/all');
+    const response = await this.request<SimpleResponse<User>>('/users');
+    if (response.success && response.data) {
+      response.data = response.data.filter(user => !RESERVED_USER_IDS.includes(user.id));
+    }
+    return response;
   }
 
   // Get user by ID

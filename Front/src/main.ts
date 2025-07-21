@@ -124,7 +124,7 @@ async function renderRoute(path: string) {
           playerAliases: { player1: "Player 1", player2: "Player 2" },
           playerIds: {
             player1: currentUser?.id,
-            player2: currentUser?.id // Same user for local two players
+            player2: 999998 // Reserved user for Local Player 2
           }
         });
         break;
@@ -145,7 +145,7 @@ async function renderRoute(path: string) {
           playerAliases: { player1: "Player", player2: "AI" },
           playerIds: {
             player1: currentUserForAI?.id,
-            player2: 0 // AI doesn't have a real user ID
+            player2: 999999 // Reserved user for AI Opponent
           }
         });
         break;

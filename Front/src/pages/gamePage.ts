@@ -7,6 +7,12 @@ interface GamePageOptions {
     tournamentId?: number;
 }
 
+function getDisplayName(userId: number, alias: string): string {
+  if (userId === 999999) return 'AI Opponent';
+  if (userId === 999998) return 'Local Player 2';
+  return alias;
+}
+
 export default function gamePage(options: GamePageOptions): void {
     const app = document.getElementById('app');
     if (!app) {
@@ -26,7 +32,10 @@ export default function gamePage(options: GamePageOptions): void {
         100, // tableWidth
         80,  // tableDepth
         2,   // maxScore
-        options.playerAliases,
+        {
+          player1: getDisplayName(options.playerIds?.player1 ?? 0, options.playerAliases.player1),
+          player2: getDisplayName(options.playerIds?.player2 ?? 0, options.playerAliases.player2)
+        },
         options.playerIds,
         options.tournamentId
     );

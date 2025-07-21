@@ -155,11 +155,6 @@ class MainGame {
                 return;
             }
 
-            // For AI games (player2_id = 0), skip saving
-            if (this.matchData.player2_id === 0) {
-                return;
-            }
-
             // Determine winner
             const winnerId = this.score.player1 >= this.maxScore ?
                 this.matchData.player1_id : this.matchData.player2_id;
