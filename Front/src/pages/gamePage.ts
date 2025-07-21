@@ -121,7 +121,7 @@ export default async function gamePage(gameType: GameType): Promise<void> {
             gameType,
             100,
             80,
-            1,
+            10,
             { player1: aliases.player1, player2: aliases.player2 },
             { player1: currentUser?.id, player2: 999998 }
         );
@@ -137,7 +137,7 @@ export default async function gamePage(gameType: GameType): Promise<void> {
             gameType,
             100,
             80,
-            1,
+            10,
             { player1: 'You', player2: 'CPU' },
             { player1: currentUser?.id, player2: 999999 }
         );
@@ -151,7 +151,7 @@ export default async function gamePage(gameType: GameType): Promise<void> {
             gameType,
             100,
             80,
-            1,
+            10,
             { player1: 'Player 1', player2: 'Player 2' }
         );
         game.run();

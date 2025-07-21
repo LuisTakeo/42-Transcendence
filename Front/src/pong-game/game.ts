@@ -154,13 +154,11 @@ class MainGame {
      */
     private async saveMatchToDatabase(): Promise<void> {
         if (!this.matchData) {
-            console.log('[Match Save] No matchData present.');
             return;
         }
 
         try {
             if (!this.matchData.player1_id) {
-                console.log('[Match Save] No player1_id in matchData:', this.matchData);
                 return;
             }
 
@@ -191,8 +189,6 @@ class MainGame {
             };
 
             const authToken = localStorage.getItem('authToken');
-            console.log('[Match Save] Sending matchData:', matchData);
-            console.log('[Match Save] Using authToken:', authToken);
 
             const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/matches`, {
                 method: 'POST',
@@ -205,10 +201,8 @@ class MainGame {
 
             if (response.ok) {
                 const result = await response.json();
-                console.log('[Match Save] Match saved successfully:', result);
             } else {
                 const errorText = await response.text();
-                console.error('[Match Save] Failed to save match:', response.status, errorText);
             }
         } catch (error) {
             console.error('[Match Save] Error saving match:', error);

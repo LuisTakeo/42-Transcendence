@@ -42,7 +42,7 @@ export function loginWithGoogle(app: FastifyInstance) {
         email: user.email,
       },
       {
-        expiresIn: '1h'
+        expiresIn: '5h'
       }
     );
 
