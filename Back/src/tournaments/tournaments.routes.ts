@@ -24,4 +24,7 @@ export async function tournamentRoutes(fastify: FastifyInstance) {
 
     // GET /tournaments/user/:userId - Get tournaments by user
     fastify.get('/user/:userId', tournamentsController.getUserTournaments.bind(tournamentsController));
+
+    // GET /tournaments/:id/final-ranking - Get final ranking for a tournament
+    fastify.get('/:id/final-ranking', tournamentsController.getFinalRanking.bind(tournamentsController));
 }

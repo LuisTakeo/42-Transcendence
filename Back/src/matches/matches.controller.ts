@@ -4,6 +4,8 @@ import * as repository from './match.repository';
 import { CreateMatchData, UpdateMatchData } from './match.repository';
 import { TournamentRepository } from '../tournaments/tournament.repository';
 
+const RESERVED_USER_IDS = [999998, 999999];
+
 // Validation helper functions
 const isValidScore = (score: number): boolean => {
 	return Number.isInteger(score) && score >= 0;
@@ -173,6 +175,13 @@ export async function getPlayerStats(request: FastifyRequest, reply: FastifyRepl
 			});
 		}
 
+		if (RESERVED_USER_IDS.includes(playerIdNum)) {
+			return reply.status(404).send({
+				success: false,
+				error: 'Stats not available for reserved users'
+			});
+		}
+
 		// Get both stats and recent matches
 		const [stats, recentMatches] = await Promise.all([
 			repository.getUserStats(playerIdNum),
@@ -182,9 +191,12 @@ export async function getPlayerStats(request: FastifyRequest, reply: FastifyRepl
 		// Format all matches for the frontend (no limit)
 		const formattedMatches = recentMatches.map(match => {
 			const isPlayer1 = match.player1_id === playerIdNum;
-			// Use the actual usernames from the users table, not aliases
-			const playerUsername = isPlayer1 ? match.player1_username : match.player2_username;
-			const opponentUsername = isPlayer1 ? match.player2_username : match.player1_username;
+			const playerId = isPlayer1 ? match.player1_id : match.player2_id;
+			const opponentId = isPlayer1 ? match.player2_id : match.player1_id;
+			const playerAlias = isPlayer1 ? match.player1_alias : match.player2_alias;
+			const opponentAlias = isPlayer1 ? match.player2_alias : match.player1_alias;
+			const playerUsername = RESERVED_USER_IDS.includes(playerId) ? playerAlias : (isPlayer1 ? match.player1_username : match.player2_username);
+			const opponentUsername = RESERVED_USER_IDS.includes(opponentId) ? opponentAlias : (isPlayer1 ? match.player2_username : match.player1_username);
 			const playerScore = isPlayer1 ? match.player1_score : match.player2_score;
 			const opponentScore = isPlayer1 ? match.player2_score : match.player1_score;
 
@@ -244,7 +256,15 @@ export async function getBulkUserStats(request: FastifyRequest, reply: FastifyRe
 			});
 		}
 
-		const statsMap = await repository.getBulkUserStats(userIds);
+		const filteredUserIds = userIds.filter(id => !RESERVED_USER_IDS.includes(id));
+		if (filteredUserIds.length === 0) {
+			return reply.send({
+				success: true,
+				data: {}
+			});
+		}
+
+		const statsMap = await repository.getBulkUserStats(filteredUserIds);
 
 		// Convert Map to object for JSON response
 		const statsObject: Record<number, any> = {};
@@ -295,17 +315,11 @@ export async function createMatch(request: FastifyRequest, reply: FastifyReply) 
 			});
 		}
 
-		if (!isValidPlayerId(player2_id)) {
+		// Allow player2_id to be a valid user ID or a reserved user ID (999998, 999999)
+		if (!isValidPlayerId(player2_id) && !RESERVED_USER_IDS.includes(player2_id)) {
 			return reply.status(400).send({
 				success: false,
 				error: 'Invalid player2_id'
-			});
-		}
-
-		if (player1_id === player2_id) {
-			return reply.status(400).send({
-				success: false,
-				error: 'Player cannot play against themselves'
 			});
 		}
 
@@ -459,28 +473,7 @@ export async function updateMatch(request: FastifyRequest, reply: FastifyReply) 
 			});
 		}
 
-		// Handle tournament progression if this is a tournament match and it's completed
-		if (updatedMatch.tournament_id && cleanedData.winner_id !== undefined && cleanedData.winner_id !== null) {
-			try {
-				const tournamentRepo = new TournamentRepository();
-
-				// Get the match details to determine loser
-				const player1_id = updatedMatch.player1_id;
-				const player2_id = updatedMatch.player2_id;
-				const winner_id = cleanedData.winner_id;
-				const loser_id = winner_id === player1_id ? player2_id : player1_id;
-				const round_number = updatedMatch.round_number || 1;
-
-				// Eliminate the loser
-				await tournamentRepo.eliminatePlayer(updatedMatch.tournament_id, loser_id, round_number);
-
-				// Check if round is complete and advance tournament if needed
-				await tournamentRepo.advanceToNextRound(updatedMatch.tournament_id);
-			} catch (tournamentError) {
-				console.error('Error processing tournament progression:', tournamentError);
-				// Don't fail the match update, just log the error
-			}
-		}
+		// Removed obsolete knockout/advancement logic for tournaments
 
 		reply.send({
 			success: true,

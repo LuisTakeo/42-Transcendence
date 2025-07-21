@@ -58,7 +58,6 @@ CREATE TABLE IF NOT EXISTS matches (
     player1_score INTEGER NOT NULL,
     player2_score INTEGER NOT NULL,
     played_at DATETIME DEFAULT (datetime('now')),
-    CHECK (player1_id <> player2_id),
     FOREIGN KEY (player1_id) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (player2_id) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (winner_id) REFERENCES users(id)

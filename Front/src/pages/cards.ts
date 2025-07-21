@@ -7,7 +7,7 @@ export function createAchievementCard(title: string, imgSrc: string, isUnlocked:
 	`;
 	const unlockedClasses = "opacity-100 hover:scale-105";
 	const lockedClasses = "opacity-40";
-  
+
 	return `
 	  <div class="${baseClasses} ${isUnlocked ? unlockedClasses : lockedClasses}">
 		<img src="${imgSrc}" alt="${title}" class="w-auto max-w-[80px] h-auto object-contain" />
@@ -16,15 +16,21 @@ export function createAchievementCard(title: string, imgSrc: string, isUnlocked:
 	  </div>
 	`;
   }
-  
+
 
 export async function renderAchievements(userId: number) {
+	const RESERVED_USER_IDS = [999998, 999999];
+	if (RESERVED_USER_IDS.includes(userId)) {
+	  const container = document.getElementById('achievements-container');
+	  if (container) container.innerHTML = `<div class='text-center text-gray-400'>No achievements for this user.</div>`;
+	  return;
+	}
 	try {
 	  const responseUserStats = await usersService.getUserStats(userId); // Ajuste conforme seu serviço
 	  const userStats = responseUserStats.data;
 
-	  // FAZER VALIDAÇAO AQUI E SE N DER SUCESSO EXIBIR SEM INFORMAÇOES 
-  
+	  // FAZER VALIDAÇAO AQUI E SE N DER SUCESSO EXIBIR SEM INFORMAÇOES
+
 	  const achievementsHTML = `
 		<div class="bg-[#383568] rounded-[5px] w-full flex flex-col md:flex-row gap-4 p-4 justify-center">
 		  ${createAchievementCard("two-factor authentication.", "../../assets/padlock.png", userStats.twoFactorEnabled)}
@@ -34,10 +40,10 @@ export async function renderAchievements(userId: number) {
 		  ${createAchievementCard("Make more than 3 friends.", "../../assets/people-big.png", userStats.friendsCount > 3)}
 		</div>
 	  `;
-  
+
 	  const container = document.getElementById('achievements-container');
 	  if (container) container.innerHTML = achievementsHTML;
-  
+
 	} catch (error) {
 	  console.error("Erro ao carregar conquistas", error);
 	}
