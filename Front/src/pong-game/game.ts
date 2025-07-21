@@ -43,6 +43,20 @@ export interface RemoteStateSend {
 }
 
 /**
+ * Interface for match data
+ */
+interface MatchData {
+    player1_id?: number;
+    player2_id?: number;
+    player1_alias: string;
+    player2_alias: string;
+    winner_id?: number | null;
+    player1_score: number;
+    player2_score: number;
+    tournament_id?: number | null;
+}
+
+/**
  * Main class for managing the Babylon.js application
  */
 class MainGame {
@@ -62,6 +76,10 @@ class MainGame {
     private score: { player1: number, player2: number };
     private maxScore: number;
     private _remoteController: RemoteController | null = null;
+    private gameEnded: boolean = false;
+
+    // Match data for when game ends
+    private matchData: MatchData | null = null;
 
     /**
      * Constructor for the main class
@@ -69,20 +87,38 @@ class MainGame {
      * @param gameType Tipo de jogo a ser iniciado
      * @param tableWidth Largura da mesa
      * @param tableDepth Profundidade da mesa
-     */    
+     * @param playerAliases Aliases dos jogadores (player1, player2)
+     * @param playerIds IDs dos jogadores (player1, player2) - opcional
+     * @param tournamentId ID do torneio se for jogo de torneio - opcional
+     */
     constructor(
         canvasId: string,
         gameType: GameType = GameType.LOCAL_TWO_PLAYERS,
         tableWidth: number = 100,
         tableDepth: number = 80,
-        maxScore: number = 10 
+        maxScore: number = 1,
+        playerAliases: { player1: string, player2: string },
+        playerIds?: { player1?: number, player2?: number },
+        tournamentId?: number
     ) {
         this.canvas = document.getElementById(canvasId) as unknown as HTMLCanvasElement;
         if (!this.canvas) throw new Error(`Canvas with ID "${canvasId}" not found`);
 
         this.gameType = gameType;
         this.score = { player1: 0, player2: 0 };
-        this.maxScore = maxScore; 
+        this.maxScore = maxScore;
+
+        // Store match data for when game ends
+        this.matchData = {
+            player1_id: playerIds?.player1,
+            player2_id: playerIds?.player2,
+            player1_alias: playerAliases.player1,
+            player2_alias: playerAliases.player2,
+            winner_id: null,
+            player1_score: 0,
+            player2_score: 0,
+            tournament_id: tournamentId || null
+        };
 
         // Initialize Babylon engine
         this.engine = new Engine(this.canvas, true);
@@ -98,14 +134,68 @@ class MainGame {
         this.inputManager = new InputManager();
         // Inicializa a textura avançada para GUI
         this.advancedTexture = AdvancedDynamicTexture.CreateFullscreenUI("UI");
-        
+
         this.scoreText = new TextBlock("scoreText", "Score: 0 - 0");
         this.instructionsText = new TextBlock("instructionsText", "Use as setas para mover!");
 
         // Inicializa os elementos de GUI
         this.initializeScoreBox();
         this.initializeInstructionsBox();
-    }    /**
+    }
+
+    /**
+     * Save match to database when game ends
+     */
+    private async saveMatchToDatabase(): Promise<void> {
+        if (!this.matchData) return;
+
+        try {
+            // Only require player1_id to be valid, player2_id can be null for local games
+            if (!this.matchData.player1_id) {
+                return;
+            }
+
+            // For AI games (player2_id = 0), skip saving
+            if (this.matchData.player2_id === 0) {
+                return;
+            }
+
+            // Determine winner
+            const winnerId = this.score.player1 >= this.maxScore ?
+                this.matchData.player1_id : this.matchData.player2_id;
+
+            const matchData = {
+                player1_id: this.matchData.player1_id,
+                player2_id: this.matchData.player2_id || this.matchData.player1_id, // Use player1_id if player2_id is null
+                player1_alias: this.matchData.player1_alias,
+                player2_alias: this.matchData.player2_alias,
+                winner_id: winnerId,
+                player1_score: this.score.player1,
+                player2_score: this.score.player2,
+                tournament_id: this.matchData.tournament_id
+            };
+
+            const response = await fetch('http://localhost:3142/matches', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+                },
+                body: JSON.stringify(matchData)
+            });
+
+            if (response.ok) {
+                const result = await response.json();
+            } else {
+                const errorText = await response.text();
+                console.error('Failed to save match:', response.status, errorText);
+            }
+        } catch (error) {
+            console.error('Error saving match:', error);
+        }
+    }
+
+    /**
      * Initialize the scene with basic elements
      */
     private initializeScene(): void {
@@ -192,7 +282,7 @@ class MainGame {
         switch (this.gameType) {
             case GameType.LOCAL_TWO_PLAYERS:
                 this.registerControllers({
-                    info: "player1_keyboard", 
+                    info: "player1_keyboard",
                     controller: new KeyboardController(
                         "player1_keyboard", this.scene, "w", "s", 0.5,
                         this.tableManager.getTableWidth(),
@@ -200,7 +290,7 @@ class MainGame {
                     )
                 },
                 {
-                    info: "player2_keyboard", 
+                    info: "player2_keyboard",
                     controller: new KeyboardController(
                         "player2_keyboard",  this.scene,  "ArrowUp",  "ArrowDown",  0.5,
                         this.tableManager.getTableWidth(),
@@ -211,21 +301,21 @@ class MainGame {
                 break;
 
             case GameType.LOCAL_VS_AI:
-                this.registerControllers({   
-                    info: "player_keyboard", 
+                this.registerControllers({
+                    info: "player_keyboard",
                     controller: new KeyboardController( "player_keyboard",
                         this.scene, "ArrowUp", "ArrowDown", 0.5,
                         this.tableManager.getTableWidth(),
                         this.tableManager.getTableDepth()
-                    )}, 
-                    {   
-                        info: "ai_controller", 
+                    )},
+                    {
+                        info: "ai_controller",
                     controller: new AIController(
                         "ai_controller", this.scene, ball, 0.8, 0.5,
                         this.tableManager.getTableWidth(),
                         this.tableManager.getTableDepth(),
                         LevelAI.EXPERT
-                    )}, 
+                    )},
                     "Use as setas para mover\n"
                 )
                 break;
@@ -233,7 +323,7 @@ class MainGame {
             case GameType.REMOTE:
                 this._remoteController = new RemoteController("remote_controller");
                 this._remoteController.initialize();
-                break;            
+                break;
             default:
                 console.warn(`Tipo de jogo desconhecido: ${this.gameType}, usando modo dois jogadores.`);
                 // Configuração padrão (dois jogadores)
@@ -262,7 +352,7 @@ class MainGame {
     }
 
     private registerControllers(
-        player1: {info: string, controller: IInputController}, 
+        player1: {info: string, controller: IInputController},
         player2: {info: string, controller: IInputController},
         instructions: string): void {
         this.instructionsText.text = instructions;
@@ -272,7 +362,7 @@ class MainGame {
         this.inputManager.connectControllerToPaddle(player2.info, this.tableManager.getPaddleRight());
     }
 
-    /**
+        /**
      * Start the rendering loop
      */
     public run(): void {
@@ -280,7 +370,7 @@ class MainGame {
 
         if (this.gameType === GameType.REMOTE)
             this.engine.runRenderLoop(this.updateRemote.bind(this));
-        else 
+        else
             this.engine.runRenderLoop(this.update.bind(this));
 
         // Ajustar tamanho do canvas ao redimensionar janela
@@ -318,15 +408,24 @@ class MainGame {
         this.updateScore();
         if (this.isFinished())
         {
-            this.endGame();
+            this.endGame().catch(error => {
+                console.error('Error ending game:', error);
+            });
             // return ;
         }
 
         this.scene.render();
-    } 
+    }
 
-    private endGame(): void {
+    private async endGame(): Promise<void> {
+        // Prevent multiple calls
+        if (this.gameEnded) return;
+        this.gameEnded = true;
+
         const winner = this.score.player1 >= this.maxScore ? "Player 1" : "Player 2";
+
+        // Update match in database with final results
+        await this.saveMatchToDatabase();
 
         // Exibir mensagem de vitória
         const victoryText = new TextBlock("victoryText", `${winner} venceu!`);

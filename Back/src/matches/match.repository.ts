@@ -12,8 +12,6 @@ export interface Match {
 	player1_score: number;
 	player2_score: number;
 	tournament_id?: number | null;
-	round_number?: number | null;
-	match_position?: number | null;
 	played_at?: string;
 }
 
@@ -26,8 +24,6 @@ export interface CreateMatchData {
 	player1_score: number;
 	player2_score: number;
 	tournament_id?: number | null;
-	round_number?: number | null;
-	match_position?: number | null;
 }
 
 export interface UpdateMatchData {
@@ -184,8 +180,8 @@ export async function getMatchesByPlayerId(playerId: number): Promise<Match[]> {
 export async function createMatch(matchData: CreateMatchData): Promise<Match> {
 	const db = await openDb();
 	const result = await db.run(
-		`INSERT INTO matches (player1_id, player2_id, player1_alias, player2_alias, winner_id, player1_score, player2_score, tournament_id, round_number, match_position, played_at)
-		 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))`,
+		`INSERT INTO matches (player1_id, player2_id, player1_alias, player2_alias, winner_id, player1_score, player2_score, tournament_id, played_at)
+		 VALUES (?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))`,
 		[
 			matchData.player1_id,
 			matchData.player2_id,
@@ -194,9 +190,7 @@ export async function createMatch(matchData: CreateMatchData): Promise<Match> {
 			matchData.winner_id || null,
 			matchData.player1_score,
 			matchData.player2_score,
-			matchData.tournament_id || null,
-			matchData.round_number || null,
-			matchData.match_position || null
+			matchData.tournament_id || null
 		]
 	);
 

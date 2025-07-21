@@ -302,13 +302,6 @@ export async function createMatch(request: FastifyRequest, reply: FastifyReply) 
 			});
 		}
 
-		if (player1_id === player2_id) {
-			return reply.status(400).send({
-				success: false,
-				error: 'Player cannot play against themselves'
-			});
-		}
-
 		if (!isValidScore(player1_score)) {
 			return reply.status(400).send({
 				success: false,

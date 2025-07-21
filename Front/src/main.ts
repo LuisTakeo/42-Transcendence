@@ -108,13 +108,52 @@ async function renderRoute(path: string) {
 		Tournament();
 		break;
       case '/game/local':
-        gamePage(GameType.LOCAL_TWO_PLAYERS);
+        let currentUser = userService.getCachedCurrentUser();
+
+        // If no cached user, try to load it
+        if (!currentUser) {
+          try {
+            currentUser = await userService.getCurrentUser();
+          } catch (error) {
+            console.error('Failed to load current user:', error);
+          }
+        }
+
+        gamePage({
+          gameType: GameType.LOCAL_TWO_PLAYERS,
+          playerAliases: { player1: "Player 1", player2: "Player 2" },
+          playerIds: {
+            player1: currentUser?.id,
+            player2: currentUser?.id // Same user for local two players
+          }
+        });
         break;
       case '/game/cpu':
-        gamePage(GameType.LOCAL_VS_AI);
+        let currentUserForAI = userService.getCachedCurrentUser();
+
+        // If no cached user, try to load it
+        if (!currentUserForAI) {
+          try {
+            currentUserForAI = await userService.getCurrentUser();
+          } catch (error) {
+            console.error('Failed to load current user for AI:', error);
+          }
+        }
+
+        gamePage({
+          gameType: GameType.LOCAL_VS_AI,
+          playerAliases: { player1: "Player", player2: "AI" },
+          playerIds: {
+            player1: currentUserForAI?.id,
+            player2: 0 // AI doesn't have a real user ID
+          }
+        });
         break;
       case '/game/online':
-        gamePage(GameType.REMOTE);
+        gamePage({
+          gameType: GameType.REMOTE,
+          playerAliases: { player1: "Player 1", player2: "Player 2" }
+        });
         break;
       default:
         window.history.replaceState(null, '', '/home');
@@ -245,7 +284,7 @@ document.addEventListener('click', resetActivityTimer);
 document.addEventListener('scroll', resetActivityTimer);
 
 // Start activity tracking when page loads
-resetActivityTimer();  
+resetActivityTimer();
 
 // Inicializa a aplicação com a rota atual
 onRouteChange();
