@@ -15,6 +15,8 @@ export interface Match {
 	player2_score: number;
 	tournament_id?: number | null;
 	played_at?: string;
+	player1_username?: string;
+	player2_username?: string;
 }
 
 export interface CreateMatchData {

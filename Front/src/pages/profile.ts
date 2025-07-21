@@ -5,7 +5,13 @@ import { friendsService } from '../services/friends.service.ts';
 
 const RESERVED_USER_IDS = [999998, 999999];
 
-function getOpponentDisplayName(match, playerId) {
+interface Match {
+  player2_id: number;
+  player2_alias: string;
+  opponentUsername?: string;
+}
+
+function getOpponentDisplayName(match: Match, playerId: number): string {
   if (RESERVED_USER_IDS.includes(match.player2_id)) {
     return match.player2_alias;
   }

@@ -150,18 +150,28 @@ class MainGame {
         if (!this.matchData) return;
 
         try {
-            // Only require player1_id to be valid, player2_id can be null for local games
             if (!this.matchData.player1_id) {
                 return;
             }
 
-            // Determine winner
+            // Use correct reserved user ID for player2_id if missing
+            let player2_id = this.matchData.player2_id;
+            if (!player2_id) {
+                if (this.gameType === GameType.LOCAL_TWO_PLAYERS) {
+                    player2_id = 999998;
+                } else if (this.gameType === GameType.LOCAL_VS_AI) {
+                    player2_id = 999999;
+                } else {
+                    player2_id = 0; // fallback, should never happen for remote
+                }
+            }
+
             const winnerId = this.score.player1 >= this.maxScore ?
-                this.matchData.player1_id : this.matchData.player2_id;
+                this.matchData.player1_id : player2_id;
 
             const matchData = {
                 player1_id: this.matchData.player1_id,
-                player2_id: this.matchData.player2_id || this.matchData.player1_id, // Use player1_id if player2_id is null
+                player2_id: player2_id,
                 player1_alias: this.matchData.player1_alias,
                 player2_alias: this.matchData.player2_alias,
                 winner_id: winnerId,
@@ -170,7 +180,7 @@ class MainGame {
                 tournament_id: this.matchData.tournament_id
             };
 
-            const response = await fetch('http://localhost:3142/matches', {
+            const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/matches`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

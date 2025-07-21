@@ -191,9 +191,12 @@ export async function getPlayerStats(request: FastifyRequest, reply: FastifyRepl
 		// Format all matches for the frontend (no limit)
 		const formattedMatches = recentMatches.map(match => {
 			const isPlayer1 = match.player1_id === playerIdNum;
-			// Use the actual usernames from the users table, not aliases
-			const playerUsername = isPlayer1 ? match.player1_username : match.player2_username;
-			const opponentUsername = isPlayer1 ? match.player2_username : match.player1_username;
+			const playerId = isPlayer1 ? match.player1_id : match.player2_id;
+			const opponentId = isPlayer1 ? match.player2_id : match.player1_id;
+			const playerAlias = isPlayer1 ? match.player1_alias : match.player2_alias;
+			const opponentAlias = isPlayer1 ? match.player2_alias : match.player1_alias;
+			const playerUsername = RESERVED_USER_IDS.includes(playerId) ? playerAlias : (isPlayer1 ? match.player1_username : match.player2_username);
+			const opponentUsername = RESERVED_USER_IDS.includes(opponentId) ? opponentAlias : (isPlayer1 ? match.player2_username : match.player1_username);
 			const playerScore = isPlayer1 ? match.player1_score : match.player2_score;
 			const opponentScore = isPlayer1 ? match.player2_score : match.player1_score;
 
@@ -312,8 +315,8 @@ export async function createMatch(request: FastifyRequest, reply: FastifyReply) 
 			});
 		}
 
-		// Allow player2_id = 0 for AI games, otherwise must be valid player ID
-		if (player2_id !== 0 && !isValidPlayerId(player2_id)) {
+		// Allow player2_id to be a valid user ID or a reserved user ID (999998, 999999)
+		if (!isValidPlayerId(player2_id) && !RESERVED_USER_IDS.includes(player2_id)) {
 			return reply.status(400).send({
 				success: false,
 				error: 'Invalid player2_id'
