@@ -51,20 +51,22 @@ class Paddle {
     /**
      * Move o paddle para cima (em direção a Z positivo)
      * @param limit Limite máximo de movimento
+     * @param deltaTime Tempo desde o último frame (em segundos)
      */
-    public moveUp(limit: number): void {
+    public moveUp(limit: number, deltaTime: number = 1/60): void {
         if (this.mesh.position.z < limit) {
-            this.mesh.position.z += this.speed;
+            this.mesh.position.z += this.speed * deltaTime * 60; // Normalizado para 60 FPS
         }
     }
 
     /**
      * Move o paddle para baixo (em direção a Z negativo)
      * @param limit Limite máximo de movimento
+     * @param deltaTime Tempo desde o último frame (em segundos)
      */
-    public moveDown(limit: number): void {
+    public moveDown(limit: number, deltaTime: number = 1/60): void {
         if (this.mesh.position.z > -limit) {
-            this.mesh.position.z -= this.speed;
+            this.mesh.position.z -= this.speed * deltaTime * 60; // Normalizado para 60 FPS
         }
     }
 
@@ -88,6 +90,10 @@ class Paddle {
 
     public updatePosition(position: Vector3): void {
         this.mesh.position = position;
+    }
+
+    public updatePositionRemote(positionZ: number): void {
+        this.mesh.position.z = positionZ;
     }
 }
 
