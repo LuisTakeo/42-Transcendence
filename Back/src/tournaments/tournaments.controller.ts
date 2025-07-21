@@ -47,15 +47,13 @@ export class TournamentsController {
 
             const players = await this.tournamentRepository.getTournamentPlayers(id);
             const matches = await this.tournamentRepository.getTournamentMatches(id);
-            const standings = await this.tournamentRepository.getTournamentStandings(id);
 
             reply.code(200).send({
                 success: true,
                 data: {
                     ...tournament,
                     players,
-                    matches,
-                    standings
+                    matches
                 }
             });
         } catch (error) {
@@ -122,12 +120,18 @@ export class TournamentsController {
             await this.tournamentRepository.addPlayer(tournamentId, user_id);
             reply.code(200).send({ success: true, message: 'Successfully joined tournament' });
         } catch (error) {
+            if (error && typeof error === 'object' && 'code' in error && error.code === 'SQLITE_CONSTRAINT') {
+                return reply.code(400).send({
+                    success: false,
+                    error: 'User is already in this tournament'
+                });
+            }
             console.error('Error joining tournament:', error);
             reply.code(500).send({ success: false, error: 'Internal server error' });
         }
     }
 
-    // Start tournament (generate matches)
+    // Start tournament (generate all-play-all matches)
     async startTournament(request: FastifyRequest<{ Params: TournamentParams }>, reply: FastifyReply) {
         try {
             const tournamentId = parseInt(request.params.id);
@@ -141,27 +145,39 @@ export class TournamentsController {
             }
 
             if (tournament.status !== 'pending') {
-                return reply.code(400).send({
-                    success: false,
-                    error: 'Can only start pending tournaments'
-                });
+                return reply.code(400).send({ success: false, error: 'Can only start pending tournaments' });
             }
 
             const players = await this.tournamentRepository.getTournamentPlayers(tournamentId);
             if (players.length < 2) {
-                return reply.code(400).send({
-                    success: false,
-                    error: 'Need at least 2 players to start tournament'
-                });
+                return reply.code(400).send({ success: false, error: 'Need at least 2 players to start tournament' });
+            }
+            if (players.length > 8) {
+                return reply.code(400).send({ success: false, error: 'Maximum number of players is 8' });
             }
 
-            // Generate first round matches
-            await this.tournamentRepository.generateFirstRound(tournamentId);
+            // Generate all-play-all matches
+            await this.tournamentRepository.generateRoundRobinMatches(tournamentId);
             await this.tournamentRepository.updateStatus(tournamentId, 'ongoing');
 
             reply.code(200).send({ success: true, message: 'Tournament started successfully' });
         } catch (error) {
             console.error('Error starting tournament:', error);
+            reply.code(500).send({ success: false, error: 'Internal server error' });
+        }
+    }
+
+    // Get final ranking for a tournament
+    async getFinalRanking(request: FastifyRequest<{ Params: TournamentParams }>, reply: FastifyReply) {
+        try {
+            const tournamentId = parseInt(request.params.id);
+            if (isNaN(tournamentId)) {
+                return reply.code(400).send({ success: false, error: 'Invalid tournament ID' });
+            }
+            const ranking = await this.tournamentRepository.getFinalRanking(tournamentId);
+            reply.code(200).send({ success: true, data: ranking });
+        } catch (error) {
+            console.error('Error getting final ranking:', error);
             reply.code(500).send({ success: false, error: 'Internal server error' });
         }
     }

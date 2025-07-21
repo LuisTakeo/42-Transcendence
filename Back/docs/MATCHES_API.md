@@ -2,6 +2,11 @@
 
 This document describes the complete CRUD operations for the Matches resource.
 
+## Reserved User IDs
+- **999998**: Local Player 2 (used for local two-player games)
+- **999999**: AI Opponent (used for player vs CPU games)
+- These reserved users are never shown in user lists, rankings, or stats, and are only used for match records.
+
 ## Base URL
 ```
 http://localhost:3142/matches
@@ -190,14 +195,19 @@ Creates a new match.
 }
 ```
 
-**Validation Rules:**
+### Validation Rules (Updated)
 - `player1_id`: Required, must be a valid user ID
-- `player2_id`: Required, must be a valid user ID, cannot be same as player1_id
+- `player2_id`: Required, must be a valid user ID, or one of the reserved IDs (999998 for Local Player 2, 999999 for AI Opponent)
 - `player1_alias`: Required, 1-50 characters
 - `player2_alias`: Required, 1-50 characters
 - `player1_score`: Required, non-negative integer
 - `player2_score`: Required, non-negative integer
 - `winner_id`: Optional, must be either player1_id or player2_id if provided
+
+### Reserved User Handling
+- Matches against AI or local player 2 use the reserved IDs above.
+- When displaying matches, if player2_id is a reserved ID, the alias is shown instead of a username.
+- Stats and leaderboards always exclude these reserved users.
 
 **Response (201 Created):**
 ```json
@@ -313,7 +323,7 @@ Updates an existing match. All fields are optional.
 }
 ```
 
-## Database Schema
+## Database Schema (Updated)
 
 The matches table has the following structure:
 
@@ -328,12 +338,14 @@ CREATE TABLE matches (
     player1_score INTEGER NOT NULL,
     player2_score INTEGER NOT NULL,
     played_at DATETIME DEFAULT (datetime('now')),
-    CHECK (player1_id <> player2_id),
     FOREIGN KEY (player1_id) REFERENCES users(id) ON DELETE CASCADE,
-    FOREIGN KEY (player2_id) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (winner_id) REFERENCES users(id)
 );
 ```
+
+### Stats and Leaderboards
+- All stats and leaderboards exclude matches where the user is a reserved user (999998, 999999).
+- Reserved users are never included in user-facing lists or stats.
 
 ## Features
 

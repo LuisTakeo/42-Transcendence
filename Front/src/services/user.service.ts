@@ -1,4 +1,5 @@
 import { authService } from './auth.service.ts';
+import API_BASE_URL from './base-api.ts';
 
 export interface User {
   id: number;
@@ -32,7 +33,7 @@ class UserService {
       // Clear cache to get fresh data
       this.currentUser = null;
 
-      const response = await fetch('http://localhost:3142/users/me', {
+      const response = await fetch(`${API_BASE_URL}/users/me`, {
         headers: {
           'Authorization': `Bearer ${authService.getAuthToken()}`,
           'Content-Type': 'application/json'
@@ -70,7 +71,7 @@ class UserService {
     }
 
     try {
-      const url = `http://localhost:3142/users/${userId}`;
+      const url = `${API_BASE_URL}/users/${userId}`;
 
       const response = await fetch(url, {
         headers: {
@@ -106,7 +107,7 @@ class UserService {
     }
 
     try {
-      const response = await fetch(`http://localhost:3142/users/me`, {
+      const response = await fetch(`${API_BASE_URL}/users/me`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${authService.getAuthToken()}`,
@@ -142,7 +143,7 @@ class UserService {
       const formData = new FormData();
       formData.append('avatar', file);
 
-      const response = await fetch(`http://localhost:3142/users/me/avatar`, {
+      const response = await fetch(`${API_BASE_URL}/users/me/avatar`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${authService.getAuthToken()}`
@@ -181,7 +182,7 @@ class UserService {
     }
 
     try {
-      const url = `http://localhost:3142/matches/player/${targetUserId}/stats`;
+      const url = `${API_BASE_URL}/matches/player/${targetUserId}/stats`;
 
       const response = await fetch(url, {
         headers: {

@@ -19,4 +19,4 @@ COPY . .
 
 EXPOSE ${FRONT_PORT}
 
-ENTRYPOINT ["npm", "run"]
+CMD ["npm", "run", "dev"]

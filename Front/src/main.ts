@@ -10,6 +10,14 @@ import UsersPage, { initializeUsersPage } from './pages/users.ts';
 import MatchHistoryPage from './pages/matchHistory.ts';
 import { authService } from './services/auth.service.ts';
 import { userService } from './services/user.service.ts';
+import { logOutButton } from "./pages/button.ts";
+import HowToPlay from './pages/howToPlay.ts';
+import Tournament from './pages/tournament.ts';
+import API_BASE_URL from './services/base-api.ts';
+
+document.addEventListener("DOMContentLoaded", () => {
+  logOutButton();
+});
 // import ClassicGamePage from './pages/classicGame.ts';
 // import FastGamePage from './pages/fastGame.ts';
 // import JoquempoPage from './pages/joquempo.ts';
@@ -28,6 +36,9 @@ const routesWithSidebar = [
   '/game/local',
   '/game/cpu',
   '/game/online',
+  '/howToPlay',
+  '/tournament',
+//  '/Game/vsCPU',
   '/match-history'
 ];
 
@@ -60,6 +71,20 @@ async function renderRoute(path: string) {
       case '/home':
         app.innerHTML = HomePage();
         initializeHomePage();
+		const howToPlayBtn = document.getElementById('how-to-play');
+			if (howToPlayBtn) {
+			howToPlayBtn.addEventListener('click', () => {
+				window.history.pushState(null, '', '/howToPlay');
+				window.dispatchEvent(new Event('popstate'));
+			});
+			}
+		const tournamentBtn = document.getElementById('tournament-btn');
+			if (tournamentBtn) {
+			tournamentBtn.addEventListener('click', () => {
+				window.history.pushState(null, '', '/tournament');
+				window.dispatchEvent(new Event('popstate'));
+			});
+			}
         break;
       case '/profile':
         ProfilePage();
@@ -72,19 +97,64 @@ async function renderRoute(path: string) {
         break;
       case '/users':
         app.innerHTML = UsersPage();
-        initializeUsersPage();
+		initializeUsersPage();
         break;
-      case '/match-history':
-        await MatchHistoryPage();
+	  case '/match-history':
+		await MatchHistoryPage();
+		break;
+	  case '/howToPlay':
+        HowToPlay();
         break;
+	  case '/tournament':
+		Tournament();
+		break;
       case '/game/local':
-        gamePage(GameType.LOCAL_TWO_PLAYERS);
+        let currentUser = userService.getCachedCurrentUser();
+
+        // If no cached user, try to load it
+        if (!currentUser) {
+          try {
+            currentUser = await userService.getCurrentUser();
+          } catch (error) {
+            console.error('Failed to load current user:', error);
+          }
+        }
+
+        gamePage({
+          gameType: GameType.LOCAL_TWO_PLAYERS,
+          playerAliases: { player1: "Player 1", player2: "Player 2" },
+          playerIds: {
+            player1: currentUser?.id,
+            player2: 999998 // Reserved user for Local Player 2
+          }
+        });
         break;
       case '/game/cpu':
-        gamePage(GameType.LOCAL_VS_AI);
+        let currentUserForAI = userService.getCachedCurrentUser();
+
+        // If no cached user, try to load it
+        if (!currentUserForAI) {
+          try {
+            currentUserForAI = await userService.getCurrentUser();
+          } catch (error) {
+            console.error('Failed to load current user for AI:', error);
+          }
+        }
+
+        gamePage({
+          gameType: GameType.LOCAL_VS_AI,
+          playerAliases: { player1: "Player", player2: "AI" },
+          playerIds: {
+            player1: currentUserForAI?.id,
+            player2: 999999 // Reserved user for AI Opponent
+          }
+        });
         break;
       case '/game/online':
-        gamePage(GameType.REMOTE);
+        gamePage({
+          gameType: GameType.REMOTE,
+          playerAliases: { player1: "Player 1", player2: "Player 2" }
+        });
         break;
       default:
         window.history.replaceState(null, '', '/home');
@@ -184,7 +254,7 @@ async function updateLastSeen(): Promise<void> {
     const userId = payload.id;
 
     if (userId) {
-      await fetch(`http://localhost:3142/users/${userId}`, {
+      await fetch(`${API_BASE_URL}/users/${userId}`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,
