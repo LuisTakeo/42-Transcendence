@@ -87,6 +87,7 @@ export const startServer = async () => {
 
 	await runMigrations();
 	app.register(matchesRoutes, { prefix: '/matches' });
+	//app.register(matchesRoutes, { prefix: '/matches' });
 	app.register(friendsRoutes, { prefix: '/friends' });
 	app.register(conversationsRoutes, { prefix: '/conversations' });
 	app.register(messagesRoutes, { prefix: '/messages' });
