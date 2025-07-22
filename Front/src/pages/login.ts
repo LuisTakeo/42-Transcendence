@@ -81,6 +81,15 @@ export async function initializeLoginPage(): Promise<void> {
       } else if (loginResponse.token) {
         // Direct login successful (user doesn't have 2FA enabled)
         authService.setAuthToken(loginResponse.token);
+        // Decode JWT to get user ID and store in localStorage
+        try {
+          const payload = JSON.parse(atob(loginResponse.token.split('.')[1]));
+          if (payload && payload.id) {
+            localStorage.setItem('currentUserId', payload.id.toString());
+          }
+        } catch (e) {
+          console.error('[DEBUG] Failed to decode JWT for user ID:', e);
+        }
         showSuccessMessage('Login successful! Redirecting...');
 
         setTimeout(() => {

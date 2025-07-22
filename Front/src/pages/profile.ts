@@ -3,7 +3,29 @@ import { showErrorMessage } from './notification.ts';
 import { renderAchievements } from "./cards.ts";
 import { friendsService } from '../services/friends.service.ts';
 
+const RESERVED_USER_IDS = [4, 5];
+
+interface Match {
+  player2_id: number;
+  player2_alias: string;
+  opponentUsername?: string;
+}
+
+function getOpponentDisplayName(match: Match, playerId: number): string {
+  if (RESERVED_USER_IDS.includes(match.player2_id)) {
+    return match.player2_alias;
+  }
+  return match.opponentUsername || match.player2_alias || 'Unknown';
+}
+
 export default async function ProfilePage(userId?: number): Promise<void> {
+  if (userId && RESERVED_USER_IDS.includes(userId)) {
+    const app = document.getElementById("app");
+    if (app) {
+      app.innerHTML = `<div class='flex justify-center items-center min-h-screen'><div class='text-2xl text-red-400'>This profile is not available.</div></div>`;
+    }
+    return;
+  }
   const app = document.getElementById("app");
   if (!app) {
     return;
@@ -131,7 +153,7 @@ export default async function ProfilePage(userId?: number): Promise<void> {
   // Load user data if userId is provided
   if (userId !== undefined && !isNaN(userId)) {
     loadUserProfile(userId, currentUser.id);
-	renderAchievements(userId); 
+	renderAchievements(userId);
   } else {
     // Show current user's profile (you can implement this later)
     const userName = document.getElementById("user-name") as HTMLParagraphElement;
@@ -234,7 +256,7 @@ async function loadUserProfile(userId: number, currentUser: any): Promise<void> 
       }
 
       // Check and update achievements
-	  renderAchievements(userId); 
+	  renderAchievements(userId);
       await updateAchievements(user, stats);
 
             // Update matches list
@@ -250,7 +272,7 @@ async function loadUserProfile(userId: number, currentUser: any): Promise<void> 
 
           const cell = document.createElement("td");
           cell.className = "py-3 px-3 text-center rounded-[5px] text-white";
-          cell.textContent = `@${match.playerUsername || '@user'} vs @${match.opponentUsername || '@unknown'} - ( ${match.playerScore || 0}-${match.opponentScore || 0} )`;
+          cell.textContent = `@${match.playerUsername || '@user'} vs @${getOpponentDisplayName(match, userId)} - ( ${match.playerScore || 0}-${match.opponentScore || 0} )`;
 
           row.appendChild(cell);
           tbody.appendChild(row);

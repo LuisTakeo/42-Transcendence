@@ -13,6 +13,7 @@ import { userService } from './services/user.service.ts';
 import { logOutButton } from "./pages/button.ts";
 import HowToPlay from './pages/howToPlay.ts';
 import Tournament from './pages/tournament.ts';
+import API_BASE_URL from './services/base-api.ts';
 
 document.addEventListener("DOMContentLoaded", () => {
   logOutButton();
@@ -94,13 +95,52 @@ async function renderRoute(path: string) {
 		Tournament();
 		break;
       case '/game/local':
-        gamePage(GameType.LOCAL_TWO_PLAYERS);
+        let currentUser = userService.getCachedCurrentUser();
+
+        // If no cached user, try to load it
+        if (!currentUser) {
+          try {
+            currentUser = await userService.getCurrentUser();
+          } catch (error) {
+            console.error('Failed to load current user:', error);
+          }
+        }
+
+        gamePage({
+          gameType: GameType.LOCAL_TWO_PLAYERS,
+          playerAliases: { player1: "Player 1", player2: "Player 2" },
+          playerIds: {
+            player1: currentUser?.id,
+            player2: 4 // Reserved user for Local Player 2
+          }
+        });
         break;
       case '/game/cpu':
-        gamePage(GameType.LOCAL_VS_AI);
+        let currentUserForAI = userService.getCachedCurrentUser();
+
+        // If no cached user, try to load it
+        if (!currentUserForAI) {
+          try {
+            currentUserForAI = await userService.getCurrentUser();
+          } catch (error) {
+            console.error('Failed to load current user for AI:', error);
+          }
+        }
+
+        gamePage({
+          gameType: GameType.LOCAL_VS_AI,
+          playerAliases: { player1: "Player", player2: "AI" },
+          playerIds: {
+            player1: currentUserForAI?.id,
+            player2: 5 // Reserved user for AI Opponent
+          }
+        });
         break;
       case '/game/online':
-        gamePage(GameType.REMOTE);
+        gamePage({
+          gameType: GameType.REMOTE,
+          playerAliases: { player1: "Player 1", player2: "Player 2" }
+        });
         break;
       default:
         window.history.replaceState(null, '', '/home');
@@ -200,11 +240,12 @@ async function updateLastSeen(): Promise<void> {
     const userId = payload.id;
 
     if (userId) {
-      await fetch(`http://localhost:3142/users/${userId}`, {
+      await fetch(`${API_BASE_URL}/users/${userId}`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'ngrok-skip-browser-warning': 'true'
         },
         body: JSON.stringify({ last_seen_at: new Date().toISOString() })
       });
@@ -231,7 +272,7 @@ document.addEventListener('click', resetActivityTimer);
 document.addEventListener('scroll', resetActivityTimer);
 
 // Start activity tracking when page loads
-resetActivityTimer();  
+resetActivityTimer();
 
 // Inicializa a aplicação com a rota atual
 onRouteChange();

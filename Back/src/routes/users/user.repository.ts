@@ -10,9 +10,7 @@ function constructAvatarUrl(avatarFilename: string | null | undefined): string |
 		return avatarFilename;
 	}
 
-	// Construct the full URL using the backend port from environment or default
-	const backendPort = process.env.BACK_PORT || '3142';
-	const baseUrl = `http://localhost:${backendPort}`;
+	const baseUrl = process.env.API_BASE_URL;
 
 	return `${baseUrl}/public/avatars/${avatarFilename}`;
 }

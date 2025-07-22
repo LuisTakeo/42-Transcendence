@@ -1,3 +1,6 @@
+import { authService } from '../services/auth.service';
+import { userService } from '../services/user.service';
+
 export function initializeSearchButton() {
 	const searchInput = document.getElementById('searchUsers') as HTMLInputElement;
 	const searchButton = document.getElementById('searchUsersButton') as HTMLButtonElement;
@@ -24,7 +27,11 @@ export function logOutButton() {
 	});
 
 	confirmBtn?.addEventListener("click", () => {
-		window.location.href = "/login";
+		authService.removeAuthToken();
+		userService.clearCache();
+		modal?.classList.add("hidden"); // hide modal before redirect
+		window.history.pushState({}, '', '/login');
+		window.dispatchEvent(new Event('popstate'));
 	});
 
 	cancelBtn?.addEventListener("click", () => {

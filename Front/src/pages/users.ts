@@ -97,6 +97,12 @@ export async function initializeUsersPage(): Promise<void> {
   const nextButton = document.getElementById("nextPage") as HTMLButtonElement;
   const pageInfo = document.getElementById("pageInfo") as HTMLSpanElement;
 
+  const RESERVED_USER_IDS = [4, 5];
+
+  function filterReservedUsers(users: any[]): any[] {
+    return users.filter(user => !RESERVED_USER_IDS.includes(user.id));
+  }
+
   // Function to render user cards
   function renderUsers(users: User[]): void {
     if (users.length === 0) {
@@ -109,7 +115,7 @@ export async function initializeUsersPage(): Promise<void> {
       return;
     }
 
-    resultsContainer.innerHTML = users.map(user => `
+    resultsContainer.innerHTML = filterReservedUsers(users).map(user => `
       <div class="p-4 bg-[#383568] rounded-lg text-white shadow-lg hover:shadow-2xl transition">
         <div class="flex items-center space-x-4">
           <div class="flex-shrink-0">

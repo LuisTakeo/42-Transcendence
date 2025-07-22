@@ -1,4 +1,5 @@
 import { authService } from './auth.service.ts';
+import API_BASE_URL from './base-api.ts';
 
 export interface User {
   id: number;
@@ -32,11 +33,16 @@ class UserService {
       // Clear cache to get fresh data
       this.currentUser = null;
 
-      const response = await fetch('http://localhost:3142/users/me', {
-        headers: {
-          'Authorization': `Bearer ${authService.getAuthToken()}`,
-          'Content-Type': 'application/json'
-        }
+      const url = `${API_BASE_URL}/users/me`;
+      const authToken = authService.getAuthToken();
+
+      const headers = {
+        'Authorization': `Bearer ${authToken}`,
+        'Content-Type': 'application/json',
+        'ngrok-skip-browser-warning': 'true'
+      };
+      const response = await fetch(url, {
+        headers
       });
 
       if (!response.ok) {
@@ -45,10 +51,14 @@ class UserService {
           authService.removeAuthToken();
           return null;
         }
+        const errorText = await response.text();
+        console.error('Failed to fetch user:', response.status, errorText);
         throw new Error(`Failed to fetch user: ${response.status}`);
       }
 
-      const user = await response.json();
+      const text = await response.text();
+
+      const user = JSON.parse(text);
       this.currentUser = user;
       this.userCache.set(user.id, user);
       return user;
@@ -70,12 +80,13 @@ class UserService {
     }
 
     try {
-      const url = `http://localhost:3142/users/${userId}`;
+      const url = `${API_BASE_URL}/users/${userId}`;
 
       const response = await fetch(url, {
         headers: {
           'Authorization': `Bearer ${authService.getAuthToken()}`,
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'ngrok-skip-browser-warning': 'true'
         }
       });
 
@@ -106,11 +117,12 @@ class UserService {
     }
 
     try {
-      const response = await fetch(`http://localhost:3142/users/me`, {
+      const response = await fetch(`${API_BASE_URL}/users/me`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${authService.getAuthToken()}`,
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'ngrok-skip-browser-warning': 'true'
         },
         body: JSON.stringify(updates)
       });
@@ -142,10 +154,11 @@ class UserService {
       const formData = new FormData();
       formData.append('avatar', file);
 
-      const response = await fetch(`http://localhost:3142/users/me/avatar`, {
+      const response = await fetch(`${API_BASE_URL}/users/me/avatar`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${authService.getAuthToken()}`
+          'Authorization': `Bearer ${authService.getAuthToken()}`,
+          'ngrok-skip-browser-warning': 'true'
         },
         body: formData
       });
@@ -181,12 +194,13 @@ class UserService {
     }
 
     try {
-      const url = `http://localhost:3142/matches/player/${targetUserId}/stats`;
+      const url = `${API_BASE_URL}/matches/player/${targetUserId}/stats`;
 
       const response = await fetch(url, {
         headers: {
           'Authorization': `Bearer ${authService.getAuthToken()}`,
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'ngrok-skip-browser-warning': 'true'
         }
       });
 
