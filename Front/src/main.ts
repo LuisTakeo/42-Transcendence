@@ -153,7 +153,7 @@ async function renderRoute(path: string) {
       case '/game/online':
         gamePage({
           gameType: GameType.REMOTE,
-          playerAliases: { player1: 'Player 1', player2: 'Player 2' }
+          playerAliases: { player1: "Player 1", player2: "Player 2" }
         });
         break;
       default:

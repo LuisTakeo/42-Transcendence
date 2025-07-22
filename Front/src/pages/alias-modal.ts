@@ -97,6 +97,15 @@ export async function showAliasModal(): Promise<{ player1: string, player2: stri
 }
 
 export async function showRemoteAliasModal(): Promise<string | null> {
+  // Clean up any existing modals first
+  const existingModal = document.getElementById('remote-alias-modal');
+  if (existingModal) {
+    existingModal.remove();
+  }
+
+  // Save current URL to handle navigation properly
+  const previousUrl = window.location.pathname;
+  
   // Modal HTML for single alias input
   const modalHTML = `
   <div id="remote-alias-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -118,35 +127,77 @@ export async function showRemoteAliasModal(): Promise<string | null> {
     </div>
   </div>
   `;
+  
   document.body.insertAdjacentHTML('beforeend', modalHTML);
   const modal = document.getElementById('remote-alias-modal')!;
   const input = document.getElementById('remote-alias-input') as HTMLInputElement;
   const okBtn = document.getElementById('remote-alias-ok')!;
   const cancelBtn = document.getElementById('remote-alias-cancel')!;
+
   setTimeout(() => input.focus(), 100);
+
   return new Promise((resolve) => {
+    let isCleanedUp = false;
+
+    function cleanup() {
+      if (isCleanedUp) return;
+      isCleanedUp = true;
+      
+      // Remove all event listeners first
+      window.removeEventListener('popstate', popHandler);
+      document.removeEventListener('keydown', escapeHandler);
+      // Then remove the modal
+      if (modal && modal.parentElement) {
+        modal.remove();
+      }
+    }
+
+    function cleanupAndNavigateHome() {
+      if (isCleanedUp) return;
+      cleanup();
+      resolve(null);
+      // Use replaceState to prevent history stack issues
+      window.history.replaceState(null, '', '/home');
+      window.dispatchEvent(new CustomEvent('urlChanged', { detail: '/home' }));
+    }
+
+    function cleanupAndResolve(value: string | null) {
+      if (isCleanedUp) return;
+      cleanup();
+      resolve(value);
+    }
+
+    function popHandler(event: PopStateEvent) {
+      // When browser back button is used
+      cleanup();
+      resolve(null);
+    }
+
+    function escapeHandler(e: KeyboardEvent) {
+      if (e.key === 'Escape') {
+        cleanupAndNavigateHome();
+      }
+    }
+
     okBtn.addEventListener('click', () => {
       const value = input.value.trim() || 'Player 1';
-      modal.remove();
-      resolve(value);
+      cleanupAndResolve(value);
     });
-    cancelBtn.addEventListener('click', () => {
-      modal.remove();
-      resolve(null);
-      window.history.pushState({}, '', '/home');
-      window.dispatchEvent(new Event('popstate'));
+
+    cancelBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      cleanupAndNavigateHome();
     });
+
     input.addEventListener('keydown', (e) => {
       if (e.key === 'Enter') {
-        okBtn.click();
+        const value = input.value.trim() || 'Player 1';
+        cleanupAndResolve(value);
       }
     });
-    document.addEventListener('keydown', function escapeHandler(e) {
-      if (e.key === 'Escape') {
-        modal.remove();
-        resolve(null);
-        document.removeEventListener('keydown', escapeHandler);
-      }
-    });
+
+    // Add event listeners for cleanup
+    document.addEventListener('keydown', escapeHandler);
+    window.addEventListener('popstate', popHandler);
   });
 }
