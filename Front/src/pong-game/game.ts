@@ -357,7 +357,7 @@ class MainGame {
                             const payload = JSON.parse(atob(token.split('.')[1]));
                             if (payload && payload.id) {
                                 realUserId = payload.id.toString();
-                                localStorage.setItem('currentUserId', realUserId ?? '');
+                                localStorage.setItem('currentUserId', realUserId);
                             }
                         } catch (e) {
                             console.error('[DEBUG] Failed to decode JWT for user ID:', e);
