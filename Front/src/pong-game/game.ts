@@ -530,20 +530,23 @@ class MainGame {
             this.handleRemoteVictory(data.winner, null, data.message || 'Adversário desconectou');
         });
 
-        // Listener para quando entrar em uma sala - para saber qual lado você está
+        // Listener for room creation (first player)
         gameService.onMessage('room_created', (data: any) => {
-            this.playerSide = data.side;
+            // First player is always on the left side
+            this.playerSide = 'left';
             if (this.gameType === GameType.REMOTE && this.matchData) {
-                this.matchData.player1_id = data.side === 'left' ? parseInt(data.userId) : parseInt(data.opponentId);
-                this.matchData.player2_id = data.side === 'right' ? parseInt(data.userId) : parseInt(data.opponentId);
+                this.matchData.player1_id = parseInt(data.userId);
+                this.matchData.player1_alias = data.playerAlias || this.player1Alias;
             }
         });
 
+        // Listener for room joining (second player)
         gameService.onMessage('room_joined', (data: any) => {
-            this.playerSide = data.side;
+            // Second player is always on the right side
+            this.playerSide = 'right';
             if (this.gameType === GameType.REMOTE && this.matchData) {
-                this.matchData.player1_id = data.side === 'left' ? parseInt(data.userId) : parseInt(data.opponentId);
-                this.matchData.player2_id = data.side === 'right' ? parseInt(data.userId) : parseInt(data.opponentId);
+                this.matchData.player2_id = parseInt(data.userId);
+                this.matchData.player2_alias = data.playerAlias || this.player2Alias;
             }
         });
     }
@@ -582,22 +585,17 @@ class MainGame {
         // Determinar se você ganhou ou perdeu
         let victoryMessage = '';
         let messageColor = 'yellow';
+        const currentUser = localStorage.getItem('currentUserId');
+        const isWinner = winner === 'left' ?
+            currentUser === this.matchData?.player1_id?.toString() :
+            currentUser === this.matchData?.player2_id?.toString();
 
-        if (this.playerSide && winner === this.playerSide) {
+        if (isWinner) {
             victoryMessage = '🎉 VOCÊ VENCEU! 🎉';
             messageColor = 'purple';
-        } else if (this.playerSide && winner !== this.playerSide) {
+        } else {
             victoryMessage = '😞 Você Perdeu';
             messageColor = 'red';
-        } else {
-            // Fallback caso não saibamos o lado do jogador
-            if (winner === 'left') {
-                victoryMessage = 'Jogador da Esquerda Venceu!';
-            } else if (winner === 'right') {
-                victoryMessage = 'Jogador da Direita Venceu!';
-            } else {
-                victoryMessage = 'Jogo Finalizado';
-            }
         }
 
         // Criar container para a mensagem de vitória

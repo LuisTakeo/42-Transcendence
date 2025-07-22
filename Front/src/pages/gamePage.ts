@@ -161,19 +161,18 @@ export default async function gamePage(options: GamePageOptions): Promise<void> 
             window.dispatchEvent(new Event('popstate'));
             return;
         }
-        // Set initial labels for remote
-        updateScoreBar(alias, '0 - 0', 'Player 2');
-        // Use new MainGame constructor signature
+
+        // Don't set initial score bar yet - wait for room assignment
         const game = new MainGame(
             'gameCanvas',
             options.gameType,
             100,
             80,
             2,
-            { player1: alias, player2: 'Player 2' },
+            { player1: 'Player 1', player2: 'Player 2' }, // Use neutral initial values
             undefined,
             options.tournamentId,
-            handleScoreUpdate // Pass callback
+            handleScoreUpdate
         );
         game.run();
 
@@ -183,19 +182,30 @@ export default async function gamePage(options: GamePageOptions): Promise<void> 
             if (!remoteController) return;
             const gameService = remoteController.getGameService && remoteController.getGameService();
             if (!gameService) return;
-            // Send alias to server
+
+            // Send your alias to server
             gameService.sendMessage && gameService.sendMessage('set_alias', { alias });
-            // Listen for room_state updates
+
+            // Listen for initial room creation/joining
+            gameService.onMessage && gameService.onMessage('room_created', (data: any) => {
+                // First player is always left
+                updateScoreBar(alias, '0 - 0', 'Waiting...');
+            });
+
+            gameService.onMessage && gameService.onMessage('room_joined', (data: any) => {
+                // Second player is always right
+                updateScoreBar('Player 1', '0 - 0', alias);
+            });
+
+            // Listen for room state updates
             gameService.onMessage && gameService.onMessage('room_state', (data: any) => {
-                // Determine which side you are on
-                const userId = parseInt(localStorage.getItem('currentUserId') || '0');
-                let side: 'left' | 'right' = 'left';
-                if (data.right && Number(data.right.userId) === userId) side = 'right';
-                // Set aliases and IDs (ensure IDs are numbers)
+
+                // Get player info from server state
                 const player1Id = data.left?.userId ? Number(data.left.userId) : 0;
                 const player2Id = data.right?.userId ? Number(data.right.userId) : 0;
                 const player1Alias = data.left?.alias || 'Player 1';
                 const player2Alias = data.right?.alias || 'Player 2';
+
                 game.setPlayerInfo(player1Id, player1Alias, player2Id, player2Alias);
                 updateScoreBar(player1Alias, '0 - 0', player2Alias);
             });
