@@ -15,9 +15,9 @@ export default function HowToPlay(): void {
 			<img src="../../assets/perfil-1.png" class="max-w-full mb-4" />
 			<p class="text-4xl font-semibold md:text-5xl">Player on the left</p>
 			<p class="text-2xl md:text-3xl flex items-center justify-center gap-2 flex-wrap">
-			Use the keys 
+			Use the keys
 			<span class="key">W</span>
-			and 
+			and
 			<span class="key">S</span>
 			to move.
 			</p>
@@ -28,9 +28,9 @@ export default function HowToPlay(): void {
 			<img src="../../assets/perfil-2.png" class="max-w-full mb-4" />
 			<p class="text-4xl font-semibold md:text-5xl">Player on the right</p>
 			<p class="text-2xl md:text-3xl flex items-center justify-center gap-2 flex-wrap">
-			Use the keys 
+			Use the keys
 			<span class="key">↑</span>
-			and 
+			and
 			<span class="key">↓</span>
 			to move.
 			</p>
@@ -38,11 +38,19 @@ export default function HowToPlay(): void {
 	</div>
 
 	<!-- BOTÃO START -->
-		<button onclick="window.location.href='/game/local'" class="p-4 mb-12 border-2 border-[#1E1B4B] rounded-xl border-spacing-2 bg-green-600 hover:bg-green-700 text-white text-2xl md:text-3xl font-bold transition">
+		<button id="start-btn" class="p-4 mb-12 border-2 border-[#1E1B4B] rounded-xl border-spacing-2 bg-green-600 hover:bg-green-700 text-white text-2xl md:text-3xl font-bold transition">
 			Start
 		</button>
 
 	`;
 	app.appendChild(main);
 
+	// Add event listener to Start button to navigate to /game/local using SPA routing
+	const startBtn = document.getElementById("start-btn");
+	if (startBtn) {
+		startBtn.addEventListener("click", () => {
+			window.history.pushState({}, '', '/game/local');
+			window.dispatchEvent(new Event('popstate'));
+		});
+	}
 }
