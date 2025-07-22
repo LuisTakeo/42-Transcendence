@@ -151,7 +151,10 @@ async function renderRoute(path: string) {
         });
         break;
       case '/game/online':
-        gamePage(GameType.REMOTE);
+        gamePage({
+          gameType: GameType.REMOTE,
+          playerAliases: { player1: 'Player 1', player2: 'Player 2' }
+        });
         break;
       default:
         window.history.replaceState(null, '', '/home');

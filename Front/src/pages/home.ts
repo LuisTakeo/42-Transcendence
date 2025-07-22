@@ -5,7 +5,7 @@ export default function HomePage(): string {
 	<div class="min-h-screen flex-1">
 	  <div class="grid grid-cols-1 md:grid-cols-2 gap-12 p-8 h-auto min-h-screen">
 		<!-- Botão 1 -->
-		<button class="h-full relative flex flex-col items-center justify-center
+		<button id="remote-game-btn" class="h-full relative flex flex-col items-center justify-center
 		  bg-[#1E1B4B] hover:bg-[#4A4180] rounded-[5px]
 		  transition duration-300 transform hover:scale-[1.02] hover:shadow-2xl overflow-hidden">
 		  <img src="../../assets/raquet.png" alt="Fast Game" class="absolute inset-0 w-full h-full object-cover opacity-60" />
@@ -66,6 +66,15 @@ export async function initializeHomePage(): Promise<void> {
   if (cpuBtn) {
     cpuBtn.addEventListener('click', () => {
       window.history.pushState({}, '', '/game/cpu');
+      window.dispatchEvent(new Event('popstate'));
+    });
+  }
+
+  // Add click handler for Remote button
+  const remoteBtn = document.getElementById('remote-game-btn');
+  if (remoteBtn) {
+    remoteBtn.addEventListener('click', () => {
+      window.history.pushState({}, '', '/game/online');
       window.dispatchEvent(new Event('popstate'));
     });
   }

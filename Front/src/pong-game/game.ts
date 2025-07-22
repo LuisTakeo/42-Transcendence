@@ -73,7 +73,7 @@ class MainGame {
 
     private advancedTexture: AdvancedDynamicTexture;
     private scoreText: TextBlock;
-    private instructionsText: TextBlock;
+    // Remove instructionsText and initializeInstructionsBox
     private score: { player1: number, player2: number };
     private maxScore: number;
     private _remoteController: RemoteController | null = null;
@@ -84,6 +84,8 @@ class MainGame {
     // Match data for when game ends
     private matchData: MatchData | null = null;
     private playerSide: 'left' | 'right' | null = null; // Lado do jogador no modo remoto
+
+    private onScoreUpdate?: (player1: string, score1: number, player2: string, score2: number) => void;
 
     /**
      * Constructor for the main class
@@ -104,7 +106,8 @@ class MainGame {
         maxScore: number = 10,
         playerAliases: { player1: string, player2: string },
         playerIds?: { player1?: number, player2?: number },
-        tournamentId?: number
+        tournamentId?: number,
+        onScoreUpdate?: (player1: string, score1: number, player2: string, score2: number) => void
     ) {
         this.canvas = document.getElementById(canvasId) as unknown as HTMLCanvasElement;
         if (!this.canvas) throw new Error(`Canvas with ID "${canvasId}" not found`);
@@ -114,6 +117,7 @@ class MainGame {
         this.maxScore = maxScore;
         this.player1Alias = playerAliases.player1;
         this.player2Alias = playerAliases.player2;
+        this.onScoreUpdate = onScoreUpdate;
 
         // Store match data for when game ends
         this.matchData = {
@@ -143,11 +147,7 @@ class MainGame {
         this.advancedTexture = AdvancedDynamicTexture.CreateFullscreenUI("UI");
 
         this.scoreText = new TextBlock("scoreText", "Score: 0 - 0");
-        this.instructionsText = new TextBlock("instructionsText", "Use as setas para mover!");
-
-        // Inicializa os elementos de GUI
-        this.initializeScoreBox();
-        this.initializeInstructionsBox();
+        // Remove instructionsText and initializeInstructionsBox
     }
 
     /**
@@ -273,25 +273,9 @@ class MainGame {
     }
 
     /**
-     * Inicializa o retângulo e texto para as instruções
+     * Remove the instructions box initialization method
      */
-    private initializeInstructionsBox(): void {
-        const instructionsBox = new Rectangle("instructionsBox");
-        instructionsBox.width = "300px"; // Largura do bloco
-        instructionsBox.height = "60px"; // Altura do bloco
-        instructionsBox.background = "rgba(0, 0, 0, 0.5)"; // Fundo preto com 50% de transparência
-        instructionsBox.cornerRadius = 10; // Bordas arredondadas
-        instructionsBox.thickness = 0; // Sem borda
-        instructionsBox.horizontalAlignment = Control.HORIZONTAL_ALIGNMENT_CENTER;
-        instructionsBox.verticalAlignment = Control.VERTICAL_ALIGNMENT_BOTTOM;
-        instructionsBox.top = "-10%"; // Margem do fundo
-
-        this.instructionsText.color = "white";
-        this.instructionsText.fontSize = 20;
-        instructionsBox.addControl(this.instructionsText);
-
-        this.advancedTexture.addControl(instructionsBox);
-    }
+    // private initializeInstructionsBox(): void { ... }
 
     /**
      * Configura os controladores de input com base no tipo de jogo
@@ -317,9 +301,7 @@ class MainGame {
                         "player2_keyboard",  this.scene,  "ArrowUp",  "ArrowDown",  0.5,
                         this.tableManager.getTableWidth(),
                         this.tableManager.getTableDepth())
-                },
-                `Use W/S para ${this.player1Alias}\nSetas para ${this.player2Alias}`
-                );
+                });
                 break;
 
             case GameType.LOCAL_VS_AI:
@@ -337,9 +319,7 @@ class MainGame {
                         this.tableManager.getTableWidth(),
                         this.tableManager.getTableDepth(),
                         LevelAI.EXPERT
-                    )},
-                    "Use as setas para mover\n"
-                )
+                    )});
                 break;
 
             case GameType.REMOTE:
@@ -395,9 +375,8 @@ class MainGame {
 
     private registerControllers(
         player1: {info: string, controller: IInputController},
-        player2: {info: string, controller: IInputController},
-        instructions: string): void {
-        this.instructionsText.text = instructions;
+        player2: {info: string, controller: IInputController}): void {
+        // Remove instructions argument and instructionsText update
         this.inputManager.registerController(player1.controller);
         this.inputManager.registerController(player2.controller);
         this.inputManager.connectControllerToPaddle(player1.info, this.tableManager.getPaddleLeft());
@@ -446,7 +425,10 @@ class MainGame {
 
             // Atualizar placar, se desejar
             this.scoreText.text = `Score: ${state.score.player1} - ${state.score.player2}`;
-
+            // Update the DOM score bar in real time
+            if (this.onScoreUpdate) {
+                this.onScoreUpdate(this.player1Alias, state.score.player1, this.player2Alias, state.score.player2);
+            }
         }
         this.scene.render();
     }
@@ -556,6 +538,24 @@ class MainGame {
 
         // Save the match to the database
         await this.saveMatchToDatabase();
+
+        // Determine winner alias for modal
+        let winnerAlias = winner;
+        if (winner === 'left') {
+            winnerAlias = this.player1Alias;
+        } else if (winner === 'right') {
+            winnerAlias = this.player2Alias;
+        }
+
+        // Show the HTML winner modal (added)
+        showWinnerModal(
+            winnerAlias,
+            () => { window.location.reload(); }, // Play again
+            () => {
+                window.history.pushState({}, '', '/home');
+                window.dispatchEvent(new Event('popstate'));
+            }
+        );
 
         // Determinar se você ganhou ou perdeu
         let victoryMessage = '';
@@ -703,6 +703,24 @@ class MainGame {
 
         // Save the match to the database
         await this.saveMatchToDatabase();
+
+        // Determine winner alias for modal
+        let winnerAlias = winner;
+        if (winner === 'left') {
+            winnerAlias = this.player1Alias;
+        } else if (winner === 'right') {
+            winnerAlias = this.player2Alias;
+        }
+
+        // Show the HTML winner modal (added)
+        showWinnerModal(
+            winnerAlias,
+            () => { window.location.reload(); }, // Play again
+            () => {
+                window.history.pushState({}, '', '/home');
+                window.dispatchEvent(new Event('popstate'));
+            }
+        );
 
         // Determinar se você ganhou ou perdeu
         let victoryMessage = '';
@@ -820,11 +838,25 @@ class MainGame {
             rightLabel = "CPU";
         }
         this.scoreText.text = `Score: ${leftLabel} ${this.score.player1} - ${this.score.player2} ${rightLabel}`;
+        if (this.onScoreUpdate) {
+            this.onScoreUpdate(leftLabel, this.score.player1, rightLabel, this.score.player2);
+        }
     }
 
 
     public getGameType(): GameType {
         return this.gameType;
+    }
+
+    public setPlayerInfo(player1Id: number, player1Alias: string, player2Id: number, player2Alias: string) {
+        if (this.matchData) {
+            this.matchData.player1_id = player1Id;
+            this.matchData.player2_id = player2Id;
+            this.matchData.player1_alias = player1Alias;
+            this.matchData.player2_alias = player2Alias;
+        }
+        this.player1Alias = player1Alias;
+        this.player2Alias = player2Alias;
     }
 
 

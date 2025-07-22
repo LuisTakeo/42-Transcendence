@@ -95,3 +95,58 @@ export async function showAliasModal(): Promise<{ player1: string, player2: stri
     window.addEventListener('popstate', popHandler);
   });
 }
+
+export async function showRemoteAliasModal(): Promise<string | null> {
+  // Modal HTML for single alias input
+  const modalHTML = `
+  <div id="remote-alias-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div class="bg-[#1E1B4B] rounded-lg p-8 max-w-md w-full mx-4">
+      <div class="text-center">
+        <h2 class="text-2xl font-bold text-white mb-4">Enter your alias</h2>
+        <input
+          type="text"
+          id="remote-alias-input"
+          class="w-full px-3 py-2 rounded-md bg-[#383568] text-white border border-gray-600 focus:outline-none focus:border-purple-500 mb-4"
+          placeholder="Your alias"
+          maxlength="20"
+        />
+        <div class="flex gap-3 mt-4">
+          <button id="remote-alias-ok" class="flex-1 bg-purple-600 hover:bg-purple-700 text-white font-medium py-2 px-4 rounded-md transition">OK</button>
+          <button id="remote-alias-cancel" class="flex-1 bg-gray-600 hover:bg-gray-700 text-white font-medium py-2 px-4 rounded-md transition">Cancel</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  `;
+  document.body.insertAdjacentHTML('beforeend', modalHTML);
+  const modal = document.getElementById('remote-alias-modal')!;
+  const input = document.getElementById('remote-alias-input') as HTMLInputElement;
+  const okBtn = document.getElementById('remote-alias-ok')!;
+  const cancelBtn = document.getElementById('remote-alias-cancel')!;
+  setTimeout(() => input.focus(), 100);
+  return new Promise((resolve) => {
+    okBtn.addEventListener('click', () => {
+      const value = input.value.trim() || 'Player 1';
+      modal.remove();
+      resolve(value);
+    });
+    cancelBtn.addEventListener('click', () => {
+      modal.remove();
+      resolve(null);
+      window.history.pushState({}, '', '/home');
+      window.dispatchEvent(new Event('popstate'));
+    });
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        okBtn.click();
+      }
+    });
+    document.addEventListener('keydown', function escapeHandler(e) {
+      if (e.key === 'Escape') {
+        modal.remove();
+        resolve(null);
+        document.removeEventListener('keydown', escapeHandler);
+      }
+    });
+  });
+}

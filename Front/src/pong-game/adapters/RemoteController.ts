@@ -28,8 +28,14 @@ export class RemoteController implements IInputController {
         this.paddleSize = { width: 1, height: 4, depth: 10 }; // Tamanho padrão do paddle
         // Use VITE_API_BASE_URL for the backend URL
         const baseUrl = import.meta.env.VITE_API_BASE_URL;
-        // Ensure wss:// for WebSocket (replace http(s) with wss)
-        const wsUrl = baseUrl.replace(/^http(s?):\/\//, 'wss://') + '/ws';
+        let wsUrl;
+        if (baseUrl.startsWith('https://')) {
+            wsUrl = baseUrl.replace(/^https:\/\//, 'wss://') + '/ws';
+        } else if (baseUrl.startsWith('http://')) {
+            wsUrl = baseUrl.replace(/^http:\/\//, 'ws://') + '/ws';
+        } else {
+            wsUrl = baseUrl + '/ws';
+        }
         this._gameService = new GameService(wsUrl, this.id);
     }
 
