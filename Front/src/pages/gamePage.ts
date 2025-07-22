@@ -128,7 +128,7 @@ export default async function gamePage(options: GamePageOptions): Promise<void> 
             80,
             2,
             { player1: aliases.player1, player2: aliases.player2 },
-            { player1: currentUser?.id, player2: 4 },
+            { player1: currentUser?.id, player2: 5 },
             options.tournamentId,
             handleScoreUpdate // Pass callback
         );
@@ -146,7 +146,7 @@ export default async function gamePage(options: GamePageOptions): Promise<void> 
             80,
             2,
             { player1: 'You', player2: 'CPU' },
-            { player1: currentUser?.id, player2: 5 },
+            { player1: currentUser?.id, player2: 4 },
             options.tournamentId,
             handleScoreUpdate // Pass callback
         );

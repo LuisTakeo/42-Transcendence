@@ -73,7 +73,7 @@ class MainGame {
 
     private advancedTexture: AdvancedDynamicTexture;
     private scoreText: TextBlock;
-    // Remove instructionsText and initializeInstructionsBox
+    private instructionsText: TextBlock;
     private score: { player1: number, player2: number };
     private maxScore: number;
     private _remoteController: RemoteController | null = null;
@@ -147,7 +147,11 @@ class MainGame {
         this.advancedTexture = AdvancedDynamicTexture.CreateFullscreenUI("UI");
 
         this.scoreText = new TextBlock("scoreText", "Score: 0 - 0");
-        // Remove instructionsText and initializeInstructionsBox
+        this.instructionsText = new TextBlock("instructionsText", "Use as setas para mover!");
+
+        // Inicializa os elementos de GUI
+        this.initializeScoreBox();
+        this.initializeInstructionsBox();
     }
 
     /**
@@ -164,11 +168,14 @@ class MainGame {
 
             // Use correct reserved user ID for player2_id if missing
             let player2_id = this.matchData.player2_id;
+            let player2_alias = this.matchData.player2_alias;
             if (!player2_id) {
                 if (this.gameType === GameType.LOCAL_TWO_PLAYERS) {
-                    player2_id = 4;
-                } else if (this.gameType === GameType.LOCAL_VS_AI) {
                     player2_id = 5;
+                    // player2_alias remains as entered by user
+                } else if (this.gameType === GameType.LOCAL_VS_AI) {
+                    player2_id = 4;
+                    player2_alias = "CPU";
                 } else {
                     player2_id = 0; // fallback, should never happen for remote
                 }
@@ -254,7 +261,7 @@ class MainGame {
      */
     private initializeScoreBox(): void {
         const scoreBox = new Rectangle("scoreBox");
-        scoreBox.width = "420px"; // Increased width for longer text
+        scoreBox.width = "420px";
         scoreBox.height = "50px";
         scoreBox.background = "rgba(0, 0, 0, 0.5)";
         scoreBox.cornerRadius = 10;
@@ -273,9 +280,26 @@ class MainGame {
     }
 
     /**
-     * Remove the instructions box initialization method
+     * Inicializa o retângulo e texto para as instruções
      */
-    // private initializeInstructionsBox(): void { ... }
+    private initializeInstructionsBox(): void {
+      const instructionsBox = new Rectangle("instructionsBox");
+      instructionsBox.width = "300px"; // Largura do bloco
+      instructionsBox.height = "60px"; // Altura do bloco
+      instructionsBox.background = "rgba(0, 0, 0, 0.5)"; // Fundo preto com 50% de transparência
+      instructionsBox.cornerRadius = 10; // Bordas arredondadas
+      instructionsBox.thickness = 0; // Sem borda
+      instructionsBox.horizontalAlignment = Control.HORIZONTAL_ALIGNMENT_CENTER;
+      instructionsBox.verticalAlignment = Control.VERTICAL_ALIGNMENT_BOTTOM;
+      instructionsBox.top = "-10%"; // Margem do fundo
+
+      this.instructionsText.color = "white";
+      this.instructionsText.fontSize = 20;
+      instructionsBox.addControl(this.instructionsText);
+
+      this.advancedTexture.addControl(instructionsBox);
+    }
+
 
     /**
      * Configura os controladores de input com base no tipo de jogo
@@ -333,7 +357,7 @@ class MainGame {
                             const payload = JSON.parse(atob(token.split('.')[1]));
                             if (payload && payload.id) {
                                 realUserId = payload.id.toString();
-                                localStorage.setItem('currentUserId', realUserId);
+                                localStorage.setItem('currentUserId', realUserId ?? '');
                             }
                         } catch (e) {
                             console.error('[DEBUG] Failed to decode JWT for user ID:', e);
@@ -423,11 +447,15 @@ class MainGame {
             const paddleRight = this.tableManager.getPaddleRight();
             paddleRight.updatePositionRemote(state.player2.y);
 
-            // Atualizar placar, se desejar
-            this.scoreText.text = `Score: ${state.score.player1} - ${state.score.player2}`;
+            // Update scores and ensure correct alias display
+            this.score = state.score;
+            const leftName = this.matchData?.player1_alias || this.player1Alias;
+            const rightName = this.matchData?.player2_alias || this.player2Alias;
+            this.scoreText.text = `${leftName} ${state.score.player1} - ${state.score.player2} ${rightName}`;
+
             // Update the DOM score bar in real time
             if (this.onScoreUpdate) {
-                this.onScoreUpdate(this.player1Alias, state.score.player1, this.player2Alias, state.score.player2);
+                this.onScoreUpdate(leftName, state.score.player1, rightName, state.score.player2);
             }
         }
         this.scene.render();
@@ -465,10 +493,7 @@ class MainGame {
         showWinnerModal(
             winner,
             () => { window.location.reload(); }, // Play again
-            () => {
-                window.history.pushState({}, '', '/home');
-                window.dispatchEvent(new Event('popstate'));
-            }
+            () => { window.location.href = '/home'; } // Go to Homepage
         );
 
         // Optionally, keep or remove the BabylonJS overlay
@@ -551,175 +576,7 @@ class MainGame {
         showWinnerModal(
             winnerAlias,
             () => { window.location.reload(); }, // Play again
-            () => {
-                window.history.pushState({}, '', '/home');
-                window.dispatchEvent(new Event('popstate'));
-            }
-        );
-
-        // Determinar se você ganhou ou perdeu
-        let victoryMessage = '';
-        let messageColor = 'yellow';
-
-        if (this.playerSide && winner === this.playerSide) {
-            victoryMessage = '🎉 VOCÊ VENCEU! 🎉';
-            messageColor = 'purple';
-        } else if (this.playerSide && winner !== this.playerSide) {
-            victoryMessage = '😞 Você Perdeu';
-            messageColor = 'red';
-        } else {
-            // Fallback caso não saibamos o lado do jogador
-            if (winner === 'left') {
-                victoryMessage = 'Jogador da Esquerda Venceu!';
-            } else if (winner === 'right') {
-                victoryMessage = 'Jogador da Direita Venceu!';
-            } else {
-                victoryMessage = 'Jogo Finalizado';
-            }
-        }
-
-        // Criar container para a mensagem de vitória
-        const victoryContainer = new Rectangle("victoryContainer");
-        victoryContainer.widthInPixels = 500;
-        victoryContainer.heightInPixels = 300;
-        victoryContainer.background = "rgba(0, 0, 0, 0.9)";
-        victoryContainer.cornerRadius = 20;
-        victoryContainer.color = messageColor;
-        victoryContainer.thickness = 4;
-        victoryContainer.horizontalAlignment = Control.HORIZONTAL_ALIGNMENT_CENTER;
-        victoryContainer.verticalAlignment = Control.VERTICAL_ALIGNMENT_CENTER;
-
-        // Texto principal de vitória
-        const victoryText = new TextBlock("victoryText", victoryMessage);
-        victoryText.color = messageColor;
-        victoryText.fontSize = 28;
-        victoryText.fontWeight = "bold";
-        victoryText.textVerticalAlignment = Control.VERTICAL_ALIGNMENT_TOP;
-        victoryText.paddingTopInPixels = 40;
-
-        // Texto do motivo
-        const reasonText = new TextBlock("reasonText", reason);
-        reasonText.color = "white";
-        reasonText.fontSize = 16;
-        reasonText.textVerticalAlignment = Control.VERTICAL_ALIGNMENT_CENTER;
-
-        // Texto da pontuação final (se disponível)
-        let scoreText: TextBlock | null = null;
-        if (finalScore) {
-            const leftScore = finalScore.player1;
-            const rightScore = finalScore.player2;
-            scoreText = new TextBlock("scoreText",
-                `Pontuação Final: ${leftScore} - ${rightScore}`);
-            scoreText.color = "lightblue";
-            scoreText.fontSize = 14;
-            scoreText.textVerticalAlignment = Control.VERTICAL_ALIGNMENT_BOTTOM;
-            scoreText.paddingBottomInPixels = 50;
-        }
-
-        // Texto informativo sobre o lado do jogador
-        let sideText: TextBlock | null = null;
-        if (this.playerSide) {
-            sideText = new TextBlock("sideText",
-                `Você estava jogando como: ${this.playerSide === 'left' ? 'Esquerda' : 'Direita'}`);
-            sideText.color = "lightgray";
-            sideText.fontSize = 12;
-            sideText.textVerticalAlignment = Control.VERTICAL_ALIGNMENT_BOTTOM;
-            sideText.paddingBottomInPixels = 20;
-        }
-
-        // Adicionar elementos ao container
-        victoryContainer.addControl(victoryText);
-        victoryContainer.addControl(reasonText);
-        if (scoreText) {
-            victoryContainer.addControl(scoreText);
-        }
-        if (sideText) {
-            victoryContainer.addControl(sideText);
-        }
-
-        // Adicionar container à interface
-        this.advancedTexture.addControl(victoryContainer);
-
-        this.scene.render();
-        // Parar o loop de renderização
-        this.engine.stopRenderLoop();
-
-        // Log para debug
-        console.log(`Jogo finalizado - Vencedor: ${winner}, Seu lado: ${this.playerSide}, Motivo: ${reason}`);
-    }
-
-    /**
-     * Configura os listeners para mensagens de vitória no modo remoto
-     */
-    private setupRemoteVictoryListeners(): void {
-        if (!this._remoteController) return;
-
-        // Obter o GameService do RemoteController
-        const gameService = this._remoteController.getGameService();
-        if (!gameService) return;
-
-        // Listener para vitória por pontuação máxima
-        gameService.onMessage('game_over', (data: any) => {
-            console.log('Jogo terminou:', data);
-            this.handleRemoteVictory(data.winner, data.finalScore, 'Vitória por pontuação!');
-        });
-
-        // Listener para vitória por desconexão do adversário
-        gameService.onMessage('end_game', (data: any) => {
-            console.log('Jogo terminou por desconexão:', data);
-            this.handleRemoteVictory(data.winner, null, data.message || 'Adversário desconectou');
-        });
-
-        // Listener para quando entrar em uma sala - para saber qual lado você está
-        gameService.onMessage('room_created', (data: any) => {
-            this.playerSide = data.side;
-            if (this.gameType === GameType.REMOTE && this.matchData) {
-                this.matchData.player1_id = data.side === 'left' ? parseInt(data.userId) : parseInt(data.opponentId);
-                this.matchData.player2_id = data.side === 'right' ? parseInt(data.userId) : parseInt(data.opponentId);
-            }
-        });
-
-        gameService.onMessage('room_joined', (data: any) => {
-            this.playerSide = data.side;
-            if (this.gameType === GameType.REMOTE && this.matchData) {
-                this.matchData.player1_id = data.side === 'left' ? parseInt(data.userId) : parseInt(data.opponentId);
-                this.matchData.player2_id = data.side === 'right' ? parseInt(data.userId) : parseInt(data.opponentId);
-            }
-        });
-    }
-
-    /**
-     * Manipula a exibição de vitória no modo remoto
-     */
-    private async handleRemoteVictory(winner: string, finalScore: any, reason: string): Promise<void> {
-        // Verificar se o jogo já terminou para evitar múltiplas mensagens
-        if (this.gameEnded) {
-            console.log('Jogo já terminou, ignorando nova mensagem de vitória');
-            return;
-        }
-
-        // Marcar que o jogo terminou
-        this.gameEnded = true;
-
-        // Save the match to the database
-        await this.saveMatchToDatabase();
-
-        // Determine winner alias for modal
-        let winnerAlias = winner;
-        if (winner === 'left') {
-            winnerAlias = this.player1Alias;
-        } else if (winner === 'right') {
-            winnerAlias = this.player2Alias;
-        }
-
-        // Show the HTML winner modal (added)
-        showWinnerModal(
-            winnerAlias,
-            () => { window.location.reload(); }, // Play again
-            () => {
-                window.history.pushState({}, '', '/home');
-                window.dispatchEvent(new Event('popstate'));
-            }
+            () => { window.location.href = '/home'; } // Go to Homepage
         );
 
         // Determinar se você ganhou ou perdeu
