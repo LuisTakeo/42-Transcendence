@@ -9,7 +9,7 @@ import { AIController } from "./adapters/AIController";
 import { RemoteController } from "./adapters/RemoteController";
 import { TextBlock, AdvancedDynamicTexture, Control, Rectangle } from "@babylonjs/gui";
 import { IInputController } from "./ports/IInputController";
-import { showWinnerModal } from '../pages/gamePage';
+import { showWinnerModal } from '../pages/winner-modal';
 
 /**
  * Tipos de jogo disponíveis

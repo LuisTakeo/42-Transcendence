@@ -105,7 +105,7 @@ export async function showRemoteAliasModal(): Promise<string | null> {
 
   // Save current URL to handle navigation properly
   const previousUrl = window.location.pathname;
-  
+
   // Modal HTML for single alias input
   const modalHTML = `
   <div id="remote-alias-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -127,7 +127,7 @@ export async function showRemoteAliasModal(): Promise<string | null> {
     </div>
   </div>
   `;
-  
+
   document.body.insertAdjacentHTML('beforeend', modalHTML);
   const modal = document.getElementById('remote-alias-modal')!;
   const input = document.getElementById('remote-alias-input') as HTMLInputElement;
@@ -142,7 +142,7 @@ export async function showRemoteAliasModal(): Promise<string | null> {
     function cleanup() {
       if (isCleanedUp) return;
       isCleanedUp = true;
-      
+
       // Remove all event listeners first
       window.removeEventListener('popstate', popHandler);
       document.removeEventListener('keydown', escapeHandler);
