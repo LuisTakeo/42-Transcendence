@@ -392,10 +392,43 @@ export async function createMatch(request: FastifyRequest, reply: FastifyReply) 
 	}
 }
 
-// Genarate matches for a round
-export async function generateRoundMatches(request: FastifyRequest, reply: FastifyReply) {
-	const { players } = request.body;
-	console.log('Generating matches for players:', players);
+export async function generateAllRoundRobinMatches(request: FastifyRequest, reply: FastifyReply) {
+  let { players } = request.body as { players: string[] };
+
+  if (!Array.isArray(players) || players.length < 3) {
+    return reply.code(400).send({ error: 'At least three players are required' });
+  }
+
+  const isOdd = players.length % 2 !== 0;
+  if (isOdd) {
+    players = [...players, 'BYE'];
+  }
+
+  const rounds = [];
+  const n = players.length;
+  const half = n / 2;
+
+  const rotatedPlayers = [...players];
+
+  for (let round = 0; round < n - 1; round++) {
+    const matches = [];
+
+    for (let i = 0; i < half; i++) {
+      const player1 = rotatedPlayers[i];
+      const player2 = rotatedPlayers[n - 1 - i];
+
+      matches.push({
+        player1_alias: player1 === 'BYE' ? null : player1,
+        player2_alias: player2 === 'BYE' ? null : player2,
+      });
+    }
+
+    rounds.push({ round: round + 1, matches });
+    const last = rotatedPlayers.pop()!;
+    rotatedPlayers.splice(1, 0, last);
+  }
+
+  return reply.send({ rounds });
 }
 
 // Update match

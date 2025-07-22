@@ -44,6 +44,14 @@ export class MatchesService extends BaseApiService {
   async getPlayerMatches(playerId: number): Promise<SingleResponse<Match[]>> {
     return this.request<SingleResponse<Match[]>>(`/matches/player/${playerId}`);
   }
+
+  // Generate all round-robin matches
+  async generateAllRoundRobinMatches(players: string[]): Promise<SingleResponse<any>> {
+    return this.request<SingleResponse<any>>('/matches/generate', {
+      method: 'POST',
+      body: JSON.stringify({ players }),
+    });
+  }
 }
 
 // Export a singleton instance
