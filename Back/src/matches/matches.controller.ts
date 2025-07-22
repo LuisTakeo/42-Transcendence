@@ -392,6 +392,12 @@ export async function createMatch(request: FastifyRequest, reply: FastifyReply) 
 	}
 }
 
+// Genarate matches for a round
+export async function generateRoundMatches(request: FastifyRequest, reply: FastifyReply) {
+	const { players } = request.body;
+	console.log('Generating matches for players:', players);
+}
+
 // Update match
 export async function updateMatch(request: FastifyRequest, reply: FastifyReply) {
 	try {

@@ -8,6 +8,7 @@ import {
 	getPlayerStats,
 	getBulkUserStats,
 	createMatch,
+	generateRoundMatches,
 	updateMatch
 } from './matches.controller';
 
@@ -32,6 +33,10 @@ export default async function matchesRoutes(server: FastifyInstance) {
 
 	// POST /matches - Create new match
 	server.post('/', createMatch);
+
+	// POST /matches/generate - Generate matches
+
+	server.post('/generate', generateRoundMatches);
 
 	// PUT /matches/:id - Update match
 	server.put('/:id', updateMatch);
