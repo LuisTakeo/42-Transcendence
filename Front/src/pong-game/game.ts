@@ -250,7 +250,7 @@ class MainGame {
                 winner_id: winnerId,
                 player1_score: this.score.player1,
                 player2_score: this.score.player2,
-                tournament_id: tournament_id // Now properly typed as number | null
+                tournament_id: tournament_id
             };
 
             const authToken = localStorage.getItem('authToken');
