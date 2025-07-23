@@ -17,7 +17,7 @@ export default async function MatchHistoryPage(): Promise<void> {
   main.innerHTML = `
     <div class="w-full md:p-2 lg:p-12 bg-[#1E1B4B] rounded-lg p-4 md:p-8">
       <h1 class="text-3xl md:text-5xl font-bold mb-6 text-center">Match History</h1>
-      <div class="w-full max-w-3xl mx-auto mt-6 md:mt-10">
+      <div class="w-full max-w-6xl mx-auto mt-6 md:mt-10">
         <div id="match-history-content" class="overflow-x-auto rounded-lg">
           <div class="text-center text-white text-xl">
             <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500 mx-auto mb-4"></div>
@@ -87,18 +87,18 @@ async function loadMatchHistory(userId: number): Promise<void> {
 function createMatchHistoryTable(matches: any[], userId: number): HTMLElement {
   // Create responsive wrapper
   const wrapper = document.createElement('div');
-  wrapper.className = 'overflow-x-auto rounded-lg';
+  wrapper.className = 'overflow-x-auto rounded-lg w-full';
   // Create table
   const table = document.createElement('table');
-  table.className = 'min-w-[600px] w-full text-center text-white rounded-lg overflow-hidden';
+  table.className = 'min-w-[800px] w-full text-center text-white rounded-lg overflow-hidden';
   // Create thead
   const thead = document.createElement('thead');
-  thead.className = 'bg-[#3B3567] text-base md:text-xl uppercase';
+  thead.className = 'bg-[#3B3567] text-sm md:text-base uppercase tracking-wide';
   const headRow = document.createElement('tr');
-  const headers = ['Opponent', 'Your Score', 'Opponent Score', 'Winner', 'Date'];
+  const headers = ['Opponent', 'Opponent Alias', 'Your Alias', 'Your Score', 'Opponent Score', 'Winner', 'Date'];
   headers.forEach(header => {
     const th = document.createElement('th');
-    th.className = 'px-2 md:px-6 py-3';
+    th.className = 'px-2 md:px-4 py-2';
     th.textContent = header;
     headRow.appendChild(th);
   });
@@ -112,6 +112,8 @@ function createMatchHistoryTable(matches: any[], userId: number): HTMLElement {
     row.className = 'bg-[#2D2856]';
     const isPlayer1 = match.player1_id === userId;
     const opponent = isPlayer1 ? match.player2_username : match.player1_username;
+    const opponentAlias = isPlayer1 ? match.player2_alias : match.player1_alias;
+    const yourAlias = isPlayer1 ? match.player1_alias : match.player2_alias;
     const yourScore = isPlayer1 ? match.player1_score : match.player2_score;
     const opponentScore = isPlayer1 ? match.player2_score : match.player1_score;
     const winner = match.winner_username;
@@ -128,6 +130,16 @@ function createMatchHistoryTable(matches: any[], userId: number): HTMLElement {
     tdOpponent.className = 'px-6 py-4';
     tdOpponent.textContent = opponent ? `@${opponent}` : '-';
     row.appendChild(tdOpponent);
+    // Opponent Alias
+    const tdOpponentAlias = document.createElement('td');
+    tdOpponentAlias.className = 'px-6 py-4';
+    tdOpponentAlias.textContent = opponentAlias || '-';
+    row.appendChild(tdOpponentAlias);
+    // Your Alias
+    const tdYourAlias = document.createElement('td');
+    tdYourAlias.className = 'px-6 py-4';
+    tdYourAlias.textContent = yourAlias || '-';
+    row.appendChild(tdYourAlias);
     // Your Score
     const tdYourScore = document.createElement('td');
     tdYourScore.className = 'px-6 py-4';
