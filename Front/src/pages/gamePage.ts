@@ -1,8 +1,10 @@
 import { GameType, MainGame } from "../pong-game/game";
 import { showAliasModal } from "./alias-modal";
+import { showErrorModal } from "./tournamentEvents";
+
 interface GamePageOptions {
     gameType: GameType;
-    playerAliases: { player1: string; player2: string };
+    playerAliases: { player1: string; player2: string } | null;
     playerIds?: { player1?: number; player2?: number };
     tournamentId?: number;
 }
@@ -23,7 +25,14 @@ export default async function gamePage(options: GamePageOptions): Promise<void> 
     }
     // Add centering class for game page
     app.classList.add('game-active');
-    app.innerHTML = '';
+    app.innerHTML = `
+      <!-- MODAL - ERRORS -->
+      <div id="errors-modal" class="hidden fixed inset-0 flex items-center justify-center bg-black bg-opacity-70 z-50">
+        <div id="errors-box" class="bg-[#1E1B4B] p-6 rounded space-y-4 text-center w-80 text-white">
+          <p id="errors-message" class="text-xl"></p>
+        </div>
+      </div>
+    `;
 
     // Create a flex column container
     const container = document.createElement('div');
@@ -61,38 +70,79 @@ export default async function gamePage(options: GamePageOptions): Promise<void> 
         updateScoreBar(player1, `${score1} - ${score2}`, player2);
     }
 
+    // Fetch current user and pass player IDs
+    const { userService } = await import('../services/user.service.ts');
+    const currentUser = await userService.getCurrentUser();
+
     if (options.gameType === GameType.LOCAL_TWO_PLAYERS) {
-        const aliases = await showAliasModal();
-        if (!aliases) {
-            // User cancelled, go back to home
-            app.classList.remove('game-active');
-            window.history.pushState({}, '', '/home');
-            window.dispatchEvent(new Event('popstate'));
-            return;
+        const urlParams = new URLSearchParams(window.location.search);
+        const sessionParam = urlParams.get('session');
+
+        if (sessionParam) {
+            // Verify navigation token
+            const navigationToken = localStorage.getItem('tournament_navigation');
+            if (!navigationToken) {
+                // No token found - direct URL access attempted
+                showErrorModal("You can't start this match!");
+                setTimeout(() => {
+                    window.location.href = '/tournament';
+                }, 2000);
+                return;
+            }
+
+            const { timestamp, session } = JSON.parse(navigationToken);
+
+            // Check if token is expired (30 seconds validity)
+            if (Date.now() - timestamp > 30000 || session !== sessionParam) {
+                showErrorModal("This game session has expired");
+                setTimeout(() => {
+                    window.location.href = '/tournament';
+                }, 2000);
+                return;
+            }
+
+            // Clear the navigation token
+            localStorage.removeItem('tournament_navigation');
+
+            // Parse session parameter (format: player1-player2-tournamentId)
+            const [player1, player2, tournamentId] = sessionParam.split('-');
+            options.playerAliases = { player1, player2 };
+            options.playerIds = { player1: 5, player2: 5 };
+            options.tournamentId = parseInt(tournamentId);
+        } else {
+            // If no session parameter, show modal
+            options.playerAliases = await showAliasModal();
+            if (!options.playerAliases) {
+                // User cancelled, go back to home
+                app.classList.remove('game-active');
+                window.history.pushState({}, '', '/home');
+                window.dispatchEvent(new Event('popstate'));
+                return;
+            }
+
+            options.playerIds = {
+                player1: currentUser?.id || 5,
+                player2: 5
+            };
         }
+
         // Set initial labels
-        updateScoreBar(aliases.player1, '0 - 0', aliases.player2);
-        // Fetch current user and pass player IDs
-        const { userService } = await import('../services/user.service.ts');
-        const currentUser = await userService.getCurrentUser();
+        updateScoreBar(options.playerAliases.player1, '0 - 0', options.playerAliases.player2);
         const game = new MainGame(
             'gameCanvas',
             options.gameType,
             100,
             80,
             2,
-            { player1: aliases.player1, player2: aliases.player2 },
-            { player1: currentUser?.id, player2: 5 },
-            options.tournamentId,
-            handleScoreUpdate // Pass callback
+            options.playerAliases,
+            options.playerIds,
+            options.tournamentId || undefined,
+            handleScoreUpdate
         );
         game.run();
     } else if (options.gameType === GameType.LOCAL_VS_AI) {
         // Set initial labels for CPU
         updateScoreBar('You', '0 - 0', 'CPU');
-        // Fetch current user and pass player IDs
-        const { userService } = await import('../services/user.service.ts');
-        const currentUser = await userService.getCurrentUser();
         const game = new MainGame(
             'gameCanvas',
             options.gameType,
@@ -116,14 +166,13 @@ export default async function gamePage(options: GamePageOptions): Promise<void> 
             return;
         }
 
-        // Don't set initial score bar yet - wait for room assignment
         const game = new MainGame(
             'gameCanvas',
             options.gameType,
             100,
             80,
             2,
-            { player1: 'Player 1', player2: 'Player 2' }, // Use neutral initial values
+            { player1: 'Player 1', player2: 'Player 2' },
             undefined,
             options.tournamentId,
             handleScoreUpdate
