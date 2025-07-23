@@ -1,4 +1,6 @@
 import { matchesService } from "../services/matches.service";
+import { tournamentsService } from "../services/tournaments.service";
+import { userService } from "../services/user.service";
 
 export function setupTournamentEvents() {
 	const addPlayerBtn = document.getElementById("add-player-btn");
@@ -8,10 +10,11 @@ export function setupTournamentEvents() {
 	const input = document.getElementById("player-name") as HTMLInputElement;
 	const playerList = document.getElementById("player-list") as HTMLUListElement;
 	const generateMatchesBtn = document.getElementById("generate-matches-btn");
+	const startTournamentBtn = document.getElementById("start-tournament") as HTMLButtonElement;
 	const noPlayersMessage = document.getElementById("no-players-message");
 	const matchesList = document.getElementById("matches-list") as HTMLUListElement;
 
-	if (!addPlayerBtn || !modal || !cancelBtn || !confirmBtn || !input || !playerList || !generateMatchesBtn || !noPlayersMessage || !matchesList) {
+	if (!addPlayerBtn || !modal || !cancelBtn || !confirmBtn || !input || !playerList || !generateMatchesBtn || !noPlayersMessage || !matchesList || !startTournamentBtn) {
 		console.error("Algum elemento não foi encontrado.");
 		return;
 	}
@@ -54,6 +57,51 @@ export function setupTournamentEvents() {
 			}
 		});
 	}
+
+	startTournamentBtn.addEventListener("click", async () => {
+		try {
+			// Get current user
+			const currentUser = await userService.getCurrentUser();
+			if (!currentUser) {
+				showErrorModal("You must be logged in to create a tournament");
+				return;
+			}
+
+      if (playerList.children.length <= 3) {
+				showErrorModal("You cannot create a tournament with less than 3 players.");
+				return;
+			} else if (playerList.children.length > 8) {
+				showErrorModal("You cannot create a tournament with more than 8 players.");
+				return;
+      }
+
+			await showGenerateMatchesModal(playerList, matchesList);
+
+			if (matchesList.children.length === 0) {
+				showErrorModal("No matches were generated. Tournament creation aborted.");
+				return;
+			}
+			// Create tournament
+			const tournamentResponse = await tournamentsService.createTournament({
+				name: `Tournament ${new Date().toLocaleString()}`,
+				owner_id: currentUser.id
+			});
+
+			if (!tournamentResponse.success || !tournamentResponse.data.id) {
+				showErrorModal("Failed to create tournament");
+				return;
+			}
+
+			// Disable button and update text to show tournament is in progress
+			startTournamentBtn.disabled = true;
+			startTournamentBtn.textContent = `Tournament ${tournamentResponse.data.id} in progress ...`;
+			startTournamentBtn.classList.add('opacity-50', 'cursor-not-allowed');
+
+		} catch (error) {
+			console.error("Error creating tournament:", error);
+			showErrorModal("Failed to create and start tournament");
+		}
+	});
 }
 
 function addPlayer(name: string, playerList: HTMLUListElement): void {
@@ -152,7 +200,9 @@ function addMatches(player1: string, player2: string, matchesList: HTMLUListElem
 	const startMatch = li.querySelector("button");
 	if (startMatch) {
 		startMatch.addEventListener("click", () => {
-			startCountdown(5, '/home'); // add a rota da partida aqui
+			// startCountdown(5, '/home'); // add a rota da partida aqui
+      console.log("you've clicked to start the match between", player1, "and", player2);
+      // should call /game/local with player1_id = 5 and player2_id = 5 and player1_alias = player1 and player2_alias = player2 and tournament_id
 		});
 	}
 
