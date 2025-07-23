@@ -428,7 +428,7 @@ function clearTournamentState() {
 // Create and setup finish tournament button
 function setupFinishTournamentButton(container: HTMLElement) {
 	const finishBtn = document.createElement("button");
-	finishBtn.textContent = "Clear Tournament";
+	finishBtn.textContent = "Clear";
 	finishBtn.className = "bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 mt-4";
 	finishBtn.style.display = "none";
 

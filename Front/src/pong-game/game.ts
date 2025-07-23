@@ -47,6 +47,7 @@ export interface RemoteStateSend {
  * Interface for match data
  */
 interface MatchData {
+    id?: number;
     player1_id?: number;
     player2_id?: number;
     player1_alias: string;
@@ -80,6 +81,7 @@ class MainGame {
     private player1Alias: string;
     private player2Alias: string;
     private gameEnded: boolean = false;
+    private matchSaved: boolean = false;
 
     // Match data for when game ends
     private matchData: MatchData | null = null;
@@ -158,6 +160,64 @@ class MainGame {
     /**
      * Save match to database when game ends
      */
+    private async updateMatchToDatabase(): Promise<void> {
+        console.log('[debug] updateMatchToDatabase called', this.matchData, this.gameType);
+        if (!this.matchData) return;
+
+        try {
+            if (!this.matchData.player1_id) {
+                return;
+            }
+
+            // Use correct reserved user ID for player2_id if missing
+            let player2_id = this.matchData.player2_id;
+            if (!player2_id) {
+                if (this.gameType === GameType.LOCAL_TWO_PLAYERS) {
+                    player2_id = 5;
+                } else if (this.gameType === GameType.LOCAL_VS_AI) {
+                    player2_id = 4;
+                } else {
+                    player2_id = 0; // fallback, should never happen for remote
+                }
+            }
+
+            const winnerId = this.score.player1 >= this.maxScore ?
+                this.matchData.player1_id : player2_id;
+            const matchData = {
+                winner_id: winnerId,
+                player1_score: this.score.player1,
+                player2_score: this.score.player2,
+            };
+
+            // Log the exact JSON being sent
+            const jsonBody = JSON.stringify(matchData);
+
+            const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/matches/${this.matchData.id}`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+                    'ngrok-skip-browser-warning': 'true'
+                },
+                body: jsonBody
+            });
+            console.log('[debug] Response status:', response.status);
+            if (response.ok) {
+                const result = await response.json();
+                console.log('[debug] Match UPDATE response:', result);
+            } else {
+                const errorText = await response.text();
+                console.error('[debug] Failed to update match:', response.status, errorText);
+            }
+        } catch (error) {
+            console.error('[update Save] Error update match:', error);
+        }
+    }
+
+    /**
+     * TODO: only for remote. unify to create method and remove this
+     */
+
     private async saveMatchToDatabase(): Promise<void> {
         console.log('[debug] saveMatchToDatabase called', this.matchData, this.gameType);
         if (!this.matchData) return;
@@ -227,6 +287,46 @@ class MainGame {
             }
         } catch (error) {
             console.error('[Match Save] Error saving match:', error);
+        }
+    }
+
+    /**
+     * Create match in the database
+     */
+    private async createMatch(): Promise<void> {
+        // Don't save if already saved or no match data
+        if (this.matchSaved || !this.matchData) return;
+
+        // TODO: Add logic for remote games
+
+        try {
+            // Set initial scores
+            const matchData = {
+                ...this.matchData,
+                player1_score: 0,
+                player2_score: 0,
+                winner_id: null
+            };
+
+            const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/matches`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+                    'ngrok-skip-browser-warning': 'true'
+                },
+                body: JSON.stringify(matchData)
+            });
+
+            if (response.ok) {
+                const result = await response.json();
+                this.matchSaved = true;
+                this.matchData.id = result.data.id;
+            } else {
+                console.error('[debug] Failed to create match:', response.status);
+            }
+        } catch (error) {
+            console.error('[Match Create] Error creating match:', error);
         }
     }
 
@@ -422,6 +522,11 @@ class MainGame {
     public run(): void {
         this.initializeScene();
 
+        // Create match in database when game starts
+        if (this.gameType !== GameType.REMOTE) {
+            this.createMatch();
+        };
+
         if (this.gameType === GameType.REMOTE)
             this.engine.runRenderLoop(this.updateRemote.bind(this));
         else
@@ -496,7 +601,7 @@ class MainGame {
         const winner = this.score.player1 >= this.maxScore ? this.player1Alias : this.player2Alias;
 
         // Update match in database with final results
-        await this.saveMatchToDatabase();
+        await this.updateMatchToDatabase();
 
         // Show the HTML winner modal
         showWinnerModal(
@@ -573,7 +678,7 @@ class MainGame {
         // Marcar que o jogo terminou
         this.gameEnded = true;
 
-        // Save the match to the database
+        // Save the match to the database. TODO: Only update match in here
         await this.saveMatchToDatabase();
 
         // Determine winner alias for modal

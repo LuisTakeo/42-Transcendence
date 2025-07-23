@@ -40,4 +40,7 @@ export default async function matchesRoutes(server: FastifyInstance) {
 
 	// PUT /matches/:id - Update match
 	server.put('/:id', updateMatch);
+
+  // PATCH /matches/:id - Update match results
+  server.patch('/:id', updateMatch);
 }
