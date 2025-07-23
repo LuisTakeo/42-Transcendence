@@ -266,7 +266,7 @@ function addMatches(player1: string, player2: string, matchesList: HTMLUListElem
 				saveTournamentState(playerList, matchesList, tournamentId);
 			}
 
-			startCountdown(5, `/game/local?${queryParams}`);
+			startCountdown(5, `/howToPlay?${queryParams}`);
 		});
 
 		// Check if this match was already started

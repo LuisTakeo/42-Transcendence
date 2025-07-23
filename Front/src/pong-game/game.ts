@@ -161,7 +161,6 @@ class MainGame {
      * Save match to database when game ends
      */
     private async updateMatchToDatabase(): Promise<void> {
-        console.log('[debug] updateMatchToDatabase called', this.matchData, this.gameType);
         if (!this.matchData) return;
 
         try {
@@ -201,11 +200,7 @@ class MainGame {
                 },
                 body: jsonBody
             });
-            console.log('[debug] Response status:', response.status);
-            if (response.ok) {
-                const result = await response.json();
-                console.log('[debug] Match UPDATE response:', result);
-            } else {
+            if (!response.ok) {
                 const errorText = await response.text();
                 console.error('[debug] Failed to update match:', response.status, errorText);
             }
@@ -219,7 +214,6 @@ class MainGame {
      */
 
     private async saveMatchToDatabase(): Promise<void> {
-        console.log('[debug] saveMatchToDatabase called', this.matchData, this.gameType);
         if (!this.matchData) return;
 
         try {
@@ -277,11 +271,8 @@ class MainGame {
                 },
                 body: jsonBody
             });
-            console.log('[debug] Response status:', response.status);
-            if (response.ok) {
-                const result = await response.json();
-                console.log('[debug] Match save response:', result);
-            } else {
+
+            if (!response.ok) {
                 const errorText = await response.text();
                 console.error('[debug] Failed to save match:', response.status, errorText);
             }

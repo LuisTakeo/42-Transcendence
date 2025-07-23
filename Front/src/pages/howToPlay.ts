@@ -48,9 +48,10 @@ export default function HowToPlay(): void {
 	// Add event listener to Start button to navigate to /game/local using SPA routing
 	const startBtn = document.getElementById("start-btn");
 	if (startBtn) {
-		startBtn.addEventListener("click", () => {
-			window.history.pushState({}, '', '/game/local');
-			window.dispatchEvent(new Event('popstate'));
-		});
-	}
+    startBtn.addEventListener("click", () => {
+        const query = window.location.search; // Get current query params, e.g. "?foo=bar"
+        window.history.pushState({}, '', `/game/local${query}`);
+        window.dispatchEvent(new Event('popstate'));
+    });
+  }
 }

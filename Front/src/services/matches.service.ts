@@ -24,6 +24,7 @@ export interface Match {
   player2_username: string;
   winner_name: string;
   winner_username: string;
+  winner_alias: string;
 }
 
 export class MatchesService extends BaseApiService {

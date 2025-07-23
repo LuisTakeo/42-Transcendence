@@ -11,6 +11,7 @@ export interface Match {
 	player1_alias: string;
 	player2_alias: string;
 	winner_id?: number | null;
+	winner_alias?: string | null;
 	player1_score: number;
 	player2_score: number;
 	tournament_id?: number | null;
@@ -36,6 +37,20 @@ export interface UpdateMatchData {
 	winner_id?: number | null;
 	player1_score?: number;
 	player2_score?: number;
+}
+
+// Utility to add winner_alias to a match object
+function addWinnerAlias(match: any): any {
+	if (!match) return match;
+	return {
+		...match,
+		winner_alias:
+			match.winner_id === match.player1_id
+				? match.player1_alias
+				: match.winner_id === match.player2_id
+				? match.player2_alias
+				: null,
+	};
 }
 
 // Get all matches with pagination and optional search
@@ -83,13 +98,14 @@ export async function getMatchesFromDb(limit?: number, offset?: number, search?:
 		}
 	}
 
-	return db.all(query, params);
+	const matches = await db.all(query, params);
+	return matches.map(addWinnerAlias);
 }
 
 // Get all matches without pagination (for simple lists)
 export async function getAllMatchesFromDb(): Promise<Match[]> {
 	const db = await openDb();
-	return db.all(`
+	const matches = await db.all(`
 		SELECT
 			m.*,
 			p1.name as player1_name,
@@ -106,6 +122,7 @@ export async function getAllMatchesFromDb(): Promise<Match[]> {
 		LEFT JOIN tournaments t ON m.tournament_id = t.id
 		ORDER BY m.played_at DESC
 	`);
+	return matches.map(addWinnerAlias);
 }
 
 // Get total count of matches with optional search
@@ -154,13 +171,13 @@ export async function getMatchById(id: number): Promise<Match | null> {
 		LEFT JOIN tournaments t ON m.tournament_id = t.id
 		WHERE m.id = ?
 	`, [id]);
-	return match || null;
+	return addWinnerAlias(match);
 }
 
 // Get matches by player ID
 export async function getMatchesByPlayerId(playerId: number): Promise<Match[]> {
 	const db = await openDb();
-	return db.all(`
+	const matches = await db.all(`
 		SELECT
 			m.*,
 			p1.name as player1_name,
@@ -178,6 +195,7 @@ export async function getMatchesByPlayerId(playerId: number): Promise<Match[]> {
 		WHERE m.player1_id = ? OR m.player2_id = ?
 		ORDER BY m.played_at DESC
 	`, [playerId, playerId]);
+	return matches.map(addWinnerAlias);
 }
 
 // Create new match
