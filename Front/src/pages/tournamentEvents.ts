@@ -106,7 +106,7 @@ export async function showGenerateMatchesModal(playerList: HTMLUListElement, mat
 	}).filter(Boolean);
 
 	try {
-		const response = await matchesService.generateRoundRobinMatches(aliases);
+		const response = await matchesService.generateAllRoundRobinMatches(aliases);
 		const { rounds } = response;
 
 		for (const round of rounds) {
