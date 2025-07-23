@@ -1,5 +1,7 @@
 import { GameType, MainGame } from "../pong-game/game";
 import { showAliasModal } from "./alias-modal";
+import { showErrorModal } from "./tournamentEvents";
+
 interface GamePageOptions {
     gameType: GameType;
     playerAliases: { player1: string; player2: string };
@@ -23,7 +25,14 @@ export default async function gamePage(options: GamePageOptions): Promise<void> 
     }
     // Add centering class for game page
     app.classList.add('game-active');
-    app.innerHTML = '';
+    app.innerHTML = `
+      <!-- MODAL - ERRORS -->
+      <div id="errors-modal" class="hidden fixed inset-0 flex items-center justify-center bg-black bg-opacity-70 z-50">
+        <div id="errors-box" class="bg-[#1E1B4B] p-6 rounded space-y-4 text-center w-80 text-white">
+          <p id="errors-message" class="text-xl"></p>
+        </div>
+      </div>
+    `;
 
     // Create a flex column container
     const container = document.createElement('div');
@@ -63,12 +72,35 @@ export default async function gamePage(options: GamePageOptions): Promise<void> 
 
     if (options.gameType === GameType.LOCAL_TWO_PLAYERS) {
         let aliases;
-
-        // Check for session in URL parameters
         const urlParams = new URLSearchParams(window.location.search);
         const sessionParam = urlParams.get('session');
 
         if (sessionParam) {
+            // Verify navigation token
+            const navigationToken = localStorage.getItem('tournament_navigation');
+            if (!navigationToken) {
+                // No token found - direct URL access attempted
+                showErrorModal("You can't start this match!");
+                setTimeout(() => {
+                    window.location.href = '/tournament';
+                }, 2000);
+                return;
+            }
+
+            const { timestamp, session } = JSON.parse(navigationToken);
+
+            // Check if token is expired (30 seconds validity)
+            if (Date.now() - timestamp > 30000 || session !== sessionParam) {
+                showErrorModal("This game session has expired");
+                setTimeout(() => {
+                    window.location.href = '/tournament';
+                }, 2000);
+                return;
+            }
+
+            // Clear the navigation token
+            localStorage.removeItem('tournament_navigation');
+
             // Parse session parameter (format: player1-player2-tournamentId)
             const [player1, player2, tournamentId] = sessionParam.split('-');
             aliases = { player1, player2 };
