@@ -62,14 +62,29 @@ export default async function gamePage(options: GamePageOptions): Promise<void> 
     }
 
     if (options.gameType === GameType.LOCAL_TWO_PLAYERS) {
-        const aliases = await showAliasModal();
-        if (!aliases) {
-            // User cancelled, go back to home
-            app.classList.remove('game-active');
-            window.history.pushState({}, '', '/home');
-            window.dispatchEvent(new Event('popstate'));
-            return;
+        let aliases;
+
+        // Check for session in URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const sessionParam = urlParams.get('session');
+
+        if (sessionParam) {
+            // Parse session parameter (format: player1-player2-tournamentId)
+            const [player1, player2, tournamentId] = sessionParam.split('-');
+            aliases = { player1, player2 };
+            options.tournamentId = parseInt(tournamentId);
+        } else {
+            // If no session parameter, show modal
+            aliases = await showAliasModal();
+            if (!aliases) {
+                // User cancelled, go back to home
+                app.classList.remove('game-active');
+                window.history.pushState({}, '', '/home');
+                window.dispatchEvent(new Event('popstate'));
+                return;
+            }
         }
+
         // Set initial labels
         updateScoreBar(aliases.player1, '0 - 0', aliases.player2);
         // Fetch current user and pass player IDs
@@ -83,7 +98,7 @@ export default async function gamePage(options: GamePageOptions): Promise<void> 
             2,
             { player1: aliases.player1, player2: aliases.player2 },
             { player1: currentUser?.id, player2: 5 },
-            options.tournamentId,
+            options.tournamentId || undefined, // Ensure it's either a number or undefined, not null
             handleScoreUpdate // Pass callback
         );
         game.run();

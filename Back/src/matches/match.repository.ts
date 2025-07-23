@@ -182,20 +182,25 @@ export async function getMatchesByPlayerId(playerId: number): Promise<Match[]> {
 
 // Create new match
 export async function createMatch(matchData: CreateMatchData): Promise<Match> {
+	// Convert tournament_id to proper format
+	const tournamentId = matchData.tournament_id != null ? Number(matchData.tournament_id) : null;
+
 	const db = await openDb();
+	const params = [
+		matchData.player1_id,
+		matchData.player2_id,
+		matchData.player1_alias,
+		matchData.player2_alias,
+		matchData.winner_id || null,
+		matchData.player1_score,
+		matchData.player2_score,
+		tournamentId
+	];
+
 	const result = await db.run(
 		`INSERT INTO matches (player1_id, player2_id, player1_alias, player2_alias, winner_id, player1_score, player2_score, tournament_id, played_at)
 		 VALUES (?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))`,
-		[
-			matchData.player1_id,
-			matchData.player2_id,
-			matchData.player1_alias,
-			matchData.player2_alias,
-			matchData.winner_id || null,
-			matchData.player1_score,
-			matchData.player2_score,
-			matchData.tournament_id || null
-		]
+		params
 	);
 
 	const newMatch = await getMatchById(result.lastID!);

@@ -295,7 +295,8 @@ export async function createMatch(request: FastifyRequest, reply: FastifyReply) 
 			player2_alias,
 			winner_id,
 			player1_score,
-			player2_score
+			player2_score,
+			tournament_id  // Extract tournament_id from request body
 		} = request.body as CreateMatchData;
 
 		// Validation
@@ -368,6 +369,16 @@ export async function createMatch(request: FastifyRequest, reply: FastifyReply) 
 			}
 		}
 
+		// Validate tournament_id if provided
+		if (tournament_id !== undefined && tournament_id !== null) {
+			if (!isValidPlayerId(tournament_id)) {
+				return reply.status(400).send({
+					success: false,
+					error: 'Invalid tournament_id'
+				});
+			}
+		}
+
 		const newMatch = await repository.createMatch({
 			player1_id,
 			player2_id,
@@ -375,7 +386,8 @@ export async function createMatch(request: FastifyRequest, reply: FastifyReply) 
 			player2_alias: player2_alias.trim(),
 			winner_id: winner_id || null,
 			player1_score,
-			player2_score
+			player2_score,
+			tournament_id // Pass tournament_id to repository
 		});
 
 		reply.status(201).send({

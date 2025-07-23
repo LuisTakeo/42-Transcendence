@@ -120,6 +120,7 @@ class MainGame {
         this.onScoreUpdate = onScoreUpdate;
 
         // Store match data for when game ends
+        const tournament_id = tournamentId ? Number(tournamentId) : null;
         this.matchData = {
             player1_id: playerIds?.player1,
             player2_id: playerIds?.player2,
@@ -128,7 +129,7 @@ class MainGame {
             winner_id: null,
             player1_score: 0,
             player2_score: 0,
-            tournament_id: tournamentId || null
+            tournament_id: tournament_id
         };
 
         // Initialize Babylon engine
@@ -184,6 +185,9 @@ class MainGame {
             const winnerId = this.score.player1 >= this.maxScore ?
                 this.matchData.player1_id : player2_id;
 
+            // Make sure tournament_id is properly handled - convert to number or null
+            const tournament_id = this.matchData.tournament_id ? Number(this.matchData.tournament_id) : null;
+
             const matchData = {
                 player1_id: this.matchData.player1_id,
                 player2_id: player2_id,
@@ -192,7 +196,7 @@ class MainGame {
                 winner_id: winnerId,
                 player1_score: this.score.player1,
                 player2_score: this.score.player2,
-                tournament_id: this.matchData.tournament_id
+                tournament_id: tournament_id // Now properly typed as number | null
             };
 
             const authToken = localStorage.getItem('authToken');
@@ -201,7 +205,9 @@ class MainGame {
                 console.log('[debug] Saving remote match to DB:', matchData);
             }
 
-            console.log('[debug] Sending POST /matches with:', matchData);
+            // Log the exact JSON being sent
+            const jsonBody = JSON.stringify(matchData);
+
             const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/matches`, {
                 method: 'POST',
                 headers: {
@@ -209,7 +215,7 @@ class MainGame {
                     'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
                     'ngrok-skip-browser-warning': 'true'
                 },
-                body: JSON.stringify(matchData)
+                body: jsonBody
             });
             console.log('[debug] Response status:', response.status);
             if (response.ok) {
@@ -325,7 +331,7 @@ class MainGame {
                         "player2_keyboard",  this.scene,  "ArrowUp",  "ArrowDown",  0.5,
                         this.tableManager.getTableWidth(),
                         this.tableManager.getTableDepth())
-                });
+                }, "Use W/S para Jogador 1\nSetas para Jogador 2");
                 break;
 
             case GameType.LOCAL_VS_AI:
@@ -343,7 +349,7 @@ class MainGame {
                         this.tableManager.getTableWidth(),
                         this.tableManager.getTableDepth(),
                         LevelAI.EXPERT
-                    )});
+                    )}, "Use as setas para mover\n");
                 break;
 
             case GameType.REMOTE:
@@ -357,7 +363,9 @@ class MainGame {
                             const payload = JSON.parse(atob(token.split('.')[1]));
                             if (payload && payload.id) {
                                 realUserId = payload.id.toString();
-                                localStorage.setItem('currentUserId', realUserId);
+                                if (realUserId !== null) {
+                                    localStorage.setItem('currentUserId', realUserId);
+                                }
                             }
                         } catch (e) {
                             console.error('[DEBUG] Failed to decode JWT for user ID:', e);
@@ -399,8 +407,9 @@ class MainGame {
 
     private registerControllers(
         player1: {info: string, controller: IInputController},
-        player2: {info: string, controller: IInputController}): void {
-        // Remove instructions argument and instructionsText update
+        player2: {info: string, controller: IInputController},
+        instructions: string): void {
+        this.instructionsText.text = instructions;
         this.inputManager.registerController(player1.controller);
         this.inputManager.registerController(player2.controller);
         this.inputManager.connectControllerToPaddle(player1.info, this.tableManager.getPaddleLeft());
