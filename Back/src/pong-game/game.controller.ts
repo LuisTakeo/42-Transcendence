@@ -23,6 +23,7 @@ interface GameRoom {
     lastUpdateTime: number;
     gameLoop?: NodeJS.Timeout;
     status: 'waiting' | 'playing' | 'finished';
+    isFirstServe?: boolean;
 }
 
 // Maps principais
@@ -176,6 +177,9 @@ function checkPaddleCollision(room: GameRoom) {
         ball.y >= player1.y - paddleHeight/2 &&
         ball.y <= player1.y + paddleHeight/2) {
 
+        if (room.isFirstServe) {
+            room.isFirstServe = false;
+        }
         ball.vx *= -1; // Inverte velocidade X
 
         // Adicionar efeito baseado na posição de contato (mesma lógica do frontend)
@@ -204,11 +208,15 @@ function checkPaddleCollision(room: GameRoom) {
 }
 
 function resetBall(room: GameRoom) {
+    let speed = 0.65;
+    if (room.isFirstServe) {
+      speed = 0.4;
+    }
     room.gameState.ball = {
         x: 0,
         y: 0,
-        vx: Math.random() > 0.5 ? 0.65 : -0.65, // Velocidade inicial igual ao frontend
-        vy: (Math.random() - 0.5) * 0.65 // Velocidade Y aleatória menor
+        vx: Math.random() > 0.5 ? speed : -speed, // Velocidade inicial igual ao frontend
+        vy: (Math.random() - 0.5) * speed // Velocidade Y aleatória menor
     };
 }
 
@@ -294,10 +302,12 @@ function joinGameRoom(connection: WebSocket, userId?: string) {
     }
 }
 
-
-function startGameLoop(roomId: string) {
+async function startGameLoop(roomId: string) {
     const room = gameRooms.get(roomId);
     if (!room) return;
+
+    room.isFirstServe = true;
+    await new Promise(resolve => setTimeout(resolve, 5500));
 
     // Game loop específico para esta sala - 60 FPS como no frontend
     room.gameLoop = setInterval(() => {
@@ -309,7 +319,7 @@ function startGameLoop(roomId: string) {
             });
 
             // Verificar condição de vitória (opcional)
-            const maxScore = 3;
+            const maxScore = 3; // DEFINIR PONTOS
             if (room.gameState.score.player1 >= maxScore || room.gameState.score.player2 >= maxScore) {
                 room.status = 'finished';
                 const winner = room.gameState.score.player1 >= maxScore ? 'left' : 'right';
