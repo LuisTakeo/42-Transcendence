@@ -1,5 +1,4 @@
 version: 2
-authtoken: 303vyKk40lpPLLwC49RSl7DimOn_497U2KV1B4pgVuAsUhJ6h
 tunnels:
   backend:
     addr: backend:3142

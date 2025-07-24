@@ -37,6 +37,7 @@ services:
       - NODE_ENV=development
       - FRONT_PORT=${FRONT_PORT}
       - NGROK_AUTHTOKEN=${NGROK_AUTHTOKEN}
+      - API_BASE_URL=${API_BASE_URL}
     command: dev
     # NOTE: Programmatic ngrok setup in backend code is now commented out/removed. Use the ngrok service below.
 
@@ -45,7 +46,7 @@ services:
     image: ngrok/ngrok:latest
     volumes:
       - ./ngrok.yml:/ngrok.yml
-    command: start --all --config /ngrok.yml
+    command: start --all --config /ngrok.yml --authtoken $NGROK_AUTHTOKEN
     environment:
       - NGROK_AUTHTOKEN=${NGROK_AUTHTOKEN}
     depends_on:

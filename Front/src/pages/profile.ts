@@ -256,8 +256,7 @@ async function loadUserProfile(userId: number, currentUser: any): Promise<void> 
       }
 
       // Check and update achievements
-	  renderAchievements(userId);
-      await updateAchievements(user, stats);
+	    renderAchievements(userId);
 
             // Update matches list
       const matchesContainer = document.getElementById("matches-container") as HTMLDivElement;
@@ -324,59 +323,5 @@ async function loadUserProfile(userId: number, currentUser: any): Promise<void> 
     const userUsername = document.getElementById("user-username") as HTMLParagraphElement;
     if (userName) userName.textContent = "Profile Error";
     if (userUsername) userUsername.textContent = "@error";
-  }
-}
-
-async function updateAchievements(user: any, stats: any): Promise<void> {
-  try {
-    // Check 2FA achievement
-    const twoFactorEnabled = user.two_factor_enabled === 1;
-    updateAchievementCard('achievement-2fa', 'achievement-2fa-status', twoFactorEnabled);
-
-    // Check friend count achievements
-    let friendCount = 0;
-    try {
-      const friendCountResponse = await friendsService.getUserFriendCount(user.id);
-      friendCount = friendCountResponse?.data?.friend_count || 0;
-    } catch (error) {
-      console.error('Error retrieving friend count:', error);
-      showErrorMessage('Failed to retrieve friend count. Some achievements may not be updated.');
-    }
-
-    // "Make a friend" achievement
-    updateAchievementCard('achievement-friend', 'achievement-friend-status', friendCount >= 1);
-
-    // "Make more than 3 friends" achievement
-    updateAchievementCard('achievement-friends', 'achievement-friends-status', friendCount > 3);
-
-    // Check wins achievement
-    const wins = stats.wins || 0;
-    updateAchievementCard('achievement-wins', 'achievement-wins-status', wins >= 3);
-
-    // Check ranking achievement (top 10)
-    const rank = stats.rank || 999;
-    updateAchievementCard('achievement-rank', 'achievement-rank-status', rank <= 10);
-
-  } catch (error) {
-    console.error('Error updating achievements:', error);
-  }
-}
-
-function updateAchievementCard(cardId: string, statusId: string, isAchieved: boolean): void {
-  const card = document.getElementById(cardId) as HTMLDivElement;
-  const status = document.getElementById(statusId) as HTMLParagraphElement;
-
-  if (card && status) {
-    if (isAchieved) {
-      // Achievement completed - keep dark background, show green status
-      card.classList.remove('bg-opacity-50', 'bg-[#1E1B4B]/50');
-      card.classList.add('bg-[#1E1B4B]');
-      status.classList.remove('hidden');
-    } else {
-      // Achievement not completed - make background more transparent
-      card.classList.remove('bg-[#1E1B4B]');
-      card.classList.add('bg-[#1E1B4B]/50');
-      status.classList.add('hidden');
-    }
   }
 }

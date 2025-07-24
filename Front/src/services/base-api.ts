@@ -13,6 +13,7 @@ export class BaseApiService {
     if (options.body && !headers['Content-Type']) {
       headers['Content-Type'] = 'application/json';
     }
+    headers['ngrok-skip-browser-warning'] ='true';
 
     const defaultOptions: RequestInit = {
       ...options,

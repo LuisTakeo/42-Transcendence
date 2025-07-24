@@ -361,10 +361,61 @@ export async function deleteUser(id: number): Promise<boolean> {
 
 // Update user online status
 export async function updateUserOnlineStatus(id: number, isOnline: boolean): Promise<void> {
-	const db = await openDb();
-	const lastSeenAt = isOnline ? null : "datetime('now')";
-	await db.run(
-		'UPDATE users SET is_online = ?, last_seen_at = COALESCE(?, last_seen_at) WHERE id = ?',
-		[isOnline ? 1 : 0, lastSeenAt, id]
-	);
+    const db = await openDb();
+    if (isOnline) {
+        await db.run(
+            'UPDATE users SET is_online = 1 WHERE id = ?',
+            [id]
+        );
+    } else {
+        await db.run(
+            "UPDATE users SET is_online = 0, last_seen_at = datetime('now') WHERE id = ?",
+            [id]
+        );
+    }
+}
+
+export async function getUserStats(userId: number): Promise<{
+  twoFactorEnabled: boolean;
+  friendsCount: number;
+  totalWins: number;
+  topRanked: number | null;
+}> {
+  const db = await openDb();
+
+  // 2FA status
+  const user = await db.get('SELECT two_factor_enabled FROM users WHERE id = ?', [userId]);
+  const twoFactorEnabled = !!(user && user.two_factor_enabled);
+
+  // Friends count (correct columns!)
+  const friends = await db.get(
+    `SELECT COUNT(*) as count FROM friends WHERE user1_id = ? OR user2_id = ?`,
+    [userId, userId]
+  );
+  const friendsCount = friends ? friends.count : 0;
+
+  // Total wins
+  const wins = await db.get(
+    'SELECT COUNT(*) as count FROM matches WHERE winner_id = ?',
+    [userId]
+  );
+  const totalWins = wins ? wins.count : 0;
+
+  // Ranking (optional, can be improved)
+  const rankRow = await db.get(
+    `SELECT rank FROM (
+      SELECT id, RANK() OVER (ORDER BY (
+        SELECT COUNT(*) FROM matches WHERE winner_id = users.id
+      ) DESC) as rank
+      FROM users
+    ) WHERE id = ?`, [userId]
+  );
+  const topRanked = rankRow ? rankRow.rank : null;
+
+  return {
+    twoFactorEnabled,
+    friendsCount,
+    totalWins,
+    topRanked
+  };
 }
