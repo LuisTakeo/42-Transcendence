@@ -102,8 +102,20 @@ function handleWebSocketConn(connection: WebSocket,
     }
 }
 
-
-
+export function broadcastMatchId(roomId: string, matchId: number) {
+  const room = gameRooms.get(roomId);
+  if (!room) return;
+  for (const [sideKey, conn] of room.players.entries()) {
+    try {
+      conn.send(JSON.stringify({
+        type: 'match_id',
+        matchId: matchId
+      }));
+    } catch (e) {
+      // Ignore send errors
+    }
+  }
+}
 
 // Outras funções (createGameRoom, joinGameRoom, etc.) como mostrado anteriormente...
 

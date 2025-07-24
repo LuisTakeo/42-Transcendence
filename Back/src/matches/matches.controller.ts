@@ -3,6 +3,7 @@ import { FastifyRequest, FastifyReply } from 'fastify';
 import * as repository from './match.repository';
 import { CreateMatchData, UpdateMatchData } from './match.repository';
 import { TournamentRepository } from '../tournaments/tournament.repository';
+import { broadcastMatchId } from '../websockets/websocket.controller';
 
 const RESERVED_USER_IDS = [4, 5];
 
@@ -296,7 +297,8 @@ export async function createMatch(request: FastifyRequest, reply: FastifyReply) 
 			winner_id,
 			player1_score,
 			player2_score,
-			tournament_id  // Extract tournament_id from request body
+			tournament_id,
+      roomId
 		} = request.body as CreateMatchData;
 
 		// Validation
@@ -387,8 +389,12 @@ export async function createMatch(request: FastifyRequest, reply: FastifyReply) 
 			winner_id: winner_id || null,
 			player1_score,
 			player2_score,
-			tournament_id // Pass tournament_id to repository
+			tournament_id,
+      roomId
 		});
+    if (roomId && newMatch.id !== undefined) {
+      broadcastMatchId(roomId, newMatch.id);
+    }
 
 		reply.status(201).send({
 			success: true,

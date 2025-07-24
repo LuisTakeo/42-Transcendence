@@ -82,6 +82,7 @@ class MainGame {
     private player2Alias: string;
     private gameEnded: boolean = false;
     private matchSaved: boolean = false;
+    private matchUpdated: boolean = false;
 
     // Match data for when game ends
     private matchData: MatchData | null = null;
@@ -160,7 +161,7 @@ class MainGame {
     /**
      * Save match to database when game ends
      */
-    private async updateMatchToDatabase(): Promise<void> {
+    private async updateMatchDB(): Promise<void> {
         if (!this.matchData) return;
 
         try {
@@ -200,7 +201,9 @@ class MainGame {
                 },
                 body: jsonBody
             });
-            if (!response.ok) {
+            if (response.ok) {
+                this.matchUpdated = true;
+            } else {
                 const errorText = await response.text();
                 console.error('[debug] Failed to update match:', response.status, errorText);
             }
@@ -284,7 +287,7 @@ class MainGame {
     /**
      * Create match in the database
      */
-    private async createMatch(): Promise<void> {
+    private async createMatchDB(): Promise<void> {
         // Don't save if already saved or no match data
         if (this.matchSaved || !this.matchData) return;
 
@@ -296,7 +299,8 @@ class MainGame {
                 ...this.matchData,
                 player1_score: 0,
                 player2_score: 0,
-                winner_id: null
+                winner_id: null,
+                roomId: this._remoteController?.getRoomId?.()
             };
 
             const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/matches`, {
@@ -466,6 +470,8 @@ class MainGame {
 
                 this._remoteController = new RemoteController((realUserId ?? 'unknown').toString());
                 this._remoteController.initialize();
+                // Configurar listeners para inicialização remota
+                this.setupRemoteInitializationListeners();
                 // Configurar listeners para mensagens de vitória
                 this.setupRemoteVictoryListeners();
                 break;
@@ -515,7 +521,7 @@ class MainGame {
 
         // Create match in database when game starts
         if (this.gameType !== GameType.REMOTE) {
-            this.createMatch();
+            this.createMatchDB();
         };
 
         if (this.gameType === GameType.REMOTE)
@@ -592,7 +598,7 @@ class MainGame {
         const winner = this.score.player1 >= this.maxScore ? this.player1Alias : this.player2Alias;
 
         // Update match in database with final results
-        await this.updateMatchToDatabase();
+        await this.updateMatchDB();
 
         // Show the HTML winner modal
         showWinnerModal(
@@ -616,6 +622,81 @@ class MainGame {
     /**
      * Configura os listeners para mensagens de vitória no modo remoto
      */
+
+    private setupRemoteInitializationListeners(): void {
+      if (!this._remoteController) return;
+      // Obter o GameService do RemoteController
+      const gameService = this._remoteController.getGameService();
+      if (!gameService) return;
+
+      // Listener for room creation (first player)
+      gameService.onMessage('room_created', (data: any) => {
+          // First player is always on the left side
+          if (data.roomId !== undefined) {
+            this._remoteController?.setRoomId?.(data.roomId);
+          }
+          this.playerSide = 'left';
+          if (this.gameType === GameType.REMOTE && this.matchData) {
+              this.matchData.player1_id = parseInt(data.userId);
+              this.matchData.player1_alias = data.playerAlias || this.player1Alias;
+          }
+      });
+
+      // Listener for room joining (second player)
+      gameService.onMessage('room_joined', (data: any) => {
+          // Second player is always on the right side
+          if (data.roomId !== undefined) {
+            this._remoteController?.setRoomId?.(data.roomId);
+          }
+          this.playerSide = 'right';
+          if (this.gameType === GameType.REMOTE && this.matchData) {
+              this.matchData.player2_id = parseInt(data.userId);
+              this.matchData.player2_alias = data.playerAlias || this.player2Alias;
+              this.matchData.player1_id = parseInt(data.opponentId);
+              this.matchData.player1_alias = data.opponentAlias || this.player1Alias;
+          }
+      });
+
+      gameService.onMessage && gameService.onMessage('room_state', (data: any) => {
+          // Update matchData aliases from room_state
+          if (this.matchData) {
+              if (data.left && data.left.alias) {
+                  this.matchData.player1_alias = data.left.alias;
+              }
+              if (data.right && data.right.alias) {
+                  this.matchData.player2_alias = data.right.alias;
+              }
+          }
+
+          if (data.right && data.right.alias && data.right.userId > 0 && data.left && data.left.alias && data.left.userId > 0) {
+            if (this.matchData) {
+                this.matchData.player1_id = Number(data.left.userId);
+                this.matchData.player2_id = Number(data.right.userId);
+                this.matchData.player1_alias = data.left.alias;
+                this.matchData.player2_alias = data.right.alias;
+            }
+            if (this.playerSide === "left") {
+              this.createMatchDB();
+            }
+          }
+      });
+
+      gameService.onMessage('match_id', (data: any) => {
+        if (this.matchData) {
+          this.matchData.id = data.matchId;
+          this.matchSaved = true;
+           // If the game already ended, update the match now
+          if (this.gameEnded && !this.matchUpdated) {
+            this.updateMatchDB();
+          }
+        }
+      });
+    }
+
+
+    /**
+     * Configura os listeners para mensagens de vitória no modo remoto
+     */
     private setupRemoteVictoryListeners(): void {
         if (!this._remoteController) return;
 
@@ -625,34 +706,12 @@ class MainGame {
 
         // Listener para vitória por pontuação máxima
         gameService.onMessage('game_over', (data: any) => {
-            console.log('Jogo terminou:', data);
             this.handleRemoteVictory(data.winner, data.finalScore, 'Vitória por pontuação!');
         });
 
         // Listener para vitória por desconexão do adversário
         gameService.onMessage('end_game', (data: any) => {
-            console.log('Jogo terminou por desconexão:', data);
             this.handleRemoteVictory(data.winner, null, data.message || 'Adversário desconectou');
-        });
-
-        // Listener for room creation (first player)
-        gameService.onMessage('room_created', (data: any) => {
-            // First player is always on the left side
-            this.playerSide = 'left';
-            if (this.gameType === GameType.REMOTE && this.matchData) {
-                this.matchData.player1_id = parseInt(data.userId);
-                this.matchData.player1_alias = data.playerAlias || this.player1Alias;
-            }
-        });
-
-        // Listener for room joining (second player)
-        gameService.onMessage('room_joined', (data: any) => {
-            // Second player is always on the right side
-            this.playerSide = 'right';
-            if (this.gameType === GameType.REMOTE && this.matchData) {
-                this.matchData.player2_id = parseInt(data.userId);
-                this.matchData.player2_alias = data.playerAlias || this.player2Alias;
-            }
         });
     }
 
@@ -669,8 +728,10 @@ class MainGame {
         // Marcar que o jogo terminou
         this.gameEnded = true;
 
-        // Save the match to the database. TODO: Only update match in here
-        await this.saveMatchToDatabase();
+        // Update the match to the database.
+        if (this.matchData && this.matchData.id !== undefined && !this.matchUpdated) {
+          await this.updateMatchDB();
+        }
 
         // Determine winner alias for modal
         let winnerAlias = winner;

@@ -29,6 +29,7 @@ export interface CreateMatchData {
 	player1_score: number;
 	player2_score: number;
 	tournament_id?: number | null;
+  roomId?: string;
 }
 
 export interface UpdateMatchData {
