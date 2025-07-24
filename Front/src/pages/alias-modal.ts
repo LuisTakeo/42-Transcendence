@@ -119,6 +119,7 @@ export async function showRemoteAliasModal(): Promise<string | null> {
           placeholder="Your alias"
           maxlength="20"
         />
+      <div id="remote-alias-error" class="text-red-400 text-sm mb-2" style="display:none;"></div>
         <div class="flex gap-3 mt-4">
           <button id="remote-alias-ok" class="flex-1 bg-purple-600 hover:bg-purple-700 text-white font-medium py-2 px-4 rounded-md transition">OK</button>
           <button id="remote-alias-cancel" class="flex-1 bg-gray-600 hover:bg-gray-700 text-white font-medium py-2 px-4 rounded-md transition">Cancel</button>
@@ -133,8 +134,19 @@ export async function showRemoteAliasModal(): Promise<string | null> {
   const input = document.getElementById('remote-alias-input') as HTMLInputElement;
   const okBtn = document.getElementById('remote-alias-ok')!;
   const cancelBtn = document.getElementById('remote-alias-cancel')!;
+  const errorDiv = document.getElementById('remote-alias-error')!;
 
   setTimeout(() => input.focus(), 100);
+
+  function showError(msg: string) {
+    errorDiv.textContent = msg;
+    errorDiv.style.display = 'block';
+  }
+
+  function clearError() {
+    errorDiv.textContent = '';
+    errorDiv.style.display = 'none';
+  }
 
   return new Promise((resolve) => {
     let isCleanedUp = false;
@@ -179,10 +191,18 @@ export async function showRemoteAliasModal(): Promise<string | null> {
       }
     }
 
-    okBtn.addEventListener('click', () => {
-      const value = input.value.trim() || 'Player 1';
+    function validateAndSubmit() {
+      const value = input.value.trim();
+      if (!value) {
+        showError('Alias cannot be empty.');
+        input.focus();
+        return;
+      }
+      clearError();
       cleanupAndResolve(value);
-    });
+    }
+
+    okBtn.addEventListener('click', validateAndSubmit);
 
     cancelBtn.addEventListener('click', (e) => {
       e.preventDefault();
@@ -191,8 +211,9 @@ export async function showRemoteAliasModal(): Promise<string | null> {
 
     input.addEventListener('keydown', (e) => {
       if (e.key === 'Enter') {
-        const value = input.value.trim() || 'Player 1';
-        cleanupAndResolve(value);
+        validateAndSubmit();
+      } else {
+        clearError();
       }
     });
 

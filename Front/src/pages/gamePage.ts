@@ -180,39 +180,47 @@ export default async function gamePage(options: GamePageOptions): Promise<void> 
         game.run();
 
         // Real-time alias sync: send alias and listen for room_state
-        setTimeout(() => {
-            const remoteController = (game as any)._remoteController;
-            if (!remoteController) return;
-            const gameService = remoteController.getGameService && remoteController.getGameService();
-            if (!gameService) return;
+        const remoteController = (game as any)._remoteController;
+        if (!remoteController) return;
+        const gameService = remoteController.getGameService && remoteController.getGameService();
+        if (!gameService) return;
 
-            // Send your alias to server
-            gameService.sendMessage && gameService.sendMessage('set_alias', { alias });
+        function sendAliasWhenConnected(gameService: any, alias: any, retries = 10) {
+          if (gameService.isConnectedToServer()) {
+              gameService.sendMessage('set_alias', { alias });
+          } else if (retries > 0) {
+              setTimeout(() => sendAliasWhenConnected(gameService, alias, retries - 1), 200);
+          } else {
+              console.error('WebSocket still not connected after retries.');
+          }
+        }
+        // Send your alias to server
+        // gameService.sendMessage && gameService.sendMessage('set_alias', { alias });
+        sendAliasWhenConnected(gameService, alias);
 
-            // Listen for initial room creation/joining
-            gameService.onMessage && gameService.onMessage('room_created', (data: any) => {
-                // First player is always left
-                updateScoreBar(alias, '0 - 0', 'Waiting...');
-            });
+        // Listen for initial room creation/joining
+        gameService.onMessage && gameService.onMessage('room_created', (data: any) => {
+            // First player is always left
+            updateScoreBar(alias, '0 - 0', 'Waiting...');
+        });
 
-            gameService.onMessage && gameService.onMessage('room_joined', (data: any) => {
-                // Second player is always right
-                updateScoreBar('Player 1', '0 - 0', alias);
-            });
+        gameService.onMessage && gameService.onMessage('room_joined', (data: any) => {
+            // Second player is always right
+            updateScoreBar('Player 1', '0 - 0', alias);
+        });
 
-            // Listen for room state updates
-            gameService.onMessage && gameService.onMessage('room_state', (data: any) => {
+        // Listen for room state updates
+        gameService.onMessage && gameService.onMessage('room_state', (data: any) => {
 
-                // Get player info from server state
-                const player1Id = data.left?.userId ? Number(data.left.userId) : 0;
-                const player2Id = data.right?.userId ? Number(data.right.userId) : 0;
-                const player1Alias = data.left?.alias || 'Player 1';
-                const player2Alias = data.right?.alias || 'Player 2';
+            // Get player info from server state
+            const player1Id = data.left?.userId ? Number(data.left.userId) : 0;
+            const player2Id = data.right?.userId ? Number(data.right.userId) : 0;
+            const player1Alias = data.left?.alias || 'Player 1';
+            const player2Alias = data.right?.alias || 'Player 2';
 
-                game.setPlayerInfo(player1Id, player1Alias, player2Id, player2Alias);
-                updateScoreBar(player1Alias, '0 - 0', player2Alias);
-            });
-        }, 500);
+            game.setPlayerInfo(player1Id, player1Alias, player2Id, player2Alias);
+            updateScoreBar(player1Alias, '0 - 0', player2Alias);
+        });
     }
 
     // Optionally, restore sidebar when leaving the game page

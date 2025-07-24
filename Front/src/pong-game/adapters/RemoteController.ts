@@ -18,6 +18,7 @@ export class RemoteController implements IInputController {
     private _onKeyDown: ((evt: KeyboardEvent) => void) | null = null;
     private _onKeyUp: ((evt: KeyboardEvent) => void) | null = null;
     private _gameService: GameService | null = null; // Simulação de conexão com servidor remoto
+    private roomId: string | null = null;
 
     /**
      * Cria um novo controlador remoto
@@ -60,6 +61,16 @@ export class RemoteController implements IInputController {
         return this.paddle;
     }
 
+    /**
+     * Room Id
+     */
+    public setRoomId(roomId: string) {
+        this.roomId = roomId;
+    }
+
+    public getRoomId(): string | null {
+        return this.roomId;
+    }
 
     /**
      * Conecta o controlador a um paddle específico
