@@ -7,7 +7,7 @@ export interface GameState {
 
 export class GameService {
     private websocket: WebSocket | null = null;
-    private listeners: { [key: string]: (data: any) => void } = {};
+    private listeners: { [key: string]: Array<(data: any) => void> } = {};
     private isConnected: boolean = false;
     private gameState: GameState | null = null;
     constructor(private serverUrl: string, private userId: string) {}
@@ -43,7 +43,9 @@ export class GameService {
             }
             // Notificar os listeners registrados
             if (data.type && this.listeners[data.type]) {
-                this.listeners[data.type](data);
+              for (const cb of this.listeners[data.type]) {
+                cb(data);
+              }
             }
     // Atualiza o estado do jogo recebido do backend
 
@@ -91,7 +93,10 @@ export class GameService {
 
     // Registrar listeners para tipos de mensagens
     public onMessage(type: string, callback: (data: any) => void): void {
-        this.listeners[type] = callback;
+      if (!this.listeners[type]) {
+          this.listeners[type] = [];
+      }
+      this.listeners[type].push(callback);
     }
 
     // Fechar a conexão WebSocket

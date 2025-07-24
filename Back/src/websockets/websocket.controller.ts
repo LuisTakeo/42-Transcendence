@@ -7,7 +7,8 @@ interface WebSocketQuery {
     userId: string;
 }
 
-
+// Add alias state per room
+const roomAliases = new Map(); // roomId -> { left: { userId, alias }, right: { userId, alias } }
 
 function handleWebSocketConn(connection: WebSocket,
     req: FastifyRequest<{Querystring: WebSocketQuery}>){
@@ -17,16 +18,21 @@ function handleWebSocketConn(connection: WebSocket,
     (connection as any)._userId = userId;
     // dar join room em alguma sala
     const roomInfo = joinGameRoom(connection, userId);
-    const room = gameRooms.get(roomInfo.room);
+    const roomId = roomInfo.room;
+    const side = roomInfo.side;
+    const room = gameRooms.get(roomId);
     let opponentId = null;
     if (room) {
         // Find the other player's userId if present
-        for (const [side, conn] of room.players.entries()) {
+        for (const [sideKey, conn] of room.players.entries()) {
             if (conn !== connection && (conn as any)._userId) {
                 opponentId = (conn as any)._userId;
             }
         }
     }
+    // Initialize alias state for the room if needed
+    if (!roomAliases.has(roomId)) roomAliases.set(roomId, { left: {}, right: {} });
+    roomAliases.get(roomId)[side] = { userId, alias: null };
     // Send both userId and opponentId in the join/create message
     connection.send(JSON.stringify({
         type: roomInfo.side === 'left' ? 'room_created' : 'room_joined',
@@ -53,7 +59,13 @@ function handleWebSocketConn(connection: WebSocket,
                 case 'leave_game':
                     leaveGameRoom(connection);
                     break;
-
+                case 'set_alias':
+                    // Store alias and broadcast room state
+                    if (roomAliases.has(roomId)) {
+                        roomAliases.get(roomId)[side].alias = data.alias;
+                        broadcastRoomState(roomId);
+                    }
+                    break;
                 default:
                     console.log(`Unknown message type: ${data.type}`);
             }
@@ -65,11 +77,45 @@ function handleWebSocketConn(connection: WebSocket,
     connection.on('close', () => {
         console.log(`Connection closed for user ${userId}`);
         leaveGameRoom(connection);
+        // Clean up aliases if room is empty
+        const room = gameRooms.get(roomId);
+        if (!room || room.players.size === 0) {
+            roomAliases.delete(roomId);
+        }
     });
+
+    function broadcastRoomState(roomId: string) {
+        const state = roomAliases.get(roomId);
+        const room = gameRooms.get(roomId);
+        if (!room || !state) return;
+        for (const [sideKey, conn] of room.players.entries()) {
+            try {
+                conn.send(JSON.stringify({
+                    type: 'room_state',
+                    left: state.left,
+                    right: state.right
+                }));
+            } catch (e) {
+                // Ignore send errors
+            }
+        }
+    }
 }
 
-
-
+export function broadcastMatchId(roomId: string, matchId: number) {
+  const room = gameRooms.get(roomId);
+  if (!room) return;
+  for (const [sideKey, conn] of room.players.entries()) {
+    try {
+      conn.send(JSON.stringify({
+        type: 'match_id',
+        matchId: matchId
+      }));
+    } catch (e) {
+      // Ignore send errors
+    }
+  }
+}
 
 // Outras funções (createGameRoom, joinGameRoom, etc.) como mostrado anteriormente...
 

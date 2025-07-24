@@ -24,6 +24,7 @@ export interface Match {
   player2_username: string;
   winner_name: string;
   winner_username: string;
+  winner_alias: string;
 }
 
 export class MatchesService extends BaseApiService {
@@ -43,6 +44,14 @@ export class MatchesService extends BaseApiService {
   // Get matches for a specific player
   async getPlayerMatches(playerId: number): Promise<SingleResponse<Match[]>> {
     return this.request<SingleResponse<Match[]>>(`/matches/player/${playerId}`);
+  }
+
+  // Generate all round-robin matches
+  async generateAllRoundRobinMatches(players: string[]): Promise<SingleResponse<any>> {
+    return this.request<SingleResponse<any>>('/matches/generate', {
+      method: 'POST',
+      body: JSON.stringify({ players }),
+    });
   }
 }
 
