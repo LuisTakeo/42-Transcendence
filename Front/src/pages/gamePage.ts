@@ -1,6 +1,7 @@
 import { GameType, MainGame } from "../pong-game/game";
 import { showAliasModal } from "./alias-modal";
 import { showErrorModal } from "./tournamentEvents";
+import { userService } from "../services/user.service.ts";
 
 interface GamePageOptions {
     gameType: GameType;
@@ -16,6 +17,13 @@ function getDisplayName(userId: number, alias: string): string {
 }
 
 export default async function gamePage(options: GamePageOptions): Promise<void> {
+    // Route protection: require authentication
+    const currentUser = await userService.requireAuth();
+    if (!currentUser) {
+        window.location.href = '/login';
+        return;
+    }
+
     const app = document.getElementById('app');
     const sidebar = document.getElementById('sidebar');
     if (sidebar) sidebar.style.display = 'none';
@@ -69,10 +77,6 @@ export default async function gamePage(options: GamePageOptions): Promise<void> 
     function handleScoreUpdate(player1: string, score1: number, player2: string, score2: number) {
         updateScoreBar(player1, `${score1} - ${score2}`, player2);
     }
-
-    // Fetch current user and pass player IDs
-    const { userService } = await import('../services/user.service.ts');
-    const currentUser = await userService.getCurrentUser();
 
     if (options.gameType === GameType.LOCAL_TWO_PLAYERS) {
         const urlParams = new URLSearchParams(window.location.search);

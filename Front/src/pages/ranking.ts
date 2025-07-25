@@ -69,7 +69,14 @@ function renderRows(): string {
     .join("");
 }
 
-export default function RankingPage(): void {
+export default async function RankingPage(): Promise<void> {
+  // Route protection: require authentication
+  const currentUser = await userService.requireAuth();
+  if (!currentUser) {
+    window.location.href = '/login';
+    return;
+  }
+
   const app = document.getElementById("app");
   if (!app) return;
 
