@@ -1,7 +1,15 @@
 import { setupTournamentEvents } from "./tournamentEvents.ts";
+import { userService } from "../services/user.service.ts";
 import "../style.css"
 
-export default function Tournament(): void {
+export default async function Tournament(): Promise<void> {
+  // Route protection: require authentication
+  const currentUser = await userService.requireAuth();
+  if (!currentUser) {
+    window.location.href = '/login';
+    return;
+  }
+
 	const app = document.getElementById("app");
   	if (!app) return;
 
@@ -11,7 +19,7 @@ export default function Tournament(): void {
 	main.className = "min-h-screen px-4 py-10";
 	main.innerHTML =`
 <div class="flex flex-col md:flex-row w-full gap-6 max-w-7xl mx-auto">
-      
+
       <!-- LEFT SIDE: ADD PLAYER -->
       <div class="w-full md:w-1/2 bg-[#1E1B4B] p-8 md:p-10 rounded-2xl text-white flex flex-col items-center gap-6">
         <div class="w-full max-w-md space-y-4">
@@ -49,12 +57,12 @@ export default function Tournament(): void {
 
     <!-- BOTTOM SIDE: BUTTONS -->
     <div class="flex flex-col sm:flex-row justify-center gap-4 mt-10 max-w-7xl mx-auto px-4">
-      <button id="start-tournament" 
+      <button id="start-tournament"
         class="bg-green-600 px-6 py-2 text-white text-xl rounded hover:bg-green-700 transition w-full sm:w-auto">
         Start Tournament
       </button>
-      
-      <button id="finish-tournament" 
+
+      <button id="finish-tournament"
         class="bg-red-600 px-6 py-2 text-xl text-white rounded hover:bg-red-700 transition w-full sm:w-auto">
         Finish Tournament
       </button>
@@ -64,7 +72,7 @@ export default function Tournament(): void {
     <div id="add-player-modal" class="hidden fixed inset-0 flex items-center justify-center bg-black bg-opacity-70 z-50">
       <div class="bg-[#1E1B4B] p-6 rounded space-y-4 text-center w-80">
         <p>Digite o nome do jogador:</p>
-        <input type="text" id="player-name" class="w-full border text-black rounded px-2 py-1" /> 
+        <input type="text" id="player-name" class="w-full border text-black rounded px-2 py-1" />
         <div class="flex justify-around">
           <button id="cancel-add-player" class="bg-red-500 px-4 py-2 text-white rounded">Cancel</button>
           <button id="confirm-add-player" class="bg-green-500 px-4 py-2 text-white rounded">Add</button>

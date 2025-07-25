@@ -3,12 +3,15 @@ import { userService } from "../services/user.service.ts";
 import { showErrorMessage } from "./notification.ts";
 
 export default async function MatchHistoryPage(): Promise<void> {
+  // Route protection: require authentication
+  const currentUser = await userService.requireAuth();
+  if (!currentUser) {
+    window.location.href = '/login';
+    return;
+  }
+
   const app = document.getElementById("app");
   if (!app) return;
-
-  // Check authentication and get current user
-  const currentUser = await userService.requireAuth();
-  if (!currentUser) return;
 
   app.innerHTML = "";
 

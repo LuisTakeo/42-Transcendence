@@ -7,7 +7,14 @@ import { getBaseUrl } from "../services/base-api.ts";
 import { showSuccessMessage, showErrorMessage } from './notification.ts';
 
 export default async function SettingsPage(): Promise<void> {
-	const app = document.getElementById("app");
+	// Route protection: require authentication
+  const currentUser = await userService.requireAuth();
+  if (!currentUser) {
+    window.location.href = '/login';
+    return;
+  }
+
+  const app = document.getElementById("app");
 	if (!app) return;
 
 	// Show loading spinner while fetching user data

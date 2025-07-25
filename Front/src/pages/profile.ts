@@ -19,6 +19,12 @@ function getOpponentDisplayName(match: Match, playerId: number): string {
 }
 
 export default async function ProfilePage(userId?: number): Promise<void> {
+  // Route protection: require authentication
+  const currentUser = await userService.requireAuth();
+  if (!currentUser) {
+    window.location.href = '/login';
+    return;
+  }
   if (userId && RESERVED_USER_IDS.includes(userId)) {
     const app = document.getElementById("app");
     if (app) {
@@ -33,13 +39,6 @@ export default async function ProfilePage(userId?: number): Promise<void> {
 
   // Show loading spinner while fetching user data
   app.innerHTML = `<div class="flex justify-center items-center min-h-screen"><div class="animate-spin rounded-full h-16 w-16 border-b-2 border-purple-500"></div></div>`;
-
-  // Check authentication and get current user
-  const currentUser = await userService.requireAuth();
-
-  if (!currentUser) {
-    return; // User will be redirected to login
-  }
 
   // Determine which user to show - if no userId provided, show current user
   const targetUserId = userId || currentUser.id;
