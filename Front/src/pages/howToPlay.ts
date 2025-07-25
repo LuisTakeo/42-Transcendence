@@ -1,6 +1,14 @@
+import { userService } from "../services/user.service.ts";
 import "../style.css";
 
-export default function HowToPlay(): void {
+export default async function HowToPlay(): Promise<void> {
+  // Route protection: require authentication
+  const currentUser = await userService.requireAuth();
+  if (!currentUser) {
+      window.location.href = '/login';
+      return;
+  }
+
 	const app = document.getElementById("app");
   	if (!app) return;
 
