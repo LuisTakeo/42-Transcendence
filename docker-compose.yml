@@ -46,7 +46,7 @@ services:
     image: ngrok/ngrok:latest
     volumes:
       - ./ngrok.yml:/ngrok.yml
-    command: start --all --config /ngrok.yml --authtoken $NGROK_AUTHTOKEN
+    command: chmod +x /ngrok.yml && start --all --config /ngrok.yml --authtoken $NGROK_AUTHTOKEN
     environment:
       - NGROK_AUTHTOKEN=${NGROK_AUTHTOKEN}
     depends_on:
