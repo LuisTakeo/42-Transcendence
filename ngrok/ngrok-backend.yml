@@ -1,10 +1,7 @@
 version: 2
+authtoken: ${NGROK_AUTHTOKEN}
 tunnels:
   backend:
     addr: backend:3142
     proto: http
     domain: integral-phoenix-loosely.ngrok-free.app
-  frontend:
-    addr: frontend:3042
-    proto: http
-    # No domain specified = random domain
