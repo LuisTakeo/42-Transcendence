@@ -36,22 +36,35 @@ services:
     environment:
       - NODE_ENV=development
       - FRONT_PORT=${FRONT_PORT}
-      - NGROK_AUTHTOKEN=${NGROK_AUTHTOKEN}
       - API_BASE_URL=${API_BASE_URL}
     command: dev
     # NOTE: Programmatic ngrok setup in backend code is now commented out/removed. Use the ngrok service below.
 
   # Single ngrok service for both backend (static domain) and frontend (random domain)
-  ngrok:
+  ngrok-backend:
     build:
       context: ./ngrok
       dockerfile: Dockerfile
+      args:
+        - NGROK_CONFIG=ngrok-backend.yml
     ports:
-      - "4040:4040"  # API do ngrok
+      - "4041:4040"  # Expose on different host port
     environment:
-      - NGROK_AUTHTOKEN=${NGROK_AUTHTOKEN}
+      - NGROK_AUTHTOKEN=${NGROK_AUTHTOKEN_BACKEND}
     depends_on:
       - backend
+    restart: unless-stopped
+
+  ngrok-frontend:
+    build:
+      context: ./ngrok
+      dockerfile: Dockerfile
+      args:
+        - NGROK_CONFIG=ngrok-frontend.yml
+    ports:
+      - "4042:4040"  # Expose on different host port
+    environment:
+      - NGROK_AUTHTOKEN=${NGROK_AUTHTOKEN_FRONTEND}
+    depends_on:
       - frontend
     restart: unless-stopped
-    # Check logs or ngrok dashboard for tunnel URLs

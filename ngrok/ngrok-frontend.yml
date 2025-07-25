@@ -1,0 +1,7 @@
+version: 2
+authtoken: ${NGROK_AUTHTOKEN}
+tunnels:
+  frontend:
+    addr: frontend:3042
+    proto: http
+    domain: impala-legal-immensely.ngrok-free.app
