@@ -62,7 +62,7 @@ export default async function ProfilePage(userId?: number): Promise<void> {
   const main = document.createElement("main");
   main.className = "p-4 box-border min-h-screen flex flex-col gap-2 container mx-auto";
   main.innerHTML = `
-    <div class="flex flex-col md:flex-row gap-10 w-full p-8">
+    <div class="flex flex-col md:flex-row gap-10 w-full p-4">
       <div class="flex-1 bg-[#1E1B4B] rounded-[5px] h-[400px] flex flex-col items-center justify-center">
         <div class="w-36 h-36 rounded-full overflow-hidden mt-6 mb-6">
           ${user.avatar_url
@@ -74,21 +74,21 @@ export default async function ProfilePage(userId?: number): Promise<void> {
         <p id="user-username" class="text-white text-lg mb-4">@${user.username || 'user'}</p>
         <div class="flex items-center justify-center text-white gap-5 text-center">
           <div class="flex flex-col items-center space-y-1">
-            <img src="../../assets/battle.png" alt="battle icon" class="mx-auto w-8 h-8 mb-2" />
-            <p id="total-matches" class="text-2xl font-bold">-</p>
-            <p class="text-2xl">battles</p>
+            <img src="../../assets/battle.png" alt="battle icon" class="mx-auto w-8 h-8 sm:w-6 sm:h-6 mb-2" />
+            <p id="total-matches" class="text-xl font-bold">-</p>
+            <p class="text-xl">battles</p>
           </div>
           <div class="text-6xl font-light px-2">|</div>
           <div class="flex flex-col items-center space-y-1">
-            <img src="../../assets/win.png" alt="win icon" class="mx-auto w-8 h-8 mb-2" />
-            <p id="total-wins" class="text-2xl font-bold">-</p>
-            <p class="text-2xl">wins</p>
+            <img src="../../assets/win.png" alt="win icon" class="mx-auto w-8 h-8 sm:w-6 sm:h-6 mb-2" />
+            <p id="total-wins" class="text-xl font-bold">-</p>
+            <p class="text-xl">wins</p>
           </div>
           <div class="text-6xl font-light px-2">|</div>
           <div class="flex flex-col items-center space-y-1">
-            <img src="../../assets/percent.png" alt="win rate icon" class="mx-auto w-8 h-8 mb-2" />
-            <p id="win-rate" class="text-2xl font-bold">-</p>
-            <p class="text-2xl whitespace-nowrap">win‑rate</p>
+            <img src="../../assets/percent.png" alt="win rate icon" class="mx-auto w-8 h-8 sm:w-6 sm:h-6 mb-2" />
+            <p id="win-rate" class="text-xl font-bold">-</p>
+            <p class="text-xl whitespace-nowrap">win‑rate</p>
           </div>
         </div>
       </div>
@@ -106,40 +106,40 @@ export default async function ProfilePage(userId?: number): Promise<void> {
       </div>
     </div>
 
-    <div class="flex flex-col w-full p-6 bg-[#383568] max-h-[50vh] overflow-hidden rounded-[5px]">
-      <div class="bg-[#383568] rounded-[5px] w-full h-[38vh] flex flex-col md:flex-row flex-wrap gap-4 p-1 overflow-auto" id="achievements-container">
-        <div class="bg-[#1E1B4B] md:flex-1 rounded-[5px] flex flex-col items-center justify-between p-4 h-full" id="achievement-2fa">
+    <div class="flex flex-col w-full p-4 bg-[#383568] max-h-[50vh] overflow-hidden rounded-[5px]">
+      <div class="bg-[#383568] rounded-[5px] h-[38vh] w-full flex flex-col md:flex-row  flex-warp gap-4 p-1 justify-center overflow-auto" id="achievements-container">
+        <div class="bg-[#1E1B4B] rounded-[5px] flex flex-col items-center justify-center p-4 cursor-pointer transition w-full md:w-auto md:flex-1" id="achievement-2fa">
           <div class="flex flex-col items-center">
-            <img src="../../assets/padlock.png" alt="padlock" class="w-full max-w-[100px] h-auto object-contain" />
-            <p class="text-center text-white text-2xl mt-4">two-factor authentication.</p>
+            <img src="../../assets/padlock.png" alt="padlock" class="w-auto max-w-[80px] h-auto object-contain" />
+            <p class="text-center text-white text-xl mt-4">two-factor authentication.</p>
           </div>
           <p class="text-center text-green-400 text-lg hidden" id="achievement-2fa-status">Achieved!</p>
         </div>
-        <div class="bg-[#1E1B4B] md:flex-1 rounded-[5px] flex flex-col items-center justify-between p-4 h-full" id="achievement-friend">
+        <div class="bg-[#1E1B4B] rounded-[5px] flex flex-col items-center justify-center p-4 cursor-pointer transition w-full md:w-auto md:flex-1" id="achievement-friend">
           <div class="flex flex-col items-center">
-            <img src="../../assets/friend-big.png" alt="people" class="w-full max-w-[100px] h-auto object-contain" />
-            <p class="text-center text-white text-2xl mt-4">Make a friend.</p>
+            <img src="../../assets/friend-big.png" alt="people" class="w-auto max-w-[80px] h-auto object-contain" />
+            <p class="text-center text-white text-xl mt-4">Make a friend.</p>
           </div>
           <p class="text-center text-green-400 text-lg hidden" id="achievement-friend-status">Achieved!</p>
         </div>
-        <div class="bg-[#1E1B4B] md:flex-1 rounded-[5px] flex flex-col items-center justify-between p-4 h-full" id="achievement-wins">
+        <div class="bg-[#1E1B4B] rounded-[5px] flex flex-col items-center justify-center p-4 cursor-pointer transition w-full md:w-auto md:flex-1" id="achievement-wins">
           <div class="flex flex-col items-center">
-            <img src="../../assets/reward.png" alt="reward" class="w-full max-w-[100px] h-auto object-contain" />
-            <p class="text-center text-white text-2xl mt-4">Win 3 matches.</p>
+            <img src="../../assets/reward.png" alt="reward" class="w-auto max-w-[80px] h-auto object-contain" />
+            <p class="text-center text-white text-xl mt-4">Win 3 matches.</p>
           </div>
           <p class="text-center text-green-400 text-lg hidden" id="achievement-wins-status">Achieved!</p>
         </div>
-        <div class="bg-[#1E1B4B] md:flex-1 rounded-[5px] flex flex-col items-center justify-between p-4 h-full" id="achievement-rank">
+        <div class="bg-[#1E1B4B] rounded-[5px] flex flex-col items-center justify-center p-4 cursor-pointer transition w-full md:w-auto md:flex-1" id="achievement-rank">
           <div class="flex flex-col items-center">
-            <img src="../../assets/podio-big.png" alt="rank" class="w-full max-w-[100px] h-auto object-contain" />
-            <p class="text-center text-white text-2xl mt-4">Be among the top ranked.</p>
+            <img src="../../assets/podio-big.png" alt="rank" class="w-auto max-w-[80px] h-auto object-contain" />
+            <p class="text-center text-white text-xl mt-4">Be among the top ranked.</p>
           </div>
           <p class="text-center text-green-400 text-lg hidden" id="achievement-rank-status">Achieved!</p>
         </div>
-        <div class="bg-[#1E1B4B] md:flex-1 rounded-[5px] flex flex-col items-center justify-between p-4 h-full" id="achievement-friends">
+        <div class="bg-[#1E1B4B] rounded-[5px] flex flex-col items-center justify-center p-4 cursor-pointer transition w-full md:w-auto md:flex-1" id="achievement-friends">
           <div class="flex flex-col items-center">
-            <img src="../../assets/people-big.png" alt="people" class="w-full max-w-[100px] h-auto object-contain" />
-            <p class="text-center text-white text-2xl mt-4">Make more than 3 friends.</p>
+            <img src="../../assets/people-big.png" alt="people" class="w-auto max-w-[80px] h-auto object-contain" />
+            <p class="text-center text-white text-xl mt-4">Make more than 3 friends.</p>
           </div>
           <p class="text-center text-green-400 text-lg hidden" id="achievement-friends-status">Achieved!</p>
         </div>

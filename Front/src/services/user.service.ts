@@ -44,6 +44,8 @@ class UserService {
       const response = await fetch(url, {
         headers
       });
+	  console.log(API_BASE_URL)
+	  console.log(url)
 
       if (!response.ok) {
         if (response.status === 401) {
@@ -57,7 +59,7 @@ class UserService {
       }
 
       const text = await response.text();
-
+	//  console.log('Current user response:', text);
       const user = JSON.parse(text);
       this.currentUser = user;
       this.userCache.set(user.id, user);
