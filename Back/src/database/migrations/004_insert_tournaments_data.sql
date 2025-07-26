@@ -2,7 +2,7 @@
 
 -- Inserindo usuários adicionais para torneios
 INSERT INTO users (name, username, email, password_hash, avatar_url, is_online, last_seen_at)
-SELECT 'John Doe', 'johndoe', 'john@example.com', '$2b$10$dummyhashforjohndoe1234567890', 'Spider-Man-Avatar.png', 1, datetime('now')
+SELECT 'John Doe', 'johndoe', 'john@example.com', '$2b$10$dummyhashforjohndoe1234567890', 'Spider-Man-Avatar.png', 0, datetime('now')
 WHERE NOT EXISTS (SELECT 1 FROM users WHERE email = 'john@example.com');
 
 INSERT INTO users (name, username, email, password_hash, avatar_url, is_online, last_seen_at)
