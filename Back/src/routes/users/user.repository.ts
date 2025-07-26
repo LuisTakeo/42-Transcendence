@@ -1,5 +1,6 @@
 // src/routes/users/user.repository.ts
 import { openDb } from '../../database/database';
+import { avatarBase64Map } from '../../utils/avatar-utils';
 
 // Helper function to construct full avatar URL from filename
 function constructAvatarUrl(avatarFilename: string | null | undefined): string | null {
@@ -10,9 +11,14 @@ function constructAvatarUrl(avatarFilename: string | null | undefined): string |
 		return avatarFilename;
 	}
 
+	//If it's a base64 string, return it directly
+	if (avatarFilename.startsWith('data:image/')) {
+		return avatarFilename;
+	}
+
 	const baseUrl = process.env.API_BASE_URL;
 
-	return `${baseUrl}/public/avatars/${avatarFilename}`;
+	return avatarBase64Map[avatarFilename]; // Use base64 map if available
 }
 
 // Helper function to process user data and construct avatar URL
