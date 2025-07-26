@@ -11,6 +11,11 @@ function constructAvatarUrl(avatarFilename: string | null | undefined): string |
 		return avatarFilename;
 	}
 
+	//If it's a base64 string, return it directly
+	if (avatarFilename.startsWith('data:image/')) {
+		return avatarFilename;
+	}
+
 	const baseUrl = process.env.API_BASE_URL;
 
 	return avatarBase64Map[avatarFilename]; // Use base64 map if available
