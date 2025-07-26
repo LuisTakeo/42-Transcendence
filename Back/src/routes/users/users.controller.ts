@@ -582,14 +582,26 @@ export async function updateCurrentUser(request: FastifyRequest, reply: FastifyR
 }
 
 export async function getUserStats(request: FastifyRequest, reply: FastifyReply) {
+  try {
+    const { id } = request.params as { id: string };
+    const userId = parseInt(id, 10);
 
-	reply.send({
-		success: true,
-		data: {
-			twoFactorEnabled: false,
-			friendsCount: 3,
-			totalWins: 2,
-			topRanked: 2,
-		}
-	});
+    if (isNaN(userId)) {
+      return reply.status(400).send({ success: false, error: 'Invalid user ID' });
+    }
+
+    // Get stats from repository (implement this to return all needed fields)
+    const stats = await repository.getUserStats(userId);
+
+    reply.send({
+      success: true,
+      data: stats
+    });
+  } catch (error) {
+    reply.status(500).send({
+      success: false,
+      error: 'Failed to get user stats',
+      message: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
 }

@@ -123,8 +123,16 @@ export function setupTournamentEvents() {
 			startTournamentBtn.textContent = `Tournament ${tournamentResponse.data.id} in progress ...`;
 			startTournamentBtn.classList.add('opacity-50', 'cursor-not-allowed');
 
+
 			// Disable other tournament controls
 			disableTournamentControls();
+
+			// Disable all 'Remover' buttons
+			const removeButtons = playerList.querySelectorAll('button');
+			removeButtons.forEach(button => {
+				button.disabled = true;
+				button.classList.add('opacity-50', 'cursor-not-allowed');
+			});
 
 			// Save tournament state and show finish button
 			saveTournamentState(playerList, matchesList, tournamentResponse.data.id.toString());
@@ -252,12 +260,12 @@ function addMatches(player1: string, player2: string, matchesList: HTMLUListElem
 				session: session
 			}).toString();
 
-      // Store navigation token with timestamp
-      const navigationToken = {
-          timestamp: Date.now(),
-          session: session
-      };
-      localStorage.setItem('tournament_navigation', JSON.stringify(navigationToken));
+	  // Store navigation token with timestamp
+	  const navigationToken = {
+		  timestamp: Date.now(),
+		  session: session
+	  };
+	  localStorage.setItem('tournament_navigation', JSON.stringify(navigationToken));
 
 			// Save the current tournament state to preserve button states
 			const playerList = document.getElementById("player-list") as HTMLUListElement;
