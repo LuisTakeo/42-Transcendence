@@ -1,7 +1,7 @@
 import { matchesService } from "../services/matches.service";
 import { tournamentsService } from "../services/tournaments.service";
 import { userService } from "../services/user.service";
-import { gameService } from "../services/game.service";
+//import { gameService } from "../services/game.service";
 
 export function setupTournamentEvents() {
 	const addPlayerBtn = document.getElementById("add-player-btn") as HTMLButtonElement;
@@ -217,7 +217,6 @@ export async function showGenerateMatchesModal(playerList: HTMLUListElement, mat
 	modal.classList.remove("hidden");
 }
 
-//AQUI É ONDE AS PARTIDAS SÃO ADICIONADAS
 function addMatches(player1: string, player2: string, matchesList: HTMLUListElement): void {
 	if (!matchesList) return;
 

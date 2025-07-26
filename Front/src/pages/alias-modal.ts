@@ -9,8 +9,8 @@ export async function showAliasModal(): Promise<{ player1: string, player2: stri
   const modalHTML = `
   <div id="alias-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
     <div class="bg-[#1E1B4B] rounded-lg p-8 max-w-md w-full mx-4">
-      <div class="text-center">
-        <h2 class="text-2xl font-bold text-white mb-4">Enter Player Aliases</h2>
+      <div>
+        <h2 class="text-2xl font-bold text-white text-center mb-4">Enter Player Aliases</h2>
         <div class="mb-6">
           <label for="player1-alias-input" class="block text-sm font-medium text-gray-300 mb-2">Player 1 (You)</label>
           <input
@@ -30,8 +30,8 @@ export async function showAliasModal(): Promise<{ player1: string, player2: stri
           />
         </div>
         <div class="flex gap-3">
-          <button id="start-game-btn" class="flex-1 bg-purple-600 hover:bg-purple-700 text-white font-medium py-2 px-4 rounded-md transition">Start Game</button>
-          <button id="cancel-alias-btn" class="flex-1 bg-gray-600 hover:bg-gray-700 text-white font-medium py-2 px-4 rounded-md transition">Cancel</button>
+		<button id="cancel-alias-btn" class="flex-1 bg-gray-600 hover:bg-gray-700 text-white font-medium py-2 px-4 rounded-md transition">Cancel</button>
+		<button id="start-game-btn" class="flex-1 bg-purple-600 hover:bg-purple-700 text-white font-medium py-2 px-4 rounded-md transition">Start Game</button>
         </div>
       </div>
     </div>
