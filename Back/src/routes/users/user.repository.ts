@@ -10,9 +10,7 @@ function constructAvatarUrl(avatarFilename: string | null | undefined): string |
 		return avatarFilename;
 	}
 
-	// Construct the full URL using the backend port from environment or default
-	const backendPort = process.env.BACK_PORT || '3142';
-	const baseUrl = `http://localhost:${backendPort}`;
+	const baseUrl = process.env.API_BASE_URL;
 
 	return `${baseUrl}/public/avatars/${avatarFilename}`;
 }
@@ -130,7 +128,7 @@ export async function findOrCreateUserDb(email: string, name: string, googleId: 
 		}
 
 		const result = await db.run(
-			`INSERT INTO users (email, username, name, google_id, created_at) VALUES (?, ?, ?, ?, datetime('now'))`,
+			`INSERT INTO users (email, username, name, google_id, password_hash, created_at) VALUES (?, ?, ?, ?, '$2b$10$dummyhashforjohndoe1234567890', datetime('now'))`,
 			email,
 			username,
 			name,

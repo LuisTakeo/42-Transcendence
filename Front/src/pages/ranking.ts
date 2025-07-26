@@ -42,7 +42,7 @@ async function getCurrentUserId(): Promise<number | null> {
 	return currentUser.id;
 }
 
-const RESERVED_USER_IDS = [999998, 999999];
+const RESERVED_USER_IDS = [4, 5];
 
 function filterReservedUsers(users: any[]): any[] {
   return users.filter(user => !RESERVED_USER_IDS.includes(user.id));
@@ -69,7 +69,14 @@ function renderRows(): string {
     .join("");
 }
 
-export default function RankingPage(): void {
+export default async function RankingPage(): Promise<void> {
+  // Route protection: require authentication
+  const currentUser = await userService.requireAuth();
+  if (!currentUser) {
+    window.location.href = '/login';
+    return;
+  }
+
   const app = document.getElementById("app");
   if (!app) return;
 

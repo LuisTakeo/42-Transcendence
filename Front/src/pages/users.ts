@@ -3,30 +3,31 @@ import { userService } from '../services/user.service.ts';
 
 export default function UsersPage(): string {
   return `
-    <main class="ml-24 p-[50px] flex justify-center items-center min-h-screen">
-      <div class="w-full max-w-6xl bg-[#1E1B4B] rounded-lg p-8">
+    <main class="px-4 md:px-[50px] py-8 flex justify-center items-start min-h-screen">
+      <div class="w-full max-w-6xl bg-[#1E1B4B] p-4 sm:p-6 md:p-8">
         <!-- Título -->
-        <h1 class="text-5xl font-bold mb-6 text-center">Looking for users?</h1>
+        <h1 class="text-3xl sm:text-4xl md:text-5xl font-bold mb-6 text-center">Looking for users?</h1>
 
         <span class="block h-4"></span>
 
-        <!-- Campo de pesquisa -->
-        <div class="flex justify-center mb-8">
+        <!-- Search Field -->
+        <div class="flex justify-center items-stretch sm:items-center gap-2 sm:gap-0 mb-8">
           <input
             type="text"
             id="searchUsers"
             placeholder="Search..."
-            class="w-80 px-6 py-3 rounded-l-[5px] border border-[#383568] bg-[#1E1B4B] text-white placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-purple-500 focus:border-transparent text-2xl"
-          />
-          <button class="px-6 py-3 bg-[#383568] text-white font-semibold rounded-r-[5px] hover:bg-[#4E4A72] transition duration-200 ease-in-out"
-            id="searchUsersButton"
-          >
-            <img src="../../assets/find.png" alt="search">
+            class="flex-1 min-w-0 sm:w-auto sm:max-w-sm px-4 py-2 sm:px-6 sm:py-2 rounded sm:rounded-l-[5px] border border-[#383568] bg-[#1E1B4B] text-white placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-purple-500 focus:border-transparent text-base sm:text-lg md:text-xl"/>
+
+          <button class="px-4 sm:px-6 py-2 sm:py-3 bg-[#383568] text-white font-semibold rounded sm:rounded-r-[5px] hover:bg-[#4E4A72] transition duration-200 ease-in-out"
+            id="searchUsersButton">
+            <img src="../../assets/find.png" alt="search" class="w-8 h-10 sm:w-6 sm:h-6">
           </button>
+
         </div>
+
         <span class="block h-4"></span>
 
-        <!-- Resultados da pesquisa -->
+        <!-- research results -->
         <div id="results" class="grid grid-cols-1 gap-6">
           <!-- Users will be loaded here -->
         </div>
@@ -35,17 +36,18 @@ export default function UsersPage(): string {
         <div id="pagination" class="flex items-center justify-center mt-8 space-x-4">
           <button
             id="prevPage"
-            class="px-4 py-2 bg-[#383568] text-white rounded hover:bg-[#4E4A72] transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
+            class="px-4 py-2 bg-[#383568] text-white rounded hover:bg-[#4E4A72] transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed">
             Previous
           </button>
+
           <span id="pageInfo" class="text-white"></span>
-          <button
+          
+		  <button
             id="nextPage"
-            class="px-4 py-2 bg-[#383568] text-white rounded hover:bg-[#4E4A72] transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
+            class="px-4 py-2 bg-[#383568] text-white rounded hover:bg-[#4E4A72] transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed">
             Next
           </button>
+		  
         </div>
       </div>
     </main>
@@ -97,7 +99,7 @@ export async function initializeUsersPage(): Promise<void> {
   const nextButton = document.getElementById("nextPage") as HTMLButtonElement;
   const pageInfo = document.getElementById("pageInfo") as HTMLSpanElement;
 
-  const RESERVED_USER_IDS = [999998, 999999];
+  const RESERVED_USER_IDS = [4, 5];
 
   function filterReservedUsers(users: any[]): any[] {
     return users.filter(user => !RESERVED_USER_IDS.includes(user.id));

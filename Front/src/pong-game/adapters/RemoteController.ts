@@ -18,6 +18,7 @@ export class RemoteController implements IInputController {
     private _onKeyDown: ((evt: KeyboardEvent) => void) | null = null;
     private _onKeyUp: ((evt: KeyboardEvent) => void) | null = null;
     private _gameService: GameService | null = null; // Simulação de conexão com servidor remoto
+    private roomId: string | null = null;
 
     /**
      * Cria um novo controlador remoto
@@ -26,15 +27,24 @@ export class RemoteController implements IInputController {
     constructor(id: string) {
         this.id = id;
         this.paddleSize = { width: 1, height: 4, depth: 10 }; // Tamanho padrão do paddle
-        this._gameService = new GameService("ws://localhost:3142/ws", this.id); // Simulação de serviço de jogo
-
+        // Use VITE_API_BASE_URL for the backend URL
+        const baseUrl = import.meta.env.VITE_API_BASE_URL;
+        let wsUrl;
+        if (baseUrl.startsWith('https://')) {
+            wsUrl = baseUrl.replace(/^https:\/\//, 'wss://') + '/ws';
+        } else if (baseUrl.startsWith('http://')) {
+            wsUrl = baseUrl.replace(/^http:\/\//, 'ws://') + '/ws';
+        } else {
+            wsUrl = baseUrl + '/ws';
+        }
+        this._gameService = new GameService(wsUrl, this.id);
     }
 
     public connect(): void {
         if (!this._gameService) return;
 
         this._gameService.connect();
-        console.log(`Controlador remoto ${this.id} conectado`);
+        // console.log(`Controlador remoto ${this.id} conectado`);
     }
 
     /**
@@ -51,6 +61,16 @@ export class RemoteController implements IInputController {
         return this.paddle;
     }
 
+    /**
+     * Room Id
+     */
+    public setRoomId(roomId: string) {
+        this.roomId = roomId;
+    }
+
+    public getRoomId(): string | null {
+        return this.roomId;
+    }
 
     /**
      * Conecta o controlador a um paddle específico
@@ -77,13 +97,13 @@ export class RemoteController implements IInputController {
 
         const connectionCheck = setInterval(() => {
         if (this._gameService?.isConnectedToServer()) {
-                console.log("WebSocket connected, setting up handlers");
+                // console.log("WebSocket connected, setting up handlers");
                 this.setupEventHandlers();
                 clearInterval(connectionCheck);
             }
         }, 500);
         // Simular inicialização de conexão remota
-        console.log(`Controlador remoto ${this.id} inicializado`);
+        // console.log(`Controlador remoto ${this.id} inicializado`);
 
 
 
@@ -117,9 +137,9 @@ export class RemoteController implements IInputController {
             if (!this._gameService) return;
             if (evt.key === this.upKey || evt.key === this.downKey) {
                 const direction = evt.key === this.upKey ? "up" : "down";
-                this._gameService.sendMessage("player_move", { 
+                this._gameService.sendMessage("player_move", {
                     direction: direction,
-                    pressed: true 
+                    pressed: true
                 });
             }
         };
@@ -128,9 +148,9 @@ export class RemoteController implements IInputController {
             if (!this._gameService) return;
             if (evt.key === this.upKey || evt.key === this.downKey) {
                 const direction = evt.key === this.upKey ? "up" : "down";
-                this._gameService.sendMessage("player_move", { 
+                this._gameService.sendMessage("player_move", {
                     direction: direction,
-                    pressed: false 
+                    pressed: false
                 });
             }
         };
@@ -155,8 +175,8 @@ export class RemoteController implements IInputController {
      * Em uma implementação real, fecharia a conexão com o servidor
      */
     public dispose(): void {
-        console.log(`Controlador remoto ${this.id} desconectado`);
-        
+        // console.log(`Controlador remoto ${this.id} desconectado`);
+
         // Remover event listeners se foram adicionados
         if (this._onKeyDown) {
             window.removeEventListener('keydown', this._onKeyDown);
@@ -167,7 +187,7 @@ export class RemoteController implements IInputController {
             window.removeEventListener('keyup', this._onKeyUp);
             this._onKeyUp = null;
         }
-        
+
         this.paddle = null;
         this.initialized = false;
     }

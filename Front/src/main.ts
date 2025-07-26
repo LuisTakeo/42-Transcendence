@@ -71,20 +71,6 @@ async function renderRoute(path: string) {
       case '/home':
         app.innerHTML = HomePage();
         initializeHomePage();
-		const howToPlayBtn = document.getElementById('how-to-play');
-			if (howToPlayBtn) {
-			howToPlayBtn.addEventListener('click', () => {
-				window.history.pushState(null, '', '/howToPlay');
-				window.dispatchEvent(new Event('popstate'));
-			});
-			}
-		const tournamentBtn = document.getElementById('tournament-btn');
-			if (tournamentBtn) {
-			tournamentBtn.addEventListener('click', () => {
-				window.history.pushState(null, '', '/tournament');
-				window.dispatchEvent(new Event('popstate'));
-			});
-			}
         break;
       case '/profile':
         ProfilePage();
@@ -125,7 +111,7 @@ async function renderRoute(path: string) {
           playerAliases: { player1: "Player 1", player2: "Player 2" },
           playerIds: {
             player1: currentUser?.id,
-            player2: 999998 // Reserved user for Local Player 2
+            player2: 4 // Reserved user for Local Player 2
           }
         });
         break;
@@ -146,7 +132,7 @@ async function renderRoute(path: string) {
           playerAliases: { player1: "Player", player2: "AI" },
           playerIds: {
             player1: currentUserForAI?.id,
-            player2: 999999 // Reserved user for AI Opponent
+            player2: 5 // Reserved user for AI Opponent
           }
         });
         break;
@@ -258,7 +244,8 @@ async function updateLastSeen(): Promise<void> {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'ngrok-skip-browser-warning': 'true'
         },
         body: JSON.stringify({ last_seen_at: new Date().toISOString() })
       });

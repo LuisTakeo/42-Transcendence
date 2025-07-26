@@ -23,6 +23,7 @@ interface GameRoom {
     lastUpdateTime: number;
     gameLoop?: NodeJS.Timeout;
     status: 'waiting' | 'playing' | 'finished';
+    isFirstServe?: boolean;
 }
 
 // Maps principais
@@ -38,14 +39,14 @@ const connectionToSide: Map<any, {roomId: string, side: string}> = new Map(); //
 // Função para processar movimento dos jogadores
 function handlePlayerMove(connection: WebSocket, data: any) {
     console.log(`Movimento recebido:`, data);
-    
+
     // Buscar a sala e lado do jogador pela conexão
     const playerInfo = connectionToSide.get(connection);
     if (!playerInfo) {
         console.log(`Conexão não encontrada nos jogadores ativos`);
         return;
     }
-    
+
     const room = gameRooms.get(playerInfo.roomId);
     if (!room || room.status !== 'playing') {
         console.log(`Sala ${playerInfo.roomId} não está jogando`);
@@ -54,7 +55,7 @@ function handlePlayerMove(connection: WebSocket, data: any) {
 
     // Atualizar estado das teclas para movimento contínuo
     const playerInputs = playerInfo.side === 'left' ? room.playerInputs.player1 : room.playerInputs.player2;
-    
+
     if (data.direction === 'up') {
         playerInputs.up = data.pressed !== false; // true por padrão, false se explicitamente definido
         playerInputs.down = false; // Não pode pressionar ambas ao mesmo tempo
@@ -87,10 +88,10 @@ function updateGameLogic(room: GameRoom) {
     room.lastUpdateTime = currentTime;
 
     const { ball, player1, player2 } = room.gameState;
-    
+
     // Primeiro, processar movimento dos paddles baseado no input contínuo
     updatePaddleMovement(room, deltaTime);
-    
+
     // Usando as mesmas configurações do frontend
     const tableWidth = 100;
     const tableDepth = 80; // Corrigido para 80 como no frontend
@@ -176,6 +177,9 @@ function checkPaddleCollision(room: GameRoom) {
         ball.y >= player1.y - paddleHeight/2 &&
         ball.y <= player1.y + paddleHeight/2) {
 
+        if (room.isFirstServe) {
+            room.isFirstServe = false;
+        }
         ball.vx *= -1; // Inverte velocidade X
 
         // Adicionar efeito baseado na posição de contato (mesma lógica do frontend)
@@ -204,16 +208,20 @@ function checkPaddleCollision(room: GameRoom) {
 }
 
 function resetBall(room: GameRoom) {
+    let speed = 0.65;
+    if (room.isFirstServe) {
+      speed = 0.4;
+    }
     room.gameState.ball = {
         x: 0,
         y: 0,
-        vx: Math.random() > 0.5 ? 0.65 : -0.65, // Velocidade inicial igual ao frontend
-        vy: (Math.random() - 0.5) * 0.65 // Velocidade Y aleatória menor
+        vx: Math.random() > 0.5 ? speed : -speed, // Velocidade inicial igual ao frontend
+        vy: (Math.random() - 0.5) * speed // Velocidade Y aleatória menor
     };
 }
 
 
-function createGameRoom(connection: WebSocket) {
+function createGameRoom(connection: WebSocket, userId?: string) {
     const roomId = `${Date.now()}`;
     const playerSide = "left"; // Definindo o jogador como "left" para a nova sala
     const status = 'waiting' as const; // Definindo o status da sala como 'waiting'
@@ -236,10 +244,11 @@ function createGameRoom(connection: WebSocket) {
         status
     };
     gameRooms.set(roomId, newRoom);
-    
+
     // Mapear conexão para side
     connectionToSide.set(connection, {roomId, side: playerSide});
-    
+    if (userId) (connection as any)._userId = userId;
+
     connection.send(JSON.stringify({
         type: 'room_created',
         roomId: roomId,
@@ -259,15 +268,16 @@ function findAvailableRoom(): GameRoom | null {
 }
 
 
-function joinGameRoom(connection: WebSocket) {
+function joinGameRoom(connection: WebSocket, userId?: string) {
     const availableRoom = findAvailableRoom();
     if (availableRoom) {
         // Adiciona como jogador da direita
         availableRoom.players.set('right', connection);
-        
+
         // Mapear conexão para side
         connectionToSide.set(connection, {roomId: availableRoom.id, side: 'right'});
-        
+        if (userId) (connection as any)._userId = userId;
+
         connection.send(JSON.stringify({
             type: 'room_joined',
             roomId: availableRoom.id,
@@ -288,14 +298,16 @@ function joinGameRoom(connection: WebSocket) {
     } else {
         // Cria nova sala e adiciona como jogador da esquerda
         console.log("Nenhuma sala disponível, criando nova sala");
-        return createGameRoom(connection);
+        return createGameRoom(connection, userId);
     }
 }
 
-
-function startGameLoop(roomId: string) {
+async function startGameLoop(roomId: string) {
     const room = gameRooms.get(roomId);
     if (!room) return;
+
+    room.isFirstServe = true;
+    await new Promise(resolve => setTimeout(resolve, 5500));
 
     // Game loop específico para esta sala - 60 FPS como no frontend
     room.gameLoop = setInterval(() => {
@@ -307,7 +319,7 @@ function startGameLoop(roomId: string) {
             });
 
             // Verificar condição de vitória (opcional)
-            const maxScore = 3;
+            const maxScore = 3; // DEFINIR PONTOS
             if (room.gameState.score.player1 >= maxScore || room.gameState.score.player2 >= maxScore) {
                 room.status = 'finished';
                 const winner = room.gameState.score.player1 >= maxScore ? 'left' : 'right';
@@ -327,7 +339,7 @@ function startGameLoop(roomId: string) {
 function leaveGameRoom(connection: any) {
     const playerInfo = connectionToSide.get(connection);
     if (!playerInfo) return;
-    
+
     const { roomId, side } = playerInfo;
     const room = gameRooms.get(roomId);
     if (!room) return;
@@ -365,6 +377,6 @@ function leaveGameRoom(connection: any) {
 
 export {
     GameRoom, leaveGameRoom, createGameRoom, joinGameRoom, handlePlayerMove,
-    broadcastToRoom, updateGameLogic, updatePaddleMovement, resetBall, checkPaddleCollision, startGameLoop, 
+    broadcastToRoom, updateGameLogic, updatePaddleMovement, resetBall, checkPaddleCollision, startGameLoop,
     connectionToSide, gameRooms
 }

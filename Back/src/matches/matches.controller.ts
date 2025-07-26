@@ -3,8 +3,9 @@ import { FastifyRequest, FastifyReply } from 'fastify';
 import * as repository from './match.repository';
 import { CreateMatchData, UpdateMatchData } from './match.repository';
 import { TournamentRepository } from '../tournaments/tournament.repository';
+import { broadcastMatchId } from '../websockets/websocket.controller';
 
-const RESERVED_USER_IDS = [999998, 999999];
+const RESERVED_USER_IDS = [4, 5];
 
 // Validation helper functions
 const isValidScore = (score: number): boolean => {
@@ -295,7 +296,9 @@ export async function createMatch(request: FastifyRequest, reply: FastifyReply) 
 			player2_alias,
 			winner_id,
 			player1_score,
-			player2_score
+			player2_score,
+			tournament_id,
+      roomId
 		} = request.body as CreateMatchData;
 
 		// Validation
@@ -315,7 +318,7 @@ export async function createMatch(request: FastifyRequest, reply: FastifyReply) 
 			});
 		}
 
-		// Allow player2_id to be a valid user ID or a reserved user ID (999998, 999999)
+		// Allow player2_id to be a valid user ID or a reserved user ID (4, 5)
 		if (!isValidPlayerId(player2_id) && !RESERVED_USER_IDS.includes(player2_id)) {
 			return reply.status(400).send({
 				success: false,
@@ -368,6 +371,16 @@ export async function createMatch(request: FastifyRequest, reply: FastifyReply) 
 			}
 		}
 
+		// Validate tournament_id if provided
+		if (tournament_id !== undefined && tournament_id !== null) {
+			if (!isValidPlayerId(tournament_id)) {
+				return reply.status(400).send({
+					success: false,
+					error: 'Invalid tournament_id'
+				});
+			}
+		}
+
 		const newMatch = await repository.createMatch({
 			player1_id,
 			player2_id,
@@ -375,8 +388,13 @@ export async function createMatch(request: FastifyRequest, reply: FastifyReply) 
 			player2_alias: player2_alias.trim(),
 			winner_id: winner_id || null,
 			player1_score,
-			player2_score
+			player2_score,
+			tournament_id,
+      roomId
 		});
+    if (roomId && newMatch.id !== undefined) {
+      broadcastMatchId(roomId, newMatch.id);
+    }
 
 		reply.status(201).send({
 			success: true,
@@ -392,99 +410,104 @@ export async function createMatch(request: FastifyRequest, reply: FastifyReply) 
 	}
 }
 
+export async function generateAllRoundRobinMatches(request: FastifyRequest, reply: FastifyReply) {
+  let { players } = request.body as { players: string[] };
+
+  if (!Array.isArray(players) || players.length < 3) {
+    return reply.code(400).send({ error: 'At least three players are required' });
+  }
+
+  const isOdd = players.length % 2 !== 0;
+  if (isOdd) {
+    players = [...players, 'BYE'];
+  }
+
+  const rounds = [];
+  const n = players.length;
+  const half = n / 2;
+
+  const rotatedPlayers = [...players];
+
+  for (let round = 0; round < n - 1; round++) {
+    const matches = [];
+
+    for (let i = 0; i < half; i++) {
+      const player1 = rotatedPlayers[i];
+      const player2 = rotatedPlayers[n - 1 - i];
+
+      matches.push({
+        player1_alias: player1 === 'BYE' ? null : player1,
+        player2_alias: player2 === 'BYE' ? null : player2,
+      });
+    }
+
+    rounds.push({ round: round + 1, matches });
+    const last = rotatedPlayers.pop()!;
+    rotatedPlayers.splice(1, 0, last);
+  }
+
+  return reply.send({ rounds });
+}
+
 // Update match
 export async function updateMatch(request: FastifyRequest, reply: FastifyReply) {
-	try {
-		const { id } = request.params as { id: string };
-		const matchId = parseInt(id, 10);
+    try {
+        const { id } = request.params as { id: string };
+        const matchId = parseInt(id, 10);
+        const updateData = request.body as UpdateMatchData;
 
-		if (isNaN(matchId)) {
-			return reply.status(400).send({
-				success: false,
-				error: 'Invalid match ID'
-			});
-		}
+        if (isNaN(matchId)) {
+            return reply.status(400).send({
+                success: false,
+                error: 'Invalid match ID'
+            });
+        }
 
-		const updateData = request.body as UpdateMatchData;
+        // Validate update data
+        if (
+            !updateData.winner_id ||
+            updateData.player1_score === undefined || !isValidScore(updateData.player1_score) ||
+            updateData.player2_score === undefined || !isValidScore(updateData.player2_score)
+        ) {
+            return reply.status(400).send({
+                success: false,
+                error: 'Invalid update data',
+                required: ['winner_id', 'player1_score', 'player2_score']
+            });
+        }
 
-		// Validation for fields being updated
-		if (updateData.player1_score !== undefined && !isValidScore(updateData.player1_score)) {
-			return reply.status(400).send({
-				success: false,
-				error: 'Player1 score must be a non-negative integer'
-			});
-		}
+        // Validate winner_id
+        if (!isValidPlayerId(updateData.winner_id)) {
+            return reply.status(400).send({
+                success: false,
+                error: 'Invalid winner_id'
+            });
+        }
 
-		if (updateData.player2_score !== undefined && !isValidScore(updateData.player2_score)) {
-			return reply.status(400).send({
-				success: false,
-				error: 'Player2 score must be a non-negative integer'
-			});
-		}
+        // Remove status if not in UpdateMatchData type
+        const updatedMatch = await repository.updateMatch(matchId, {
+            winner_id: updateData.winner_id,
+            player1_score: updateData.player1_score,
+            player2_score: updateData.player2_score
+        });
 
-		if (updateData.player1_alias && (updateData.player1_alias.trim().length < 1 || updateData.player1_alias.trim().length > 50)) {
-			return reply.status(400).send({
-				success: false,
-				error: 'Player1 alias must be between 1 and 50 characters'
-			});
-		}
+        if (!updatedMatch) {
+            return reply.status(404).send({
+                success: false,
+                error: 'Match not found'
+            });
+        }
 
-		if (updateData.player2_alias && (updateData.player2_alias.trim().length < 1 || updateData.player2_alias.trim().length > 50)) {
-			return reply.status(400).send({
-				success: false,
-				error: 'Player2 alias must be between 1 and 50 characters'
-			});
-		}
-
-		// Get the current match to validate winner_id
-		if (updateData.winner_id !== undefined) {
-			const currentMatch = await repository.getMatchById(matchId);
-			if (!currentMatch) {
-				return reply.status(404).send({
-					success: false,
-					error: 'Match not found'
-				});
-			}
-
-			if (updateData.winner_id !== null &&
-				updateData.winner_id !== currentMatch.player1_id &&
-				updateData.winner_id !== currentMatch.player2_id) {
-				return reply.status(400).send({
-					success: false,
-					error: 'Winner must be one of the players'
-				});
-			}
-		}
-
-		// Clean data
-		const cleanedData: UpdateMatchData = {};
-		if (updateData.player1_alias) cleanedData.player1_alias = updateData.player1_alias.trim();
-		if (updateData.player2_alias) cleanedData.player2_alias = updateData.player2_alias.trim();
-		if (updateData.winner_id !== undefined) cleanedData.winner_id = updateData.winner_id;
-		if (updateData.player1_score !== undefined) cleanedData.player1_score = updateData.player1_score;
-		if (updateData.player2_score !== undefined) cleanedData.player2_score = updateData.player2_score;
-
-		const updatedMatch = await repository.updateMatch(matchId, cleanedData);
-
-		if (!updatedMatch) {
-			return reply.status(404).send({
-				success: false,
-				error: 'Match not found'
-			});
-		}
-
-		// Removed obsolete knockout/advancement logic for tournaments
-
-		reply.send({
-			success: true,
-			data: updatedMatch,
-			message: 'Match updated successfully'
-		});
-	} catch (error) {
-		reply.status(500).send({
-			success: false,
-			error: 'Failed to update match',
-			message: error instanceof Error ? error.message : 'Unknown error'
-		});
-	}
-}
+        reply.send({
+            success: true,
+            data: updatedMatch,
+            message: 'Match updated successfully'
+        });
+    } catch (error) {
+        reply.status(500).send({
+            success: false,
+            error: 'Failed to update match',
+            message: error instanceof Error ? error.message : 'Unknown error'
+        });
+    }
+};
