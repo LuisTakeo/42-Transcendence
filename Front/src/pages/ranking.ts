@@ -3,6 +3,7 @@ import { userService } from "../services/user.service.ts";
 import { rankingService, RankingUser } from "../services/ranking.service.ts";
 import { friendsService } from "../services/friends.service.ts";
 import { showSuccessMessage, showErrorMessage } from './notification.ts';
+import { tournamentsService } from "../services/tournaments.service.ts";
 
 let rankingData: RankingUser[] = [];
 
@@ -48,7 +49,18 @@ function filterReservedUsers(users: any[]): any[] {
   return users.filter(user => !RESERVED_USER_IDS.includes(user.id));
 }
 
-function renderRows(): string {
+function renderRows(tournamentId?: number | null): string {
+  if (tournamentId) {
+    return rankingData
+      .map((u) => `
+      <tr class="bg-[#2D2856]">
+        <td class="px-3 py-2 md:px-6 md:py-4 text-sm md:text-2xl">${u.position}.</td>
+        <td class="px-3 py-2 md:px-6 md:py-4 text-sm md:text-2xl">${u.username}</td>
+        <td class="px-3 py-2 md:px-6 md:py-4 text-sm md:text-2xl">${u.tournamentPoints || 0}</td>
+        <td class="px-3 py-2 md:px-6 md:py-4 text-sm md:text-2xl">${u.wins}</td>
+        <td class="px-3 py-2 md:px-6 md:py-4 text-sm md:text-2xl">${u.pointsDiff || 0}</td>
+      </tr>`).join("");
+  }
   return filterReservedUsers(rankingData)
     .map(
       (u) => `
@@ -76,6 +88,10 @@ export default async function RankingPage(): Promise<void> {
     window.location.href = '/login';
     return;
   }
+  const urlParams = new URLSearchParams(window.location.search);
+  const tournamentIdParam = urlParams.get('id');
+  const tournamentId = tournamentIdParam ? parseInt(tournamentIdParam) : null;
+
 
   const app = document.getElementById("app");
   if (!app) return;
@@ -84,9 +100,23 @@ export default async function RankingPage(): Promise<void> {
 
   const main = document.createElement("main");
   main.className = "main-content p-4 md:p-8 lg:p-12 flex justify-center items-center min-h-screen";
+
+  const titleText = tournamentId ? "Tournament Ranking" : "Global Ranking";
+
   main.innerHTML = `
     <div class="w-full md:p-2 lg:p-12 bg-[#1E1B4B] rounded-lg p-8">
-      <h1 class="text-5xl font-bold mb-6 text-center">Ranking</h1>
+      ${tournamentId ? `
+        <div class="mb-4">
+          <button id="back-to-global" class="text-purple-400 hover:text-purple-300 transition flex items-center gap-2">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+            </svg>
+            Back to Global Ranking
+          </button>
+        </div>
+      ` : ''}
+      <h1 class="text-5xl font-bold mb-6 text-center">${titleText}</h1>
+      ${tournamentId ? `<p class="text-center text-gray-300 mb-4">Tournament ID: ${tournamentId}</p>` : ''}
       <div class="w-full max-w-3xl mx-auto mt-10">
         <div id="ranking-content">
           <div class="text-center text-white text-xl">
@@ -100,8 +130,17 @@ export default async function RankingPage(): Promise<void> {
 
   app.appendChild(main);
 
+  if (tournamentId) {
+    const backButton = document.getElementById('back-to-global');
+    backButton?.addEventListener('click', () => {
+      window.history.pushState({}, '', '/ranking');
+      RankingPage(); // Reload page without query params
+    });
+  }
+
+
   // Load ranking data
-  loadRanking();
+  loadRanking(tournamentId);
 
   // Add event delegation for profile navigation buttons
   const mainContainer = document.querySelector('.main-content');
@@ -135,45 +174,87 @@ export default async function RankingPage(): Promise<void> {
   }
 }
 
-async function loadRanking(): Promise<void> {
+async function loadRanking(tournamentId: number | null): Promise<void> {
   try {
-    const response = await rankingService.getRanking();
+    let response;
     const rankingContent = document.getElementById('ranking-content');
 
-    if (response.success && response.data) {
-      rankingData = response.data;
+    if (tournamentId) {
+      // Load tournament ranking using the service
+      response = await tournamentsService.getFinalRanking(tournamentId);
 
-      if (rankingContent) {
-        rankingContent.innerHTML = `
-		<div id="ranking-content" class="overflow-x-auto">
+
+      if (response.success && response.data) {
+        // Transform tournament data to match RankingUser interface
+        rankingData = response.data.map((player: any, index: number) => ({
+          position: player.rank || (index + 1),
+          id: player.user_id,
+          username: player.username,
+          name: player.name,
+          totalMatches: 0,
+          wins: player.victories,
+          winRate: 0,
+          tournamentPoints: player.points,
+          pointsDiff: player.diff,
+          pointsMade: player.made
+        }));
+
+        // Sort by rank to ensure correct order
+        rankingData.sort((a, b) => a.position - b.position);
+      } else {
+        throw new Error('Failed to load tournament ranking data');
+      }
+    } else {
+      // Load global ranking
+      response = await rankingService.getRanking();
+
+      if (response.success && response.data) {
+        rankingData = response.data;
+      } else {
+        throw new Error('Failed to load global ranking data');
+      }
+    }
+
+    if (rankingContent) {
+      rankingContent.innerHTML = `
+        <div id="ranking-content" class="overflow-x-auto">
           <table class="w-full min-w-full text-center text-white rounded-lg overflow-hidden">
             <thead class="bg-[#3B3567] text-2xl uppercase">
               <tr>
                 <th class="px-3 py-2 md:px-6 md:py-3 text-sm md:text-2xl uppercase">Pos</th>
                 <th class="px-3 py-2 md:px-6 md:py-3 text-sm md:text-2xl uppercase">User</th>
-                <th class="px-3 py-2 md:px-6 md:py-3 text-sm md:text-2xl uppercase">Matches</th>
-                <th class="px-3 py-2 md:px-6 md:py-3 text-sm md:text-2xl uppercase">Wins</th>
-                <th class="px-3 py-2 md:px-6 md:py-3 text-sm md:text-2xl uppercase">Options</th>
+                ${tournamentId ? `
+                  <th class="px-3 py-2 md:px-6 md:py-3 text-sm md:text-2xl uppercase">Points</th>
+                  <th class="px-3 py-2 md:px-6 md:py-3 text-sm md:text-2xl uppercase">Wins</th>
+                  <th class="px-3 py-2 md:px-6 md:py-3 text-sm md:text-2xl uppercase">Diff</th>
+                ` : `
+                  <th class="px-3 py-2 md:px-6 md:py-3 text-sm md:text-2xl uppercase">Matches</th>
+                  <th class="px-3 py-2 md:px-6 md:py-3 text-sm md:text-2xl uppercase">Wins</th>
+                  <th class="px-3 py-2 md:px-6 md:py-3 text-sm md:text-2xl uppercase">Options</th>
+                `}
               </tr>
             </thead>
             <tbody class="text-2xl">
-              ${renderRows()}
+              ${renderRows(tournamentId)}
             </tbody>
           </table>
-		</div>
-        `;
-      }
-    } else {
-      throw new Error('Failed to load ranking data');
+        </div>
+      `;
     }
   } catch (error) {
     console.error('Error loading ranking:', error);
     const rankingContent = document.getElementById('ranking-content');
     if (rankingContent) {
+      const errorMessage = tournamentId ? 'tournament ranking' : 'ranking';
       rankingContent.innerHTML = `
         <div class="text-center text-white text-xl py-8">
-          <p class="text-red-400 mb-2">Error loading ranking</p>
-          <p class="text-gray-400 text-sm">Please try again later.</p>
+          <p class="text-red-400 mb-2">Error loading ${errorMessage}</p>
+          <p class="text-gray-400 text-sm">${error instanceof Error ? error.message : 'Unknown error'}</p>
+          ${tournamentId ? `
+            <button id="back-to-global-error" class="mt-4 px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 transition mr-2">
+              Back to Global Ranking
+            </button>
+          ` : ''}
           <button id="retry-ranking" class="mt-4 px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 transition">
             Retry
           </button>
@@ -188,11 +269,20 @@ async function loadRanking(): Promise<void> {
             Loading ranking...
           </div>
         `;
-        loadRanking();
+        loadRanking(tournamentId);
       });
+
+      if (tournamentId) {
+        const backErrorButton = document.getElementById('back-to-global-error');
+        backErrorButton?.addEventListener('click', () => {
+          window.history.pushState({}, '', '/ranking');
+          RankingPage();
+        });
+      }
     }
   }
 }
+
 
 async function handleAddFriend(userId: number, buttonElement: HTMLElement): Promise<void> {
   try {
