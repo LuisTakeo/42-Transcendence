@@ -440,10 +440,11 @@ async function fetchAvatarsFromBackend(): Promise<void> {
 			throw new Error('Failed to load avatars');
 		}
 
-		const avatarOptions = response.data;
+		const avatarOptions = response.data.avatarFiles || [];
+		const avatarUrls = response.data.avatarUrls;
 
 		// Create avatar grid
-		avatarGrid.innerHTML = avatarOptions.map((avatarName, index) => `
+		avatarGrid.innerHTML = avatarOptions.map((avatarName: string, index: number) => `
 			<div class="flex flex-col items-center">
 				<button
 					class="avatar-option w-16 h-16 rounded-full overflow-hidden border-2 border-transparent hover:border-purple-500 transition-all duration-200 hover:scale-110"
@@ -451,7 +452,7 @@ async function fetchAvatarsFromBackend(): Promise<void> {
 					title="Avatar ${index + 1}"
 				>
 					<img
-						src="${getBaseUrl()}/public/avatars/${avatarName}"
+						src="${avatarUrls[index]}"
 						alt="Avatar ${index + 1}"
 						class="w-full h-full object-cover"
 						onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
