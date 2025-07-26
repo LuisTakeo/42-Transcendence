@@ -1,5 +1,6 @@
 import { setupTournamentEvents } from "./tournamentEvents.ts";
 import { userService } from "../services/user.service.ts";
+import { tournamentsService } from "../services/tournaments.service.ts";
 import "../style.css"
 
 export default async function Tournament(): Promise<void> {
@@ -104,4 +105,38 @@ export default async function Tournament(): Promise<void> {
 	`;
 	app.appendChild(main);
 	setupTournamentEvents();
+
+  const finishTournamentBtn = document.getElementById("finish-tournament");
+  if (finishTournamentBtn) {
+    finishTournamentBtn.addEventListener("click", async () => {
+      const tournamentState = JSON.parse(localStorage.getItem("tournamentState") || "{}");
+      const tournamentId = tournamentState.tournamentId;
+
+      if (tournamentId) {
+        try {
+          // Save tournament data
+          const rankingData = await tournamentsService.getFinalRanking(tournamentId);
+          // if (rankingData.success && rankingData.data) {
+          //   const flattenedRanking = rankingData.data.flat(); // Flatten the array
+          //   await tournamentsService.finalizeTournament(tournamentId, {
+          //     status: 'finished',
+          //     ranking: flattenedRanking
+          //   });
+          // }
+
+          // Redirect to ranking page with tournament ID
+          window.history.pushState({}, "", `/ranking?id=${tournamentId}`);
+
+          // Dynamically load and render the ranking page
+          const { default: RankingPage } = await import("./ranking.ts");
+          RankingPage();
+        } catch (error) {
+          console.error("Error finalizing tournament:", error);
+          alert("Failed to finalize tournament. Please try again.");
+        }
+      } else {
+        alert("No tournament ID found. Cannot finish tournament.");
+      }
+    });
+  }
 }
