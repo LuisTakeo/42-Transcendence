@@ -4,6 +4,7 @@ import * as repository from './user.repository';
 import { CreateUserData, UpdateUserData } from './user.repository';
 import path from 'path';
 import { promises as fs } from 'fs';
+import { avatarBase64Map } from '../../utils/avatar-utils';
 
 // Validation helper functions
 const isValidEmail = (email: string): boolean => {
@@ -420,9 +421,18 @@ export async function getAvailableAvatars(request: FastifyRequest, reply: Fastif
 			.filter(file => /\.(png|jpg|jpeg|gif|webp)$/i.test(file))
 			.sort();
 
+		const avatarUrls = avatarFiles.map(file => {
+			const base64Data = avatarBase64Map[file];
+			return base64Data;
+		});
+
+
 		reply.send({
 			success: true,
-			data: avatarFiles
+			data: {
+				avatarFiles,
+				avatarUrls
+			}
 		});
 	} catch (error) {
 		reply.status(500).send({
@@ -582,14 +592,26 @@ export async function updateCurrentUser(request: FastifyRequest, reply: FastifyR
 }
 
 export async function getUserStats(request: FastifyRequest, reply: FastifyReply) {
+  try {
+    const { id } = request.params as { id: string };
+    const userId = parseInt(id, 10);
 
-	reply.send({
-		success: true,
-		data: {
-			twoFactorEnabled: false,
-			friendsCount: 3,
-			totalWins: 2,
-			topRanked: 2,
-		}
-	});
+    if (isNaN(userId)) {
+      return reply.status(400).send({ success: false, error: 'Invalid user ID' });
+    }
+
+    // Get stats from repository (implement this to return all needed fields)
+    const stats = await repository.getUserStats(userId);
+
+    reply.send({
+      success: true,
+      data: stats
+    });
+  } catch (error) {
+    reply.status(500).send({
+      success: false,
+      error: 'Failed to get user stats',
+      message: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
 }

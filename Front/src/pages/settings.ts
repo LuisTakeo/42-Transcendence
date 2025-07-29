@@ -3,7 +3,6 @@ import { initializeTwoFactor } from "./twoFactor.ts";
 import { friendsService } from "../services/friends.service.ts";
 import { usersService } from "../services/users.service.ts";
 import { userService } from "../services/user.service.ts";
-import { getBaseUrl } from "../services/base-api.ts";
 import { showSuccessMessage, showErrorMessage } from './notification.ts';
 
 export default async function SettingsPage(): Promise<void> {
@@ -37,7 +36,7 @@ export default async function SettingsPage(): Promise<void> {
 
 		<!-- Caixa 1 -->
 		<div class="w-full md:flex-1 bg-[#1E1B4B] rounded-[5px] p-6">
-		  <div class="w-36 h-36 rounded-full overflow-hidden bg-white mt-6 mb-2 mx-auto relative group">
+		  <div class="w-36 h-36 rounded-full overflow-hidden mt-6 mb-2 mx-auto relative group">
 			<div id="profile-pic-container" class="w-full h-full">
 				${user.avatar_url
 					? `<img src="${user.avatar_url}" alt="${user.name}" class="object-cover w-full h-full" onerror="console.error('Avatar load failed:', '${user.avatar_url}'); this.style.display='none'; this.nextElementSibling.style.display='flex';">
@@ -51,22 +50,20 @@ export default async function SettingsPage(): Promise<void> {
 				Select photo
 			  </button>
 			</div>
-
-			<!--<input id="file-input" type="file" accept="image/*" class="hidden" />-- ver se isso esta usando e para que -->
 		  </div>
 
-      <div class="w-full mb-2 px-2 md:px-6">
-        <label class="block text-lg mb-1">Name</label>
-        <div class="flex items-center gap-2">
-          <input id="nameInput" type="text" value="${user.name}"
-            class="w-full px-4 py-2 rounded-[5px] bg-[#383568] text-white placeholder-white focus:outline-none focus:ring-2 focus:ring-purple-500"
-            disabled />
-          <button data-id="nameInput"
-            class="edit-btn w-10 h-10 p-1 bg-[#4A4580] rounded-[5px] hover:bg-[#5C5599] transition flex items-center justify-center">
-            <img src="../../assets/lapis.png" alt="Editar" class="w-6 h-6" />
-          </button>
-        </div>
-      </div>
+	  <div class="w-full mb-2 px-2 md:px-6">
+		<label class="block text-lg mb-1">Name</label>
+		<div class="flex items-center gap-2">
+		  <input id="nameInput" type="text" value="${user.name}"
+			class="w-full px-4 py-2 rounded-[5px] bg-[#383568] text-white placeholder-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+			disabled />
+		  <button data-id="nameInput"
+			class="edit-btn w-10 h-10 p-1 bg-[#4A4580] rounded-[5px] hover:bg-[#5C5599] transition flex items-center justify-center">
+			<img src="../../assets/lapis.png" alt="Editar" class="w-6 h-6" />
+		  </button>
+		</div>
+	  </div>
 
 		  <div class="w-full mb-2 p-6">
 			<label class="block text-lg mb-1">Username</label>
@@ -82,30 +79,30 @@ export default async function SettingsPage(): Promise<void> {
 			</div> -->
 		  </div>
 
-      <div id="two-factor-section" class="bg-[#1E1B4B] p-6 rounded-lg w-full max-w-md mx-auto">
-        <h2 class="text-xl font-bold mb-4">Security</h2>
-        <div id="2fa-status" class="mb-4 text-lg text-gray-300">
-          Two-factor authentication is not enabled.
-        </div>
-        <button id="activate-2fa-btn"
-          class="bg-[#383568] hover:bg-[#4a4480] transition px-4 py-2 rounded-md text-white font-medium shadow-sm hover:shadow-lg">
-          Enable two-factor authentication
-        </button>
-        <div id="2fa-input-section" class="mt-4 hidden">
-          <label for="2fa-code" class="block mb-2 text-lg">Enter the code you received:</label>
-          <input
-            type="text"
-            id="2fa-code"
-            class="w-full px-3 py-2 rounded-md bg-gray-100 text-black focus:outline-none"
-            placeholder="123456"
-          />
-          <button id="confirm-2fa-btn"
-            class="mt-2 bg-green-600 hover:bg-green-700 transition px-4 py-2 rounded-md text-white font-medium">
-            Confirm
-          </button>
-        </div>
-      </div>
-    </div>
+	  <div id="two-factor-section" class="bg-[#1E1B4B] p-6 rounded-lg w-full max-w-md mx-auto">
+		<h2 class="text-xl font-bold mb-4">Security</h2>
+		<div id="2fa-status" class="mb-4 text-lg text-gray-300">
+		  Two-factor authentication is not enabled.
+		</div>
+		<button id="activate-2fa-btn"
+		  class="bg-[#383568] hover:bg-[#4a4480] transition px-4 py-2 rounded-md text-white font-medium shadow-sm hover:shadow-lg">
+		  Enable two-factor authentication
+		</button>
+		<div id="2fa-input-section" class="mt-4 hidden">
+		  <label for="2fa-code" class="block mb-2 text-lg">Enter the code you received:</label>
+		  <input
+			type="text"
+			id="2fa-code"
+			class="w-full px-3 py-2 rounded-md bg-gray-100 text-black focus:outline-none"
+			placeholder="123456"
+		  />
+		  <button id="confirm-2fa-btn"
+			class="mt-2 bg-green-600 hover:bg-green-700 transition px-4 py-2 rounded-md text-white font-medium">
+			Confirm
+		  </button>
+		</div>
+	  </div>
+	</div>
 
 		<!-- Caixa 2 -->
 		<div class="w-full md:flex-1 bg-[#1E1B4B] rounded-[5px] p-6">
@@ -136,8 +133,12 @@ export default async function SettingsPage(): Promise<void> {
 				<!-- Avatars will be loaded here -->
 			</div>
 
-			<div class="flex justify-end mt-6">
-				<button id="cancel-avatar" class="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 mr-2">
+			<div class="flex flex-col md:flex-row justify-center mt-6 gap-2">
+<button id="avatar-upload-btn" class="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 transition duration-200 text-sm view-profile-btn mr-2" type="button">
+	Upload Photo
+</button>
+				<input id="avatar-upload-input" type="file" accept="image/*" class="hidden" />
+				<button id="cancel-avatar" class="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 mr-2" type="button">
 					Cancel
 				</button>
 			</div>
@@ -150,11 +151,11 @@ export default async function SettingsPage(): Promise<void> {
 	setupFriendDeleteHandlers();
 
 	// Inicializa as funcionalidades após renderizar o HTML
-	setTimeout(() => {
+	requestAnimationFrame(() => {
 		initializeEditField();
 		initializeTwoFactor();
 		initializeAvatarSelection();
-	}, 0);
+	});
 }
 
 // Function to set up event delegation for delete friend buttons
@@ -379,13 +380,28 @@ async function loadFriends(): Promise<void> {
 }
 
 function initializeAvatarSelection(): void {
-	const changePicBtn = document.getElementById('change-pic-btn') as HTMLButtonElement;
+	const changePicBtn = document.getElementById('change-pic-btn') as HTMLButtonElement | null;
 	const modal = document.getElementById('avatar-modal');
 	const closeModal = document.getElementById('close-modal');
 	const cancelBtn = document.getElementById('cancel-avatar');
 	const avatarGrid = document.getElementById('avatar-grid');
+	const uploadBtn = document.getElementById('avatar-upload-btn') as HTMLButtonElement | null;
+	const fileInput = document.getElementById('avatar-upload-input') as HTMLInputElement | null;
 
-	if (!changePicBtn || !modal || !closeModal || !cancelBtn || !avatarGrid) return;
+	if (!changePicBtn || !modal || !closeModal || !cancelBtn || !avatarGrid || !uploadBtn || !fileInput) return;
+
+	// Local helper to load avatars into the grid
+	function loadAvatarOptions(): void {
+		// Show loading state
+		avatarGrid.innerHTML = `
+			<div class="col-span-4 text-center text-white text-xl py-8">
+				<div class="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500 mx-auto mb-4"></div>
+				Loading avatars...
+			</div>
+		`;
+		// Fetch avatars dynamically from backend
+		fetchAvatarsFromBackend();
+	}
 
 	// Load avatars into the grid
 	loadAvatarOptions();
@@ -418,11 +434,29 @@ function initializeAvatarSelection(): void {
 			modal.classList.add('hidden');
 		}
 	});
-}
 
-function loadAvatarOptions(): void {
-	const avatarGrid = document.getElementById('avatar-grid');
-	if (!avatarGrid) return;
+	uploadBtn.addEventListener('click', () => {
+		fileInput.click();
+	});
+
+	fileInput.addEventListener('change', (event) => {
+		const target = event.target as HTMLInputElement;
+		if (target.files && target.files[0]) {
+			const file = target.files[0];
+			const reader = new FileReader();
+			reader.onload = (e) => {
+				const base64 = e.target?.result as string;
+				(async () => {
+					await saveAvatarUrl(base64);
+					await loadCurrentUser();
+					// Close modal after upload
+					if (modal) modal.classList.add('hidden');
+					showSuccessMessage('Avatar updated successfully!');
+				})();
+			};
+			reader.readAsDataURL(file);
+		}
+	});
 
 	// Show loading state
 	avatarGrid.innerHTML = `
@@ -447,10 +481,20 @@ async function fetchAvatarsFromBackend(): Promise<void> {
 			throw new Error('Failed to load avatars');
 		}
 
-		const avatarOptions = response.data;
+		// Support both array and object response for compatibility
+		let avatarOptions: string[] = [];
+		let avatarUrls: string[] = [];
+		if (Array.isArray(response.data)) {
+			// If backend returns just an array of URLs
+			avatarOptions = response.data;
+			avatarUrls = response.data;
+		} else {
+			avatarOptions = response.data.avatarFiles || [];
+			avatarUrls = response.data.avatarUrls || [];
+		}
 
 		// Create avatar grid
-		avatarGrid.innerHTML = avatarOptions.map((avatarName, index) => `
+		avatarGrid.innerHTML = avatarOptions.map((avatarName: string, index: number) => `
 			<div class="flex flex-col items-center">
 				<button
 					class="avatar-option w-16 h-16 rounded-full overflow-hidden border-2 border-transparent hover:border-purple-500 transition-all duration-200 hover:scale-110"
@@ -458,7 +502,7 @@ async function fetchAvatarsFromBackend(): Promise<void> {
 					title="Avatar ${index + 1}"
 				>
 					<img
-						src="${getBaseUrl()}/public/avatars/${avatarName}"
+						src="${avatarUrls[index]}"
 						alt="Avatar ${index + 1}"
 						class="w-full h-full object-cover"
 						onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
@@ -474,7 +518,6 @@ async function fetchAvatarsFromBackend(): Promise<void> {
 		avatarGrid.addEventListener('click', async (e) => {
 			const target = e.target as HTMLElement;
 			const avatarButton = target.closest('.avatar-option') as HTMLElement;
-
 			if (avatarButton) {
 				const avatarName = avatarButton.getAttribute('data-avatar');
 				if (avatarName) {

@@ -63,21 +63,24 @@ export async function initializeUsersPage(): Promise<void> {
   }
 
   function formatLastSeen(lastSeenAt: string): string {
-    const now = new Date();
+    if (!lastSeenAt) return 'Unknown';
     const lastSeen = new Date(lastSeenAt);
+    if (isNaN(lastSeen.getTime())) return 'Unknown';
+
+    const now = new Date();
     const diffInSeconds = Math.floor((now.getTime() - lastSeen.getTime()) / 1000);
 
     if (diffInSeconds < 60) {
       return 'Just now';
     } else if (diffInSeconds < 3600) {
       const minutes = Math.floor(diffInSeconds / 60);
-      return `${minutes} minute${minutes > 1 ? 's' : ''} ago`;
+      return `${minutes} minute${minutes !== 1 ? 's' : ''} ago`;
     } else if (diffInSeconds < 86400) {
       const hours = Math.floor(diffInSeconds / 3600);
-      return `${hours} hour${hours > 1 ? 's' : ''} ago`;
+      return `${hours} hour${hours !== 1 ? 's' : ''} ago`;
     } else {
       const days = Math.floor(diffInSeconds / 86400);
-      return `${days} day${days > 1 ? 's' : ''} ago`;
+      return `${days} day${days !== 1 ? 's' : ''} ago`;
     }
   }
 
@@ -136,10 +139,9 @@ export async function initializeUsersPage(): Promise<void> {
                 <div class="w-2 h-2 rounded-full ${user.is_online ? 'bg-green-500' : 'bg-gray-500'}"></div>
                 <span class="text-sm">${user.is_online ? 'Online' : 'Offline'}</span>
               </span>
-              ${user.last_seen_at ?
-                `<span class="text-sm text-gray-400">Last seen: ${formatLastSeen(user.last_seen_at as string)}</span>` :
-                ''
-              }
+              ${!user.is_online && user.last_seen_at
+                ? `<span class="text-sm text-gray-400">Last seen: ${formatLastSeen(user.last_seen_at as string)}</span>`
+                : ''}
             </div>
           </div>
           <div class="flex-shrink-0">
