@@ -150,6 +150,13 @@ export default async function SettingsPage(): Promise<void> {
 	loadFriends();
 	setupFriendDeleteHandlers();
 
+  // Immediately update 2FA UI based on fetched user (after DOM is rendered)
+  let is2FAEnabled = false;
+  if (user.two_factor_enabled === 1) {
+    is2FAEnabled = true;
+  }
+  update2FAStatus(is2FAEnabled);
+
 	// Inicializa as funcionalidades após renderizar o HTML
 	requestAnimationFrame(() => {
 		initializeEditField();
