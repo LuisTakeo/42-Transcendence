@@ -62,8 +62,8 @@ export default async function ProfilePage(userId?: number): Promise<void> {
   const main = document.createElement("main");
   main.className = "p-4 box-border min-h-screen flex flex-col gap-2 container mx-auto";
   main.innerHTML = `
-    <div class="flex flex-col md:flex-row gap-10 w-full p-4">
-      <div class="flex-1 bg-[#1E1B4B] rounded-[5px] h-[400px] flex flex-col items-center justify-center">
+    <div class="flex flex-col gap-6 md:flex-row md:gap-10 w-full p-4">
+      <div class="flex-1 bg-[#1E1B4B] rounded-[5px] min-h-[300px] md:min-h-[400px] flex flex-col items-center justify-center">
         <div class="w-36 h-36 rounded-full overflow-hidden mt-6 mb-6">
           ${user.avatar_url
             ? `<img id="user-avatar" src="${user.avatar_url}" alt="${user.username || 'User'}" class="object-cover w-full h-full" />`
@@ -71,20 +71,20 @@ export default async function ProfilePage(userId?: number): Promise<void> {
           }
         </div>
         <p id="user-name" class="text-white text-2xl font-semibold mb-4">${user.name || user.username || 'User'}</p>
-        <p id="user-username" class="text-white text-lg mb-4">@${user.username || 'user'}</p>
-        <div class="flex items-center justify-center text-white gap-5 text-center">
+        <p id="user-username" class="text-white text-lg sm:text-xl md:text-2xl mb-4">@${user.username || 'user'}</p>
+        <div class="flex flex-col sm:flex-row items-center justify-center text-white gap-6 sm:gap-5 text-center">
           <div class="flex flex-col items-center space-y-1">
             <img src="../../assets/battle.png" alt="battle icon" class="mx-auto w-8 h-8 sm:w-6 sm:h-6 mb-2" />
             <p id="total-matches" class="text-xl font-bold">-</p>
             <p class="text-xl">battles</p>
           </div>
-          <div class="text-6xl font-light px-2">|</div>
+          <div class="hidden sm:block text-3xl sm:text-6xl font-light px-2">|</div>
           <div class="flex flex-col items-center space-y-1">
             <img src="../../assets/win.png" alt="win icon" class="mx-auto w-8 h-8 sm:w-6 sm:h-6 mb-2" />
             <p id="total-wins" class="text-xl font-bold">-</p>
             <p class="text-xl">wins</p>
           </div>
-          <div class="text-6xl font-light px-2">|</div>
+          <div class="hidden sm:block text-3xl sm:text-6xl font-light px-2">|</div>
           <div class="flex flex-col items-center space-y-1">
             <img src="../../assets/percent.png" alt="win rate icon" class="mx-auto w-8 h-8 sm:w-6 sm:h-6 mb-2" />
             <p id="win-rate" class="text-xl font-bold">-</p>
@@ -93,9 +93,9 @@ export default async function ProfilePage(userId?: number): Promise<void> {
         </div>
       </div>
 
-      <div class="flex-1 bg-[#1E1B4B] rounded-[5px] h-[400px] p-4 flex flex-col">
+      <div class="flex-1 bg-[#1E1B4B] rounded-[5px] min-h-[300px] md:min-h-[400px] p-4 flex flex-col">
         <h1 class="text-4xl font-bold text-center p-2">Battles</h1>
-        <div class="flex-1 overflow-y-auto p-2 custom-scrollbar" style="height: calc(400px - 120px);">
+        <div class="flex-1 overflow-y-auto p-2 custom-scrollbar max-h-[300px] md:max-h-[280px]">
           <div id="matches-container">
             <div class="text-center text-white text-xl">
               <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500 mx-auto mb-4"></div>
@@ -107,7 +107,7 @@ export default async function ProfilePage(userId?: number): Promise<void> {
     </div>
 
     <div class="flex flex-col w-full p-4 bg-[#383568] max-h-[50vh] overflow-hidden rounded-[5px]">
-      <div class="bg-[#383568] rounded-[5px] h-[38vh] w-full flex flex-col md:flex-row  flex-warp gap-4 p-1 justify-center overflow-auto" id="achievements-container">
+      <div class="bg-[#383568] rounded-[5px] h-[38vh] w-full flex flex-col md:flex-row  flex-wrap gap-4 p-1 justify-center overflow-auto" id="achievements-container">
         <div class="bg-[#1E1B4B] rounded-[5px] flex flex-col items-center justify-center p-4 cursor-pointer transition w-full md:w-auto md:flex-1" id="achievement-2fa">
           <div class="flex flex-col items-center">
             <img src="../../assets/padlock.png" alt="padlock" class="w-auto max-w-[80px] h-auto object-contain" />

@@ -9,7 +9,7 @@ export function createAchievementCard(title: string, imgSrc: string, isUnlocked:
 	const lockedClasses = "opacity-40";
 
 	return `
-	  <div class="${baseClasses} ${isUnlocked ? unlockedClasses : lockedClasses}">
+	  <div class="${baseClasses} ${isUnlocked ? unlockedClasses : lockedClasses} snap-center min-w-[220px]">
 		<img src="${imgSrc}" alt="${title}" class="w-auto max-w-[80px] h-auto object-contain" />
 		<p class="text-center text-white text-xl mt-4">${title}</p>
 		${isUnlocked ? `<p class="text-green-400 mt-2">Achieved!</p>` : ''}
@@ -32,7 +32,7 @@ export async function renderAchievements(userId: number) {
 	  // FAZER VALIDAÇAO AQUI E SE N DER SUCESSO EXIBIR SEM INFORMAÇOES
 
 	  const achievementsHTML = `
-		<div class="bg-[#383568] rounded-[5px] w-full flex flex-col md:flex-row gap-4 p-4 justify-center">
+		<div class="bg-[#383568] rounded-[5px] w-full flex flex-row flex-nowrap md:flex-wrap overflow-x-auto md:overflow-visible gap-4 p-4 snap-x snap-mandatory">
 		  ${createAchievementCard("two-factor authentication.", "../../assets/padlock.png", userStats.twoFactorEnabled)}
 		  ${createAchievementCard("Make a friend.", "../../assets/friend-big.png", userStats.friendsCount >= 1)}
 		  ${createAchievementCard("Win 3 matches.", "../../assets/reward.png", userStats.totalWins >= 3)}
