@@ -66,18 +66,18 @@ export default async function SettingsPage(): Promise<void> {
 	  </div>
 
 		  <div class="w-full mb-2 p-6">
-			<label class="block text-lg mb-1">Username</label>
-			<div class="flex items-center gap-2">
-			  <input id="usernameInput" type="text" value="${user.username}"
-				class="w-full px-4 py-2 rounded-[5px] bg-[#383568] text-white placeholder-white focus:outline-none focus:ring-2 focus:ring-purple-500"
-				disabled />
-
-			<!-- <button data-id="usernameInput"
-				class="edit-btn w-10 h-10 p-1 bg-[#4A4580] rounded-[5px] hover:bg-[#5C5599] transition flex items-center justify-center">
-				<img src="../../assets/lapis.png" alt="Editar" class="w-6 h-6" />
-			  </button>
-			</div> -->
-		  </div>
+    <label class="block text-lg mb-1">Username</label>
+    <div class="flex items-center gap-2">
+      <input id="usernameInput" type="text" value="${user.username || ''}"
+        class="w-full px-4 py-2 rounded-[5px] bg-[#383568] text-white placeholder-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+        disabled data-original-value="${user.username || ''}" />
+      <button data-id="usernameInput"
+        class="edit-btn w-10 h-10 p-1 bg-[#4A4580] rounded-[5px] hover:bg-[#5C5599] transition flex items-center justify-center">
+        <img src="../../assets/lapis.png" alt="Editar" class="w-6 h-6" />
+      </button>
+    </div>
+    <div id="username-error" class="text-red-400 text-sm mt-1 hidden"></div>
+  </div>
 
 	  <div id="two-factor-section" class="bg-[#1E1B4B] p-6 rounded-lg w-full max-w-md mx-auto">
 		<h2 class="text-xl font-bold mb-4">Security</h2>

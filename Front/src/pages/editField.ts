@@ -1,5 +1,6 @@
 import { userService } from '../services/user.service.ts';
 import { isRequired, minLength } from './validateInput.ts';
+import { showErrorMessage } from './notification.ts';
 
 export function initializeEditField() {
   // Inicializa botões de edição de campos
@@ -66,10 +67,8 @@ export function initializeEditField() {
           const updateData: any = {};
 
           // Map input IDs to user fields
-          if (inputId === 'nameInput') {
-            updateData.name = newValue;
-          } else if (inputId === 'usernameInput') {
-            updateData.username = newValue;
+          if (inputId === 'nameInput' || inputId === 'usernameInput') {
+            updateData[inputId === 'nameInput' ? 'name' : 'username'] = newValue;
           }
 
           const updatedUser = await userService.updateProfile(updateData);
@@ -87,13 +86,13 @@ export function initializeEditField() {
             throw new Error('Failed to update user');
           }
         } catch (error) {
-          console.error('Error updating user:', error);
-
           // Restore original value
           input.value = originalValue;
 
           // Show error feedback
           showFieldErrorMessage(inputId);
+          console.log('Error updating user:', error); // REMOVE
+          showErrorMessage('Failed to update user. Please try again.');
 
           // Exit edit mode
           exitEditMode(btn, input);
@@ -136,7 +135,6 @@ export function initializeEditField() {
 
 function exitEditMode(btn: HTMLButtonElement, input: HTMLInputElement) {
   input.disabled = true;
-
   // Reset button to pencil icon
   btn.innerHTML = '<img src="../../assets/lapis.png" alt="Editar" class="w-6 h-6" />';
   btn.disabled = false;
