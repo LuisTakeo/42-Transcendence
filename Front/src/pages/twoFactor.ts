@@ -2,6 +2,7 @@ import { showSuccessMessage, showErrorMessage } from './notification.ts';
 import { userService } from '../services/user.service.ts';
 import { twoFactorService } from '../services/2fa.service.ts';
 import { show2FAModal } from './twofa-modal.ts';
+import { showCustom2FADisableConfirm } from './disable2fa-modal.ts';
 
 export function initializeTwoFactor() {
   const activateBtn = document.getElementById('activate-2fa-btn') as HTMLButtonElement;
@@ -44,15 +45,17 @@ export function initializeTwoFactor() {
         }
       }
     } else if (buttonText === 'Disable two-factor authentication') {
-      // User wants to disable 2FA - confirm and disable
-      if (confirm('Are you sure you want to disable two-factor authentication? This will make your account less secure.')) {
-        try {
-          await disable2FA();
-        } catch (error) {
-          console.error('Error disabling 2FA:', error);
-          showErrorMessage('Failed to disable two-factor authentication. Please try again.');
+      // User wants to disable 2FA - show a custom modal confirmation instead of window.confirm
+      showCustom2FADisableConfirm(async (confirmed: boolean) => {
+        if (confirmed) {
+          try {
+            await disable2FA();
+          } catch (error) {
+            console.error('Error disabling 2FA:', error);
+            showErrorMessage('Failed to disable two-factor authentication. Please try again.');
+          }
         }
-      }
+      });
     }
   });
 
