@@ -5,7 +5,7 @@ export default function HomePage(): string {
 	<div class="min-h-screen flex-1">
 	  <div class="grid grid-cols-1 md:grid-cols-2 gap-12 p-8 h-auto min-h-screen">
 		<!-- Botão 1 -->
-		<button id="remote-game-btn" class="h-full relative flex flex-col items-center justify-center
+		<button id="remote-game-btn"  onclick="window.location.href='/remoteHowToPlay'" class="h-full relative flex flex-col items-center justify-center
 		  bg-[#1E1B4B] hover:bg-[#4A4180] rounded-[5px]
 		  transition duration-300 transform hover:scale-[1.02] hover:shadow-2xl overflow-hidden">
 		  <img src="../../assets/raquet.png" alt="Fast Game" class="absolute inset-0 w-full h-full object-cover opacity-60" />
@@ -23,7 +23,7 @@ export default function HomePage(): string {
 		</button>
 
 		<!-- Botão 3 -->
-		<button id="cpu-game-btn" class="h-full relative flex flex-col items-center justify-center
+		<button id="cpu-game-btn" onclick="window.location.href='/cpuHowToPlay'" class="h-full relative flex flex-col items-center justify-center
 		  bg-[#1E1B4B] hover:bg-[#4A4180] rounded-[5px]
 		  transition duration-300 transform hover:scale-[1.02] hover:shadow-2xl overflow-hidden">
 		  <img src="../../assets/evilPc.png" alt="One Computer Game" class="absolute inset-0 w-full h-full object-cover opacity-60" />

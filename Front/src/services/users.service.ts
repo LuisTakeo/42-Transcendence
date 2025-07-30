@@ -96,7 +96,16 @@ export class UsersService extends BaseApiService {
 		},
 	  });
   }
-}
+
+  async isFriend(userId: number): Promise<boolean> {
+	const response = await this.request<SingleResponse<boolean>>(`/users/${userId}/is-friend`);
+	if (response.success && response.data) {
+		return response.data;
+	}
+	return false;
+ }
 
 // Export a singleton instance
+}
+
 export const usersService = new UsersService();
