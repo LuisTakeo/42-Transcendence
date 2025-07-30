@@ -4,6 +4,7 @@ import * as repository from './user.repository';
 import { CreateUserData, UpdateUserData } from './user.repository';
 import path from 'path';
 import { promises as fs } from 'fs';
+import { avatarBase64Map } from '../../utils/avatar-utils';
 
 // Validation helper functions
 const isValidEmail = (email: string): boolean => {
@@ -420,9 +421,18 @@ export async function getAvailableAvatars(request: FastifyRequest, reply: Fastif
 			.filter(file => /\.(png|jpg|jpeg|gif|webp)$/i.test(file))
 			.sort();
 
+		const avatarUrls = avatarFiles.map(file => {
+			const base64Data = avatarBase64Map[file];
+			return base64Data;
+		});
+
+
 		reply.send({
 			success: true,
-			data: avatarFiles
+			data: {
+				avatarFiles,
+				avatarUrls
+			}
 		});
 	} catch (error) {
 		reply.status(500).send({

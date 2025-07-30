@@ -7,41 +7,6 @@ import { tournamentsService } from "../services/tournaments.service.ts";
 
 let rankingData: RankingUser[] = [];
 
-/**
- * Check authentication and get current user.
- * Returns the current user object or null if not authenticated.
- */
-async function getCurrentUser(): Promise<any | null> {
-	const currentUser = await userService.requireAuth();
-	if (!currentUser) {
-		return null; // User will be redirected to login
-	}
-	return currentUser;
-}
-
-/**
- * Determine which user to show.
- * If no userId is provided, show current user.
- * Returns { targetUserId, isOwnProfile }
- */
-async function getTargetUserInfo(userId?: number): Promise<{ targetUserId: number, isOwnProfile: boolean } | null> {
-	const currentUser = await getCurrentUser();
-	if (!currentUser) {
-		return null;
-	}
-	const targetUserId = userId || currentUser.id;
-	const isOwnProfile = targetUserId === currentUser.id;
-	return { targetUserId, isOwnProfile };
-}
-
-// Helper function to get current user ID - checks authentication and returns user ID or null
-async function getCurrentUserId(): Promise<number | null> {
-	const currentUser = await userService.requireAuth();
-	if (!currentUser) {
-		return null; // User will be redirected to login if not authenticated
-	}
-	return currentUser.id;
-}
 
 const RESERVED_USER_IDS = [4, 5];
 
@@ -69,14 +34,10 @@ function renderRows(tournamentId?: number | null): string {
         <td class="px-3 py-2 md:px-6 md:py-4 text-sm md:text-2xl">${u.username}</td>
         <td class="px-3 py-2 md:px-6 md:py-4 text-sm md:text-2xl">${u.totalMatches}</td>
         <td class="px-3 py-2 md:px-6 md:py-4 text-sm md:text-2xl">${u.wins}</td>
-        <td class="px-3 py-2 md:px-6 md:py-4 text-sm md:text-2xl">
-          <div class="flex gap-6 justify-center">
-            <button class="add-friend-btn" data-user-id="${u.id}" title="Add friend"><img src="../../assets/add-friend.png" alt="add friend" class="w-8 h-8"/></button>
-            <button class="remove-friend-btn" data-user-id="${u.id}" title="Remove friend"><img src="../../assets/remove-user.png" alt="remove friend" class="w-8 h-8"/></button>
-            <button class="profile-btn" data-user-id="${u.id}" title="Go to user profile"><img src="../../assets/arrow.png" alt="go to user profile" class="w-8 h-8"/></button>
-          </div>
-        </td>
-      </tr>`
+		<td class="px-3 py-2 md:px-6 md:py-4 text-sm md:text-2xl">
+			<button class="profile-btn" data-user-id="${u.id}" title="Go to user profile"><img src="../../assets/arrow.png" alt="go to user profile" class="w-6 h-6 sm:w-8 sm:h-8"/></button>
+    	</td>
+	</tr>`
     )
     .join("");
 }
@@ -150,10 +111,8 @@ export default async function RankingPage(): Promise<void> {
 
       // Check if the clicked element or its parent has the profile-btn class
       let buttonElement = target;
-      if (!buttonElement.classList.contains('profile-btn') &&
-          !buttonElement.classList.contains('add-friend-btn') &&
-          !buttonElement.classList.contains('remove-friend-btn')) {
-        buttonElement = target.closest('.profile-btn, .add-friend-btn, .remove-friend-btn') as HTMLElement;
+      if (!buttonElement.classList.contains('profile-btn')) {
+        buttonElement = target.closest('.profile-btn') as HTMLElement;
       }
 
       if (buttonElement) {
@@ -164,10 +123,6 @@ export default async function RankingPage(): Promise<void> {
 
         if (buttonElement.classList.contains('profile-btn')) {
           usersService.navigateToProfile(userIdNum);
-        } else if (buttonElement.classList.contains('add-friend-btn')) {
-          await handleAddFriend(userIdNum, buttonElement);
-        } else if (buttonElement.classList.contains('remove-friend-btn')) {
-          await handleRemoveFriend(userIdNum, buttonElement);
         }
       }
     });
@@ -223,15 +178,9 @@ async function loadRanking(tournamentId: number | null): Promise<void> {
               <tr>
                 <th class="px-3 py-2 md:px-6 md:py-3 text-sm md:text-2xl uppercase">Pos</th>
                 <th class="px-3 py-2 md:px-6 md:py-3 text-sm md:text-2xl uppercase">User</th>
-                ${tournamentId ? `
-                  <th class="px-3 py-2 md:px-6 md:py-3 text-sm md:text-2xl uppercase">Points</th>
-                  <th class="px-3 py-2 md:px-6 md:py-3 text-sm md:text-2xl uppercase">Wins</th>
-                  <th class="px-3 py-2 md:px-6 md:py-3 text-sm md:text-2xl uppercase">Diff</th>
-                ` : `
-                  <th class="px-3 py-2 md:px-6 md:py-3 text-sm md:text-2xl uppercase">Matches</th>
-                  <th class="px-3 py-2 md:px-6 md:py-3 text-sm md:text-2xl uppercase">Wins</th>
-                  <th class="px-3 py-2 md:px-6 md:py-3 text-sm md:text-2xl uppercase">Options</th>
-                `}
+                <th class="px-3 py-2 md:px-6 md:py-3 text-sm md:text-2xl uppercase">Matches</th>
+                <th class="px-3 py-2 md:px-6 md:py-3 text-sm md:text-2xl uppercase">Wins</th>
+				<th class="px-3 py-2 md:px-6 md:py-3 text-sm md:text-2xl uppercase">Profile</th>
               </tr>
             </thead>
             <tbody class="text-2xl">
@@ -282,7 +231,6 @@ async function loadRanking(tournamentId: number | null): Promise<void> {
     }
   }
 }
-
 
 async function handleAddFriend(userId: number, buttonElement: HTMLElement): Promise<void> {
   try {

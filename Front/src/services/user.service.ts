@@ -44,8 +44,6 @@ class UserService {
       const response = await fetch(url, {
         headers
       });
-	  console.log(API_BASE_URL)
-	  console.log(url)
 
       if (!response.ok) {
         if (response.status === 401) {
