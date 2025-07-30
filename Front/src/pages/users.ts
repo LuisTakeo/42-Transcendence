@@ -1,5 +1,7 @@
 import { usersService, User } from '../services/users.service.ts';
 import { userService } from '../services/user.service.ts';
+import { friendsService } from "../services/friends.service.ts";
+import { showSuccessMessage, showErrorMessage } from './notification.ts';
 
 export default function UsersPage(): string {
   return `
@@ -122,37 +124,88 @@ export async function initializeUsersPage(): Promise<void> {
 
     resultsContainer.innerHTML = filterReservedUsers(users).map(user => `
       <div class="p-4 bg-[#383568] rounded-lg text-white shadow-lg hover:shadow-2xl transition">
-        <div class="flex items-center space-x-4">
-          <div class="flex-shrink-0">
-            ${user.avatar_url
-              ? `<img src="${user.avatar_url}" alt="${user.name}" class="w-16 h-16 rounded-full object-cover avatar-image" data-user-name="${user.name}" data-avatar-url="${user.avatar_url}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                 <div class="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-2xl font-bold" style="display: none;">${user.name.charAt(0).toUpperCase()}</div>`
-              : `<div class="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-2xl font-bold">${user.name.charAt(0).toUpperCase()}</div>`
-            }
-          </div>
-          <div class="flex-1 min-w-0">
-            <h3 class="text-2xl font-semibold mb-1 truncate">${user.name}</h3>
-            <p class="text-gray-300 text-lg mb-1">@${user.username}</p>
-            <p class="text-gray-400 text-sm mb-2">${user.email}</p>
-            <div class="flex items-center space-x-4">
-              <span class="flex items-center space-x-1">
-                <div class="w-2 h-2 rounded-full ${user.is_online ? 'bg-green-500' : 'bg-gray-500'}"></div>
-                <span class="text-sm">${user.is_online ? 'Online' : 'Offline'}</span>
-              </span>
-              ${!user.is_online && user.last_seen_at
-                ? `<span class="text-sm text-gray-400">Last seen: ${formatLastSeen(user.last_seen_at as string)}</span>`
-                : ''}
-            </div>
-          </div>
-          <div class="flex-shrink-0">
-            <button class="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 transition duration-200 text-sm view-profile-btn" data-user-id="${user.id}">
-              View Profile
-            </button>
-          </div>
-        </div>
-      </div>
+		<div class="flex flex-col md:flex-row items-center md:items-start space-y-4 md:space-y-0 md:space-x-6">
+			<div class="flex-shrink-0">
+			${user.avatar_url
+				? `<img src="${user.avatar_url}" alt="${user.name}" 
+					class="w-20 h-20 md:w-16 md:h-16 rounded-full object-cover avatar-image" 
+					data-user-name="${user.name}" data-avatar-url="${user.avatar_url}" 
+					onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+				<div class="w-20 h-20 md:w-16 md:h-16 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-3xl md:text-2xl font-bold" style="display: none;">
+					${user.name.charAt(0).toUpperCase()}
+				</div>`
+				: `<div class="w-20 h-20 md:w-16 md:h-16 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-3xl md:text-2xl font-bold">
+					${user.name.charAt(0).toUpperCase()}
+				</div>`
+			}
+			</div>
+
+			<div class="flex-1 min-w-0 max-w-full overflow-hidden">
+			<h3 class="text-xl md:text-2xl font-semibold mb-1 truncate ">${user.name}</h3>
+			<p class="text-gray-300 text-base md:text-lg mb-1 truncate ">@${user.username}</p>
+			<p class="text-gray-400 text-sm md:text-base mb-2 truncate ">${user.email}</p>
+
+			<div class="flex flex-col md:flex-row md:items-center md:space-x-6 space-y-2 md:space-y-0">
+				<span class="flex items-center space-x-1">
+				<div class="w-3 h-3 rounded-full ${user.is_online ? 'bg-green-500' : 'bg-gray-500'}"></div>
+				<span class="text-sm">${user.is_online ? 'Online' : 'Offline'}</span>
+				</span>
+
+				${!user.is_online && user.last_seen_at
+				? `<span class="text-sm text-gray-400">Last seen: ${formatLastSeen(user.last_seen_at)}</span>`
+				: ''}
+			</div>
+			</div>
+
+			<div class="flex-shrink-0 w-full md:w-auto">
+				<button class="w-full md:w-auto px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 transition duration-200 text-sm view-profile-btn" data-user-id="${user.id}">View Profile</button>
+			</div>
+			<div class="flex-shrink-0 w-full md:w-auto">
+			<button
+			class="w-full md:w-auto px-4 py-2 bg-[#1E1B4B] text-white rounded hover:bg-purple-700 transition duration-200 text-sm friendship-btn
+			${user.are_friends ? 'bg-red-600 hover:bg-red-700' : 'bg-[#1E1B4B] hover:bg-purple-700'}"
+			data-user-id="${user.id}"
+			data-are-friends="${user.are_friends ? 'true' : 'false'}">
+			${user.are_friends ? 'Remove Friend' : 'Add Friend'}
+			</button>
+			</div>
+		</div>
+		</div>
     `).join("");
-  }
+}
+
+	document.addEventListener("click", async (e) => {
+		const target = e.target as HTMLElement;
+		const button = target.closest(".friendship-btn") as HTMLElement;
+	
+		if (!button) return;
+	
+		const userId = parseInt(button.dataset.userId || "");
+		if (isNaN(userId)) return;
+	
+		const currentUserId = await getCurrentUserId();
+		if (!currentUserId) return;
+
+		try {
+			const response = await friendsService.checkFriendship(currentUserId, userId);
+			const areFriends = response.data.are_friends;
+			if (areFriends) {
+				await handleRemoveFriend(userId, button);
+				button.textContent = "Add Friend";
+				button.dataset.areFriends = "false";
+				button.classList.remove("bg-red-600");
+				button.classList.add("bg-[#1E1B4B]");
+			} else {
+				await handleAddFriend(userId, button);
+				button.textContent = "Remove Friend";
+				button.dataset.areFriends = "true";
+				button.classList.remove("bg-[#1E1B4B]");
+				button.classList.add("bg-red-600");
+			}
+		} catch (error) {
+			console.error("Erro ao verificar amizade:", error);
+		}
+	});
 
   // Function to update pagination
   function updatePagination(currentPage: number, totalPages: number): void {
@@ -183,6 +236,8 @@ export async function initializeUsersPage(): Promise<void> {
 
       const response = await usersService.getUsers(page, 10, search);
 
+	  const friendsByUser = await friendsService.getFriendsByUser(currentUser?.id || 0); 
+
       if (response.success) {
         // Filter out the current user from the results
         let usersToShow = response.data;
@@ -190,7 +245,18 @@ export async function initializeUsersPage(): Promise<void> {
           usersToShow = response.data.filter(user => user.id !== currentUser.id);
         }
 
-        renderUsers(usersToShow);
+		const friends = usersToShow.map(user => {
+		  const isFriend = friendsByUser.data.some(friend =>
+			(friend.user1_id === user.id && friend.user2_id === currentUser?.id) ||
+			(friend.user2_id === user.id && friend.user1_id === currentUser?.id)
+		  );
+		  return {
+			...user,
+			are_friends: isFriend
+		  };
+		});
+
+        renderUsers(friends);
         updatePagination(response.pagination.currentPage, response.pagination.totalPages);
         currentPage = response.pagination.currentPage;
         totalPages = response.pagination.totalPages;
@@ -275,11 +341,13 @@ export async function initializeUsersPage(): Promise<void> {
 
     // Check if the clicked element or its parent has the view-profile-btn class
     let buttonElement = target;
-    if (!buttonElement.classList.contains('view-profile-btn')) {
-      buttonElement = target.closest('.view-profile-btn') as HTMLElement;
+    if (!buttonElement.classList.contains('view-profile-btn') &&
+   		!buttonElement.classList.contains('friendship-btn')) {
+      buttonElement = target.closest('.view-profile-btn, friendship-btn') as HTMLElement;
     }
 
-    if (buttonElement && buttonElement.classList.contains('view-profile-btn')) {
+    if (buttonElement && buttonElement.classList.contains('view-profile-btn')&&
+	!buttonElement.classList.contains('friendship-btn')) {
       const userId = buttonElement.getAttribute('data-user-id');
       if (userId) {
         usersService.navigateToProfile(parseInt(userId));
@@ -290,3 +358,111 @@ export async function initializeUsersPage(): Promise<void> {
   // Load initial users
   loadUsers();
 }
+
+/**
+ * Check authentication and get current user.
+ * Returns the current user object or null if not authenticated.
+ */
+async function getCurrentUser(): Promise<any | null> {
+	const currentUser = await userService.requireAuth();
+	if (!currentUser) {
+		return null; // User will be redirected to login
+	}
+	return currentUser;
+}
+
+/**
+ * Determine which user to show.
+ * If no userId is provided, show current user.
+ * Returns { targetUserId, isOwnProfile }
+ */
+async function getTargetUserInfo(userId?: number): Promise<{ targetUserId: number, isOwnProfile: boolean } | null> {
+	const currentUser = await getCurrentUser();
+	if (!currentUser) {
+		return null;
+	}
+	const targetUserId = userId || currentUser.id;
+	const isOwnProfile = targetUserId === currentUser.id;
+	return { targetUserId, isOwnProfile };
+}
+
+// Helper function to get current user ID - checks authentication and returns user ID or null
+async function getCurrentUserId(): Promise<number | null> {
+	const currentUser = await userService.requireAuth();
+	if (!currentUser) {
+		return null; // User will be redirected to login if not authenticated
+	}
+	return currentUser.id;
+}
+
+async function handleAddFriend(userId: number, buttonElement: HTMLElement): Promise<void> {
+	try {
+	  buttonElement.style.opacity = '0.5';
+	  buttonElement.style.pointerEvents = 'none';
+	  const currentUserId = await getCurrentUserId();
+	  if (currentUserId && userId === currentUserId) {
+		showErrorMessage("You cannot add yourself as a friend!");
+		return;
+	  }
+	  const testUserId = currentUserId || 999;
+	  const checkResponse = await friendsService.checkFriendship(testUserId, userId);
+	  if (checkResponse.success && checkResponse.data?.are_friends) {
+		showErrorMessage("You are already friends with this user!");
+		return;
+	  }
+	  const response = await friendsService.createFriendship({
+		user1_id: testUserId,
+		user2_id: userId
+	  });
+	  if (response.success) {
+		showSuccessMessage("Friend added successfully!");
+		buttonElement.style.opacity = '0.3';
+		buttonElement.title = 'Already friends';
+	  } else {
+		throw new Error('Failed to add friend');
+	  }
+	} catch (error) {
+	  console.error('Error adding friend:', error);
+	  showErrorMessage('Failed to add friend. Please try again.');
+	} finally {
+	  buttonElement.style.opacity = '1';
+	  buttonElement.style.pointerEvents = 'auto';
+	}
+  }
+  
+  async function handleRemoveFriend(userId: number, buttonElement: HTMLElement): Promise<void> {
+	try {
+	  buttonElement.style.opacity = '0.5';
+	  buttonElement.style.pointerEvents = 'none';
+	  const currentUserId = await getCurrentUserId();
+	  if (currentUserId && userId === currentUserId) {
+		showErrorMessage("You cannot remove yourself!");
+		return;
+	  }
+	  const testUserId = currentUserId || 999;
+	  const checkResponse = await friendsService.checkFriendship(testUserId, userId);
+	  if (!checkResponse.success || !checkResponse.data?.are_friends) {
+		showErrorMessage("You are not friends with this user!");
+		return;
+	  }
+	  // Actually perform the removal, no confirmation
+	  const response = await friendsService.deleteFriendship(testUserId, userId);
+	  if (response.success) {
+		showSuccessMessage("Friend removed successfully!");
+		const addButton = buttonElement.parentElement?.querySelector('.add-friend-btn') as HTMLElement;
+		if (addButton) {
+		  addButton.style.opacity = '1';
+		  addButton.title = 'Add friend';
+		}
+	  } else {
+		throw new Error(`Failed to remove friend: ${response.message || 'Unknown error'}`);
+	  }
+	} catch (error) {
+	  console.error('Error removing friend:', error);
+	  const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+	  showErrorMessage(`Failed to remove friend: ${errorMessage}`);
+	} finally {
+	  buttonElement.style.opacity = '1';
+	  buttonElement.style.pointerEvents = 'auto';
+	}
+  }

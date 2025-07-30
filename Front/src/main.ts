@@ -12,6 +12,8 @@ import { authService } from './services/auth.service.ts';
 import { userService } from './services/user.service.ts';
 import { logOutButton } from "./pages/button.ts";
 import HowToPlay from './pages/howToPlay.ts';
+import CpuHowToPlay from './pages/cpuHowToPlay.ts';
+import RemoteHowToPlay from './pages/remoteHowToPlay.ts';
 import Tournament from './pages/tournament.ts';
 import API_BASE_URL from './services/base-api.ts';
 
@@ -37,8 +39,9 @@ const routesWithSidebar = [
   '/game/cpu',
   '/game/online',
   '/howToPlay',
+  '/cpuHowToPlay',
+  '/remoteHowToPlay',
   '/tournament',
-//  '/Game/vsCPU',
   '/match-history'
 ];
 
@@ -91,6 +94,12 @@ async function renderRoute(path: string) {
 	  case '/howToPlay':
         HowToPlay();
         break;
+	  case '/cpuHowToPlay':
+		CpuHowToPlay();
+		break;
+	  case '/remoteHowToPlay':
+		RemoteHowToPlay();
+		break;
 	  case '/tournament':
 		Tournament();
 		break;
