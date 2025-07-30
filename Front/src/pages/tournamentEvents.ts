@@ -336,7 +336,7 @@ function startCountdown(seconds: number, redirectUrl: string) {
 	modal.classList.remove("hidden");
 
 	let current = seconds;
-	messageEl.textContent = 'Starting match in ' + current.toString() + ' seconds...';
+	messageEl.textContent = 'Redirecting to game in ' + current.toString() + ' seconds...';
 
 	const interval = setInterval(() => {
 		current--;
@@ -344,7 +344,7 @@ function startCountdown(seconds: number, redirectUrl: string) {
 			clearInterval(interval);
 			window.location.href = redirectUrl;
 		} else {
-			messageEl.textContent = 'Starting match in ' + current.toString() + ' seconds...';
+			messageEl.textContent = 'Redirecting to game in ' + current.toString() + ' seconds...';
 		}
 	}, 1000);
 }
