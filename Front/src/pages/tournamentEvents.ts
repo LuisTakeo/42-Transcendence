@@ -297,7 +297,7 @@ function addMatches(player1: string, player2: string, matchesList: HTMLUListElem
 	matchesList.appendChild(li);
 }
 
-export function showErrorModal(message: string, duration: number = 5000): void {
+export function showErrorModal(message: string, duration: number = 3000): void {
 	const modal = document.getElementById("errors-modal");
 	const messageEl = document.getElementById("errors-message");
 
