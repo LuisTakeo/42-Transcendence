@@ -31,7 +31,7 @@ export async function renderAchievements(userId: number) {
 
 	  // FAZER VALIDAÇAO AQUI E SE N DER SUCESSO EXIBIR SEM INFORMAÇOES
 
-	  const hasTopRankedAchievement = userStats.topRanked && userStats.totalWins > 0 && userStats.points > 0;
+	  const hasTopRankedAchievement = userStats.topRanked && userStats.totalWins > 0;
 	  const achievementsHTML = `
 		<div class="bg-[#383568] rounded-[5px] w-full flex flex-row flex-nowrap md:flex-wrap overflow-x-auto md:overflow-visible gap-4 p-4 snap-x snap-mandatory">
 		  ${createAchievementCard("two-factor authentication.", "../../assets/padlock.png", userStats.twoFactorEnabled)}
