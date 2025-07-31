@@ -254,4 +254,36 @@ export class TournamentRepository {
             }
         }
     }
+
+    // Recalculate and update points for all players in a tournament
+    async updateTournamentPlayerPoints(tournamentId: number): Promise<void> {
+        const db = await openDb();
+        const players = await this.getTournamentPlayers(tournamentId);
+        for (const player of players) {
+            // Count wins and ties for this player in this tournament
+            const stats = await db.get(`
+                SELECT
+                    SUM(CASE
+                        WHEN (m.player1_id = tp.user_id AND m.player1_score > m.player2_score)
+                          OR (m.player2_id = tp.user_id AND m.player2_score > m.player1_score)
+                        THEN 1 ELSE 0 END) as wins,
+                    SUM(CASE
+                        WHEN m.player1_score = m.player2_score THEN 1 ELSE 0 END) as ties
+                FROM matches m
+                JOIN tournament_players tp ON tp.user_id = ? AND tp.tournament_id = ?
+                WHERE m.tournament_id = ?
+                  AND (m.player1_id = tp.user_id OR m.player2_id = tp.user_id)
+                  AND m.winner_id IS NOT NULL
+            `, [player.user_id, tournamentId, tournamentId]);
+
+            const wins = stats?.wins || 0;
+            const ties = stats?.ties || 0;
+            const points = wins * 3 + ties * 1;
+
+            await db.run(
+                `UPDATE tournament_players SET points = ? WHERE tournament_id = ? AND user_id = ?`,
+                [points, tournamentId, player.user_id]
+            );
+        }
+    }
 }
