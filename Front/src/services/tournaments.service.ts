@@ -33,6 +33,7 @@ export interface TournamentRanking {
   victories: number;
   diff: number;
   made: number;
+  totalMatches: number; // Added property to track total matches
 }
 
 export class TournamentsService extends BaseApiService {
@@ -112,7 +113,8 @@ export class TournamentsService extends BaseApiService {
           points: 0,
           victories: 0,
           diff: 0,
-          made: 0
+          made: 0,
+          totalMatches: 0 // Initialize totalMatches
         };
       }
 
@@ -125,29 +127,37 @@ export class TournamentsService extends BaseApiService {
           points: 0,
           victories: 0,
           diff: 0,
-          made: 0
+          made: 0,
+          totalMatches: 0 // Initialize totalMatches
         };
       }
     });
+    console.log("Matches:");
     console.log(matches);
+    console.log("Ranking:");
+    console.log(rankingMap);
     // Process matches to calculate ranking
     matches.forEach(match => {
-      const winner = rankingMap[match.winner_username];
+      const winner = match.winner_username === match.player1_alias ? rankingMap[match.player1_alias]
+      : rankingMap[match.player2_alias];
       const player1 = rankingMap[match.player1_alias];
       const player2 = rankingMap[match.player2_alias];
       console.log(winner, player1, player2);
       if (winner) {
         winner.victories += 1;
-        winner.points += 1; // 1 point per victory
+        winner.points += 3; // Assign 3 points per victory
       }
+
 
       if (player1) {
         player1.made += match.player1_score;
+        player1.totalMatches = (player1.totalMatches || 0) + 1;
         player1.diff += match.player1_score - match.player2_score;
       }
 
       if (player2) {
         player2.made += match.player2_score;
+        player2.totalMatches = (player2.totalMatches || 0) + 1;
         player2.diff += match.player2_score - match.player1_score;
       }
     });

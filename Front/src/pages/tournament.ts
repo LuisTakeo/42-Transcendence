@@ -1,4 +1,4 @@
-import { setupTournamentEvents } from "./tournamentEvents.ts";
+import { clearTournamentState, setupTournamentEvents } from "./tournamentEvents.ts";
 import { userService } from "../services/user.service.ts";
 import { tournamentsService } from "../services/tournaments.service.ts";
 import "../style.css"
@@ -126,8 +126,9 @@ export default async function Tournament(): Promise<void> {
 
           // Redirect to ranking page with tournament ID
           window.history.pushState({}, "", `/ranking?id=${tournamentId}`);
-
+          clearTournamentState();
           // Dynamically load and render the ranking page
+
           const { default: RankingPage } = await import("./ranking.ts");
           RankingPage();
         } catch (error) {

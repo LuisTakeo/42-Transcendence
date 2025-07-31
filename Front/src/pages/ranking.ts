@@ -21,9 +21,10 @@ function renderRows(tournamentId?: number | null): string {
       <tr class="bg-[#2D2856]">
         <td class="px-3 py-2 md:px-6 md:py-4 text-sm md:text-2xl">${u.position || index + 1}.</td>
         <td class="px-3 py-2 md:px-6 md:py-4 text-sm md:text-2xl">${u.username}</td>
-        <td class="px-3 py-2 md:px-6 md:py-4 text-sm md:text-2xl">${u.tournamentPoints || 0}</td>
+        <td class="px-3 py-2 md:px-6 md:py-4 text-sm md:text-2xl">${u.totalMatches || 0}</td>
         <td class="px-3 py-2 md:px-6 md:py-4 text-sm md:text-2xl">${u.wins || 0}</td>
-        <td class="px-3 py-2 md:px-6 md:py-4 text-sm md:text-2xl">${u.pointsDiff || 0}</td>
+        <td class="px-3 py-2 md:px-6 md:py-4 text-sm md:text-2xl">${(u.totalMatches || 0) - (u.wins || 0)}</td>
+        <td class="px-3 py-2 md:px-6 md:py-4 text-sm md:text-2xl">${u.tournamentPoints || 0}</td>
       </tr>`).join("");
   }
   return filterReservedUsers(rankingData)
@@ -146,7 +147,7 @@ async function loadRanking(tournamentId: number | null): Promise<void> {
           id: player.user_id,
           username: player.username,
           name: player.name,
-          totalMatches: 0,
+          totalMatches: player.totalMatches || 0,
           wins: player.victories,
           winRate: 0,
           tournamentPoints: player.points,
@@ -180,7 +181,8 @@ async function loadRanking(tournamentId: number | null): Promise<void> {
                 <th class="px-3 py-2 md:px-6 md:py-3 text-sm md:text-2xl uppercase">User</th>
                 <th class="px-3 py-2 md:px-6 md:py-3 text-sm md:text-2xl uppercase">Matches</th>
                 <th class="px-3 py-2 md:px-6 md:py-3 text-sm md:text-2xl uppercase">Wins</th>
-				<th class="px-3 py-2 md:px-6 md:py-3 text-sm md:text-2xl uppercase">Profile</th>
+                ${tournamentId ? '<th class="px-3 py-2 md:px-6 md:py-3 text-sm md:text-2xl uppercase">Defeats</th>' : '<th class="px-3 py-2 md:px-6 md:py-3 text-sm md:text-2xl uppercase">Profile</th>'}
+                ${tournamentId ? '<th class="px-3 py-2 md:px-6 md:py-3 text-sm md:text-2xl uppercase">Points</th>' : ''}
               </tr>
             </thead>
             <tbody class="text-2xl">

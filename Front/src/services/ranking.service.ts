@@ -11,6 +11,9 @@ export interface RankingUser {
   totalMatches: number;
   wins: number;
   winRate: number;
+  tournamentPoints?: number; // Added property to track tournament points
+  pointsDiff?: number;
+  pointsMade?: number;
 }
 
 const RESERVED_USER_IDS = [4, 5];
