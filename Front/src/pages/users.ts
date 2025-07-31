@@ -446,14 +446,14 @@ document.addEventListener("click", async (e) => {
       await handleRemoveFriend(userId, button);
       button.textContent = "Add Friend";
       button.dataset.areFriends = "false";
-      button.classList.remove("bg-red-600");
-      button.classList.add("bg-[#1E1B4B]");
+      button.classList.remove("bg-red-600", "hover:bg-red-700");
+      button.classList.add("bg-[#1E1B4B]", "hover:bg-purple-700");
     } else {
       await handleAddFriend(userId, button);
       button.textContent = "Remove Friend";
       button.dataset.areFriends = "true";
-      button.classList.remove("bg-[#1E1B4B]");
-      button.classList.add("bg-red-600");
+      button.classList.remove("bg-[#1E1B4B]", "hover:bg-purple-700");
+      button.classList.add("bg-red-600", "hover:bg-red-700");
     }
   } catch (error) {
     console.error("Erro ao verificar amizade:", error);
