@@ -79,9 +79,9 @@ export default async function SettingsPage(): Promise<void> {
     <div id="username-error" class="text-red-400 text-sm mt-1 hidden"></div>
   </div>
 
-	  <div id="two-factor-section" class="bg-[#1E1B4B] p-6 rounded-lg w-full max-w-md mx-auto">
-		<h2 class="text-xl font-bold mb-4">Security</h2>
-		<div id="2fa-status" class="mb-4 text-lg text-gray-300">
+	  <div id="two-factor-section" class="align-left w-full max-w-md mt-6 rounded-xl space-y-4">
+		<h2 class="text-2xl font-bold mt-2 text-white">Security</h2>
+		<div id="2fa-status" class="mt-4 mb-4 text-lg text-gray-300">
 		  Two-factor authentication is not enabled.
 		</div>
 		<button id="activate-2fa-btn"
@@ -221,6 +221,7 @@ function update2FAStatus(isEnabled: boolean): void {
 		// User has 2FA enabled
 		statusElement.textContent = 'Two-factor authentication is enabled.';
 		statusElement.className = 'mb-4 text-lg text-green-400';
+		//mb-4 text-base sm:text-lg text-green-400
 		enableButton.textContent = 'Disable two-factor authentication';
 		enableButton.className = 'bg-red-600 hover:bg-red-700 transition px-4 py-2 rounded-md text-white font-medium shadow-sm hover:shadow-lg';
 		inputSection.classList.add('hidden');
@@ -230,6 +231,7 @@ function update2FAStatus(isEnabled: boolean): void {
 		statusElement.className = 'mb-4 text-lg text-gray-300';
 		enableButton.textContent = 'Enable two-factor authentication';
 		enableButton.className = 'bg-[#383568] hover:bg-[#4a4480] transition px-4 py-2 rounded-md text-white font-medium shadow-sm hover:shadow-lg';
+		//w-full sm:w-auto bg-red-600 hover:bg-red-700 transition px-4 py-2 rounded-md text-white font-medium shadow-sm hover:shadow-lg
 		inputSection.classList.add('hidden');
 	}
 }
@@ -354,7 +356,7 @@ async function loadFriends(): Promise<void> {
 			const displayName = friendUser.name || friendUser.username || 'Unknown User';
 
 			return `
-				<div class="flex items-center justify-between bg-[#383568] p-4 rounded-lg friend-entry">
+				<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-[#383568] p-4 rounded-lg friend-entry">
 					<div class="flex-shrink-0">
 						${friendUser.avatar_url
 							? `<img src="${friendUser.avatar_url}" alt="${displayName}" class="w-12 h-12 rounded-full object-cover" onerror="console.error('Friend avatar load failed for ${displayName}:', '${friendUser.avatar_url}'); this.style.display='none'; this.nextElementSibling.style.display='flex';">
