@@ -11,7 +11,6 @@ export interface RankingUser {
   totalMatches: number;
   wins: number;
   winRate: number;
-  points?: number;
 }
 
 const RESERVED_USER_IDS = [4, 5];
@@ -42,7 +41,7 @@ export class RankingService extends BaseApiService {
           losses: 0,
           winRate: 0
         };
-        const points = (stats.wins * 3);
+
         return {
           position: 0, // Will be set after sorting
           id: user.id,
@@ -50,15 +49,14 @@ export class RankingService extends BaseApiService {
           name: user.name,
           totalMatches: stats.totalMatches,
           wins: stats.wins,
-          winRate: stats.winRate,
-          points
+          winRate: stats.winRate
         };
       });
 
-      // Sort by points, then wins, then matches
+      // Sort by win rate (descending), then by total wins (descending), then by total matches (descending)
       rankingUsers.sort((a, b) => {
-        if ((b.points ?? 0) !== (a.points ?? 0)) {
-          return (b.points ?? 0) - (a.points ?? 0);
+        if (b.winRate !== a.winRate) {
+          return b.winRate - a.winRate;
         }
         if (b.wins !== a.wins) {
           return b.wins - a.wins;

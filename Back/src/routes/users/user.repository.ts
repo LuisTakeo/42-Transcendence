@@ -134,7 +134,7 @@ export async function findOrCreateUserDb(email: string, name: string, googleId: 
 		}
 
 		const result = await db.run(
-			`INSERT INTO users (email, username, name, google_id, password_hash, created_at) VALUES (?, ?, ?, ?, '$2b$10$dummyhashforjohndoe1234567890', datetime('now'))`,
+			`INSERT INTO users (email, username, name, google_id, created_at) VALUES (?, ?, ?, ?, datetime('now'))`,
 			email,
 			username,
 			name,
