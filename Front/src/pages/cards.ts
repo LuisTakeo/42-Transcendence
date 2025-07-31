@@ -31,12 +31,13 @@ export async function renderAchievements(userId: number) {
 
 	  // FAZER VALIDAÇAO AQUI E SE N DER SUCESSO EXIBIR SEM INFORMAÇOES
 
+	  const hasTopRankedAchievement = userStats.topRanked && userStats.totalWins > 0 && userStats.points > 0;
 	  const achievementsHTML = `
 		<div class="bg-[#383568] rounded-[5px] w-full flex flex-row flex-nowrap md:flex-wrap overflow-x-auto md:overflow-visible gap-4 p-4 snap-x snap-mandatory">
 		  ${createAchievementCard("two-factor authentication.", "../../assets/padlock.png", userStats.twoFactorEnabled)}
 		  ${createAchievementCard("Make a friend.", "../../assets/friend-big.png", userStats.friendsCount >= 1)}
 		  ${createAchievementCard("Win 3 matches.", "../../assets/reward.png", userStats.totalWins >= 3)}
-		  ${createAchievementCard("Be among the top ranked.", "../../assets/podio-big.png", userStats.topRanked)}
+		  ${createAchievementCard("Be among the top ranked.", "../../assets/podio-big.png", hasTopRankedAchievement)}
 		  ${createAchievementCard("Make more than 3 friends.", "../../assets/people-big.png", userStats.friendsCount > 3)}
 		</div>
 	  `;
