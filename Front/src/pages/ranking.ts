@@ -17,27 +17,27 @@ function filterReservedUsers(users: any[]): any[] {
 function renderRows(tournamentId?: number | null): string {
   if (tournamentId) {
     return rankingData
-      .map((u) => `
+      .map((u, index) => `
       <tr class="bg-[#2D2856]">
-        <td class="px-3 py-2 md:px-6 md:py-4 text-sm md:text-2xl">${u.position}.</td>
+        <td class="px-3 py-2 md:px-6 md:py-4 text-sm md:text-2xl">${u.position || index + 1}.</td>
         <td class="px-3 py-2 md:px-6 md:py-4 text-sm md:text-2xl">${u.username}</td>
         <td class="px-3 py-2 md:px-6 md:py-4 text-sm md:text-2xl">${u.tournamentPoints || 0}</td>
-        <td class="px-3 py-2 md:px-6 md:py-4 text-sm md:text-2xl">${u.wins}</td>
+        <td class="px-3 py-2 md:px-6 md:py-4 text-sm md:text-2xl">${u.wins || 0}</td>
         <td class="px-3 py-2 md:px-6 md:py-4 text-sm md:text-2xl">${u.pointsDiff || 0}</td>
       </tr>`).join("");
   }
   return filterReservedUsers(rankingData)
     .map(
-      (u) => `
+      (u, index) => `
       <tr class="bg-[#2D2856]">
-        <td class="px-3 py-2 md:px-6 md:py-4 text-sm md:text-2xl">${u.position}.</td>
+        <td class="px-3 py-2 md:px-6 md:py-4 text-sm md:text-2xl">${u.position || index + 1}.</td>
         <td class="px-3 py-2 md:px-6 md:py-4 text-sm md:text-2xl">${u.username}</td>
-        <td class="px-3 py-2 md:px-6 md:py-4 text-sm md:text-2xl">${u.totalMatches}</td>
-        <td class="px-3 py-2 md:px-6 md:py-4 text-sm md:text-2xl">${u.wins}</td>
-		<td class="px-3 py-2 md:px-6 md:py-4 text-sm md:text-2xl">
-			<button class="profile-btn" data-user-id="${u.id}" title="Go to user profile"><img src="../../assets/arrow.png" alt="go to user profile" class="w-6 h-6 sm:w-8 sm:h-8"/></button>
-    	</td>
-	</tr>`
+        <td class="px-3 py-2 md:px-6 md:py-4 text-sm md:text-2xl">${u.totalMatches || 0}</td>
+        <td class="px-3 py-2 md:px-6 md:py-4 text-sm md:text-2xl">${u.wins || 0}</td>
+        <td class="px-3 py-2 md:px-6 md:py-4 text-sm md:text-2xl">
+          <button class="profile-btn" data-user-id="${u.id || u.username}" title="Go to user profile"><img src="../../assets/arrow.png" alt="go to user profile" class="w-6 h-6 sm:w-8 sm:h-8"/></button>
+        </td>
+      </tr>`
     )
     .join("");
 }
@@ -138,7 +138,7 @@ async function loadRanking(tournamentId: number | null): Promise<void> {
       // Load tournament ranking using the service
       response = await tournamentsService.getFinalRanking(tournamentId);
 
-
+      console.log(response);
       if (response.success && response.data) {
         // Transform tournament data to match RankingUser interface
         rankingData = response.data.map((player: any, index: number) => ({
