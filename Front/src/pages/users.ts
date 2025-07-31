@@ -43,13 +43,13 @@ export default function UsersPage(): string {
           </button>
 
           <span id="pageInfo" class="text-white"></span>
-          
+
 		  <button
             id="nextPage"
             class="px-4 py-2 bg-[#383568] text-white rounded hover:bg-[#4E4A72] transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed">
             Next
           </button>
-		  
+
         </div>
       </div>
     </main>
@@ -127,9 +127,9 @@ export async function initializeUsersPage(): Promise<void> {
 		<div class="flex flex-col md:flex-row items-center md:items-start space-y-4 md:space-y-0 md:space-x-6">
 			<div class="flex-shrink-0">
 			${user.avatar_url
-				? `<img src="${user.avatar_url}" alt="${user.name}" 
-					class="w-20 h-20 md:w-16 md:h-16 rounded-full object-cover avatar-image" 
-					data-user-name="${user.name}" data-avatar-url="${user.avatar_url}" 
+				? `<img src="${user.avatar_url}" alt="${user.name}"
+					class="w-20 h-20 md:w-16 md:h-16 rounded-full object-cover avatar-image"
+					data-user-name="${user.name}" data-avatar-url="${user.avatar_url}"
 					onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
 				<div class="w-20 h-20 md:w-16 md:h-16 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-3xl md:text-2xl font-bold" style="display: none;">
 					${user.name.charAt(0).toUpperCase()}
@@ -174,39 +174,6 @@ export async function initializeUsersPage(): Promise<void> {
     `).join("");
 }
 
-	document.addEventListener("click", async (e) => {
-		const target = e.target as HTMLElement;
-		const button = target.closest(".friendship-btn") as HTMLElement;
-	
-		if (!button) return;
-	
-		const userId = parseInt(button.dataset.userId || "");
-		if (isNaN(userId)) return;
-	
-		const currentUserId = await getCurrentUserId();
-		if (!currentUserId) return;
-
-		try {
-			const response = await friendsService.checkFriendship(currentUserId, userId);
-			const areFriends = response.data.are_friends;
-			if (areFriends) {
-				await handleRemoveFriend(userId, button);
-				button.textContent = "Add Friend";
-				button.dataset.areFriends = "false";
-				button.classList.remove("bg-red-600");
-				button.classList.add("bg-[#1E1B4B]");
-			} else {
-				await handleAddFriend(userId, button);
-				button.textContent = "Remove Friend";
-				button.dataset.areFriends = "true";
-				button.classList.remove("bg-[#1E1B4B]");
-				button.classList.add("bg-red-600");
-			}
-		} catch (error) {
-			console.error("Erro ao verificar amizade:", error);
-		}
-	});
-
   // Function to update pagination
   function updatePagination(currentPage: number, totalPages: number): void {
     if (totalPages <= 1) {
@@ -236,7 +203,7 @@ export async function initializeUsersPage(): Promise<void> {
 
       const response = await usersService.getUsers(page, 10, search);
 
-	  const friendsByUser = await friendsService.getFriendsByUser(currentUser?.id || 0); 
+	  const friendsByUser = await friendsService.getFriendsByUser(currentUser?.id || 0);
 
       if (response.success) {
         // Filter out the current user from the results
@@ -335,26 +302,6 @@ export async function initializeUsersPage(): Promise<void> {
     }
   });
 
-  // Add event delegation for View Profile buttons
-  document.addEventListener('click', (e) => {
-    const target = e.target as HTMLElement;
-
-    // Check if the clicked element or its parent has the view-profile-btn class
-    let buttonElement = target;
-    if (!buttonElement.classList.contains('view-profile-btn') &&
-   		!buttonElement.classList.contains('friendship-btn')) {
-      buttonElement = target.closest('.view-profile-btn, friendship-btn') as HTMLElement;
-    }
-
-    if (buttonElement && buttonElement.classList.contains('view-profile-btn')&&
-	!buttonElement.classList.contains('friendship-btn')) {
-      const userId = buttonElement.getAttribute('data-user-id');
-      if (userId) {
-        usersService.navigateToProfile(parseInt(userId));
-      }
-    }
-  });
-
   // Load initial users
   loadUsers();
 }
@@ -429,7 +376,7 @@ async function handleAddFriend(userId: number, buttonElement: HTMLElement): Prom
 	  buttonElement.style.pointerEvents = 'auto';
 	}
   }
-  
+
   async function handleRemoveFriend(userId: number, buttonElement: HTMLElement): Promise<void> {
 	try {
 	  buttonElement.style.opacity = '0.5';
@@ -465,4 +412,50 @@ async function handleAddFriend(userId: number, buttonElement: HTMLElement): Prom
 	  buttonElement.style.opacity = '1';
 	  buttonElement.style.pointerEvents = 'auto';
 	}
+};
+
+// Add event delegation for View Profile buttons
+document.addEventListener('click', (e) => {
+  const target = e.target as HTMLElement;
+  const profileBtn = target.closest('.view-profile-btn') as HTMLElement;
+  if (profileBtn) {
+    const userId = profileBtn.getAttribute('data-user-id');
+    if (userId) {
+      usersService.navigateToProfile(parseInt(userId));
+    }
   }
+});
+
+// Add event listener for friendship buttons
+document.addEventListener("click", async (e) => {
+  const target = e.target as HTMLElement;
+  const button = target.closest(".friendship-btn") as HTMLElement;
+
+  if (!button) return;
+
+  const userId = parseInt(button.dataset.userId || "");
+  if (isNaN(userId)) return;
+
+  const currentUserId = await getCurrentUserId();
+  if (!currentUserId) return;
+
+  try {
+    const response = await friendsService.checkFriendship(currentUserId, userId);
+    const areFriends = response.data.are_friends;
+    if (areFriends) {
+      await handleRemoveFriend(userId, button);
+      button.textContent = "Add Friend";
+      button.dataset.areFriends = "false";
+      button.classList.remove("bg-red-600");
+      button.classList.add("bg-[#1E1B4B]");
+    } else {
+      await handleAddFriend(userId, button);
+      button.textContent = "Remove Friend";
+      button.dataset.areFriends = "true";
+      button.classList.remove("bg-[#1E1B4B]");
+      button.classList.add("bg-red-600");
+    }
+  } catch (error) {
+    console.error("Erro ao verificar amizade:", error);
+  }
+});
