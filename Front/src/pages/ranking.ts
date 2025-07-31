@@ -200,7 +200,7 @@ async function loadRanking(tournamentId: number | null): Promise<void> {
       rankingContent.innerHTML = `
         <div class="text-center text-white text-xl py-8">
           <p class="text-red-400 mb-2">Error loading ${errorMessage}</p>
-          <p class="text-gray-400 text-sm">${error instanceof Error ? error.message : 'Unknown error'}</p>
+          <p class="text-gray-400 text-sm">${error instanceof Error ? 'Not Found' : 'Unknown error'}</p>
           ${tournamentId ? `
             <button id="back-to-global-error" class="mt-4 px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 transition mr-2">
               Back to Global Ranking
