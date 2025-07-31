@@ -1,5 +1,5 @@
 import { userService } from '../services/user.service.ts';
-import { isRequired, minLength } from './validateInput.ts';
+import { isRequired, minLength, maxLength, isSafeName, isSafeUsername, sanitizeInput } from './validateInput.ts';
 import { showErrorMessage } from './notification.ts';
 
 export function initializeEditField() {
@@ -36,19 +36,45 @@ export function initializeEditField() {
           exitEditMode(btn, input);
           return;
         }
-
         // Input validation
         if (!isRequired(newValue)) {
           showFieldErrorMessage(inputId);
+          showErrorMessage('This field is required.');
           return;
         }
-        if (inputId === 'usernameInput' && !minLength(newValue, 3)) {
-          showFieldErrorMessage(inputId);
-          return;
+        if (inputId === 'usernameInput') {
+          if (!minLength(newValue, 3)) {
+            showFieldErrorMessage(inputId);
+            showErrorMessage('Username must be at least 3 characters.');
+            return;
+          }
+          if (!maxLength(newValue, 16)) {
+            showFieldErrorMessage(inputId);
+            showErrorMessage('Username must be at most 16 characters.');
+            return;
+          }
+          if (!isSafeUsername(newValue)) {
+            showFieldErrorMessage(inputId);
+            showErrorMessage('Username can only contain letters, numbers, dots and underscores.');
+            return;
+          }
         }
-        if (inputId === 'nameInput' && !minLength(newValue, 2)) {
-          showFieldErrorMessage(inputId);
-          return;
+        if (inputId === 'nameInput') {
+          if (!minLength(newValue, 2)) {
+            showFieldErrorMessage(inputId);
+            showErrorMessage('Name must be at least 2 characters.');
+            return;
+          }
+          if (!maxLength(newValue, 32)) {
+            showFieldErrorMessage(inputId);
+            showErrorMessage('Name must be at most 32 characters.');
+            return;
+          }
+          if (!isSafeName(newValue)) {
+            showFieldErrorMessage(inputId);
+            showErrorMessage('Name can only contain letters, spaces, accents, hyphens, and apostrophes.');
+            return;
+          }
         }
 
         if (!newValue) {
@@ -58,24 +84,25 @@ export function initializeEditField() {
           return;
         }
 
+        // Sanitize input before sending to backend
+        const safeValue = sanitizeInput(newValue);
+
         // Show loading state
         btn.innerHTML = 'Saving...';
         btn.disabled = true;
-
         try {
           // Get the field to update
           const updateData: any = {};
 
           // Map input IDs to user fields
           if (inputId === 'nameInput' || inputId === 'usernameInput') {
-            updateData[inputId === 'nameInput' ? 'name' : 'username'] = newValue;
+            updateData[inputId === 'nameInput' ? 'name' : 'username'] = safeValue;
           }
-
           const updatedUser = await userService.updateProfile(updateData);
-
           if (updatedUser) {
             // Update the original value
-            input.dataset.originalValue = newValue;
+            input.dataset.originalValue = safeValue;
+            input.value = safeValue;
 
             // Show success feedback
             showFieldSuccessMessage(inputId);
@@ -91,7 +118,6 @@ export function initializeEditField() {
 
           // Show error feedback
           showFieldErrorMessage(inputId);
-          console.log('Error updating user:', error); // REMOVE
           showErrorMessage('Failed to update user. Please try again.');
 
           // Exit edit mode
