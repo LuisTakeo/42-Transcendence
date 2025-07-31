@@ -59,8 +59,8 @@ export class RankingService extends BaseApiService {
 
       // Sort by points, then wins, then matches
       rankingUsers.sort((a, b) => {
-        if ((b.points ?? 0) !== (a.points ?? 0)) {
-          return (b.points ?? 0) - (a.points ?? 0);
+        if ((b.tournamentPoints ?? 0) !== (a.tournamentPoints ?? 0)) {
+          return (b.tournamentPoints ?? 0) - (a.tournamentPoints ?? 0);
         }
         if (b.wins !== a.wins) {
           return b.wins - a.wins;
