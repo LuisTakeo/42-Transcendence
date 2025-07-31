@@ -1,7 +1,6 @@
 import { matchesService } from "../services/matches.service";
 import { tournamentsService } from "../services/tournaments.service";
 import { userService } from "../services/user.service";
-//import { gameService } from "../services/game.service";
 
 export function setupTournamentEvents() {
 	const addPlayerBtn = document.getElementById("add-player-btn") as HTMLButtonElement;
@@ -10,7 +9,6 @@ export function setupTournamentEvents() {
 	const confirmBtn = document.getElementById("confirm-add-player");
 	const input = document.getElementById("player-name") as HTMLInputElement;
 	const playerList = document.getElementById("player-list") as HTMLUListElement;
-	const generateMatchesBtn = document.getElementById("generate-matches-btn") as HTMLButtonElement;
 	const startTournamentBtn = document.getElementById("start-tournament") as HTMLButtonElement;
 	const noPlayersMessage = document.getElementById("no-players-message");
 	const matchesList = document.getElementById("matches-list") as HTMLUListElement;
@@ -24,10 +22,6 @@ export function setupTournamentEvents() {
 			addPlayerBtn.disabled = true;
 			addPlayerBtn.classList.add('opacity-50', 'cursor-not-allowed');
 		}
-		if (generateMatchesBtn) {
-			generateMatchesBtn.disabled = true;
-			generateMatchesBtn.classList.add('opacity-50', 'cursor-not-allowed');
-		}
 	};
 
 	// Load saved state if it exists
@@ -39,7 +33,7 @@ export function setupTournamentEvents() {
 		disableTournamentControls();
 	}
 
-	if (!addPlayerBtn || !modal || !cancelBtn || !confirmBtn || !input || !playerList || !generateMatchesBtn || !noPlayersMessage || !matchesList || !startTournamentBtn) {
+	if (!addPlayerBtn || !modal || !cancelBtn || !confirmBtn || !input || !playerList || !startTournamentBtn || !noPlayersMessage || !matchesList) {
 		console.error("Algum elemento não foi encontrado.");
 		return;
 	}
@@ -68,35 +62,22 @@ export function setupTournamentEvents() {
 		}
 	});
 
-	if (generateMatchesBtn) {
-		generateMatchesBtn.addEventListener("click", async () => {
+	startTournamentBtn.addEventListener("click", async () => {
+		try {
+			// check if there are players
 			if (playerList.children.length <= 3) {
 				showErrorModal("You cannot create a tournament with less than 3 players.");
 				return;
 			} else if (playerList.children.length > 8) {
 				showErrorModal("You cannot create a tournament with more than 8 players.");
 				return;
-			} else {
-				matchesList.innerHTML = "";
-				await showGenerateMatchesModal(playerList, matchesList);
-			}
-		});
-	}
+			} 
+			matchesList.innerHTML = "";
 
-	startTournamentBtn.addEventListener("click", async () => {
-		try {
 			// Get current user
 			const currentUser = await userService.getCurrentUser();
 			if (!currentUser) {
 				showErrorModal("You must be logged in to create a tournament");
-				return;
-			}
-
-			if (playerList.children.length <= 3) {
-				showErrorModal("You cannot create a tournament with less than 3 players.");
-				return;
-			} else if (playerList.children.length > 8) {
-				showErrorModal("You cannot create a tournament with more than 8 players.");
 				return;
 			}
 
@@ -106,6 +87,7 @@ export function setupTournamentEvents() {
 				showErrorModal("No matches were generated. Tournament creation aborted.");
 				return;
 			}
+
 			// Create tournament
 			const tournamentResponse = await tournamentsService.createTournament({
 				name: `Tournament ${new Date().toLocaleString()}`,
@@ -117,7 +99,7 @@ export function setupTournamentEvents() {
 				return;
 			}
 
-			// Disable button and update text to show tournament is in progress
+			//// Disable button and update text to show tournament is in progress
 			startTournamentBtn.disabled = true;
 			startTournamentBtn.textContent = `Tournament ${tournamentResponse.data.id} in progress ...`;
 			startTournamentBtn.classList.add('opacity-50', 'cursor-not-allowed');
@@ -184,9 +166,6 @@ function addPlayer(name: string, playerList: HTMLUListElement): void {
 	}
 
 	playerList.appendChild(li);
-
-	//TODO: pode ser removido, vai ser gerado ao clicar no botão
-	// addMatches("player1", "player2", document.getElementById("matches-list") as HTMLUListElement);
 
 }
 
@@ -296,7 +275,7 @@ function addMatches(player1: string, player2: string, matchesList: HTMLUListElem
 	matchesList.appendChild(li);
 }
 
-export function showErrorModal(message: string, duration: number = 5000): void {
+export function showErrorModal(message: string, duration: number = 3000): void {
 	const modal = document.getElementById("errors-modal");
 	const messageEl = document.getElementById("errors-message");
 

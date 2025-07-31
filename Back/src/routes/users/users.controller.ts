@@ -14,7 +14,7 @@ const isValidEmail = (email: string): boolean => {
 
 const isValidUsername = (username: string): boolean => {
 	// Username should be 3-20 characters, alphanumeric and underscores only
-	const usernameRegex = /^[a-zA-Z0-9_]{3,20}$/;
+	const usernameRegex = /^[a-zA-Z0-9_.]{3,20}$/;
 	return usernameRegex.test(username);
 };
 

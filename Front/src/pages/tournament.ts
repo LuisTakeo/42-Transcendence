@@ -32,8 +32,8 @@ export default async function Tournament(): Promise<void> {
             <button id="add-player-btn" class="flex-1 bg-green-600 text-white py-2 rounded hover:bg-green-700 transition text-xl">
               Add players
             </button>
-            <button id="generate-matches-btn" class="flex-1 bg-[#1E1B4B] text-xl border-2 border-[#383568] text-white py-2 rounded hover:bg-purple-700 transition">
-              Generate Matches
+            <button id="start-tournament" class="flex-1 bg-[#1E1B4B] text-xl border-2 border-[#383568] text-white py-2 rounded hover:bg-purple-700 transition">
+              Start Tournament
             </button>
           </div>
         </div>
@@ -58,10 +58,6 @@ export default async function Tournament(): Promise<void> {
 
     <!-- BOTTOM SIDE: BUTTONS -->
     <div class="flex flex-col sm:flex-row justify-center gap-4 mt-10 max-w-7xl mx-auto px-4">
-      <button id="start-tournament"
-        class="bg-green-600 px-6 py-2 text-white text-xl rounded hover:bg-green-700 transition w-full sm:w-auto">
-        Start Tournament
-      </button>
 
       <button id="finish-tournament"
         class="bg-red-600 px-6 py-2 text-xl text-white rounded hover:bg-red-700 transition w-full sm:w-auto">
