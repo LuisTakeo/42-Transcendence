@@ -288,126 +288,130 @@ export async function getBulkUserStats(request: FastifyRequest, reply: FastifyRe
 
 // Create new match
 export async function createMatch(request: FastifyRequest, reply: FastifyReply) {
-	try {
-		const {
-			player1_id,
-			player2_id,
-			player1_alias,
-			player2_alias,
-			winner_id,
-			player1_score,
-			player2_score,
-			tournament_id,
-      roomId
-		} = request.body as CreateMatchData;
+    try {
+        const {
+            player1_id,
+            player2_id,
+            player1_alias,
+            player2_alias,
+            winner_id,
+            player1_score,
+            player2_score,
+            tournament_id,
+            roomId
+        } = request.body as CreateMatchData;
 
-		// Validation
-		if (!player1_id || !player2_id || !player1_alias || !player2_alias ||
-			player1_score === undefined || player2_score === undefined) {
-			return reply.status(400).send({
-				success: false,
-				error: 'Missing required fields',
-				required: ['player1_id', 'player2_id', 'player1_alias', 'player2_alias', 'player1_score', 'player2_score']
-			});
-		}
+        // Validation
+        if (!player1_id || !player2_id || !player1_alias || !player2_alias ||
+            player1_score === undefined || player2_score === undefined) {
+            return reply.status(400).send({
+                success: false,
+                error: 'Missing required fields',
+                required: ['player1_id', 'player2_id', 'player1_alias', 'player2_alias', 'player1_score', 'player2_score']
+            });
+        }
 
-		if (!isValidPlayerId(player1_id)) {
-			return reply.status(400).send({
-				success: false,
-				error: 'Invalid player1_id'
-			});
-		}
+        if (!isValidPlayerId(player1_id)) {
+            return reply.status(400).send({
+                success: false,
+                error: 'Invalid player1_id'
+            });
+        }
 
-		// Allow player2_id to be a valid user ID or a reserved user ID (4, 5)
-		if (!isValidPlayerId(player2_id) && !RESERVED_USER_IDS.includes(player2_id)) {
-			return reply.status(400).send({
-				success: false,
-				error: 'Invalid player2_id'
-			});
-		}
+        // Allow player2_id to be a valid user ID or a reserved user ID (4, 5)
+        if (!isValidPlayerId(player2_id) && !RESERVED_USER_IDS.includes(player2_id)) {
+            return reply.status(400).send({
+                success: false,
+                error: 'Invalid player2_id'
+            });
+        }
 
-		if (!isValidScore(player1_score)) {
-			return reply.status(400).send({
-				success: false,
-				error: 'Player1 score must be a non-negative integer'
-			});
-		}
+        if (!isValidScore(player1_score)) {
+            return reply.status(400).send({
+                success: false,
+                error: 'Player1 score must be a non-negative integer'
+            });
+        }
 
-		if (!isValidScore(player2_score)) {
-			return reply.status(400).send({
-				success: false,
-				error: 'Player2 score must be a non-negative integer'
-			});
-		}
+        if (!isValidScore(player2_score)) {
+            return reply.status(400).send({
+                success: false,
+                error: 'Player2 score must be a non-negative integer'
+            });
+        }
 
-		if (player1_alias.trim().length < 1 || player1_alias.trim().length > 50) {
-			return reply.status(400).send({
-				success: false,
-				error: 'Player1 alias must be between 1 and 50 characters'
-			});
-		}
+        if (player1_alias.trim().length < 1 || player1_alias.trim().length > 50) {
+            return reply.status(400).send({
+                success: false,
+                error: 'Player1 alias must be between 1 and 50 characters'
+            });
+        }
 
-		if (player2_alias.trim().length < 1 || player2_alias.trim().length > 50) {
-			return reply.status(400).send({
-				success: false,
-				error: 'Player2 alias must be between 1 and 50 characters'
-			});
-		}
+        if (player2_alias.trim().length < 1 || player2_alias.trim().length > 50) {
+            return reply.status(400).send({
+                success: false,
+                error: 'Player2 alias must be between 1 and 50 characters'
+            });
+        }
 
-		// Validate winner_id if provided
-		if (winner_id !== undefined && winner_id !== null) {
-			if (!isValidPlayerId(winner_id)) {
-				return reply.status(400).send({
-					success: false,
-					error: 'Invalid winner_id'
-				});
-			}
+        // Validate winner_id if provided
+        if (winner_id !== undefined && winner_id !== null) {
+            if (!isValidPlayerId(winner_id)) {
+                return reply.status(400).send({
+                    success: false,
+                    error: 'Invalid winner_id'
+                });
+            }
 
-			if (winner_id !== player1_id && winner_id !== player2_id) {
-				return reply.status(400).send({
-					success: false,
-					error: 'Winner must be one of the players'
-				});
-			}
-		}
+            if (winner_id !== player1_id && winner_id !== player2_id) {
+                return reply.status(400).send({
+                    success: false,
+                    error: 'Winner must be one of the players'
+                });
+            }
+        }
 
-		// Validate tournament_id if provided
-		if (tournament_id !== undefined && tournament_id !== null) {
-			if (!isValidPlayerId(tournament_id)) {
-				return reply.status(400).send({
-					success: false,
-					error: 'Invalid tournament_id'
-				});
-			}
-		}
+        // Validate tournament_id if provided
+        if (tournament_id !== undefined && tournament_id !== null) {
+            if (!isValidPlayerId(tournament_id)) {
+                return reply.status(400).send({
+                    success: false,
+                    error: 'Invalid tournament_id'
+                });
+            }
+        }
 
-		const newMatch = await repository.createMatch({
-			player1_id,
-			player2_id,
-			player1_alias: player1_alias.trim(),
-			player2_alias: player2_alias.trim(),
-			winner_id: winner_id || null,
-			player1_score,
-			player2_score,
-			tournament_id,
-      roomId
-		});
-    if (roomId && newMatch.id !== undefined) {
-      broadcastMatchId(roomId, newMatch.id);
+        const newMatch = await repository.createMatch({
+            player1_id,
+            player2_id,
+            player1_alias: player1_alias.trim(),
+            player2_alias: player2_alias.trim(),
+            winner_id: winner_id || null,
+            player1_score,
+            player2_score,
+            tournament_id,
+            roomId
+        });
+        if (roomId && newMatch.id !== undefined) {
+            broadcastMatchId(roomId, newMatch.id);
+        }
+        // Recalculate tournament points if this is a tournament match
+        if (tournament_id) {
+            const tournamentRepo = new TournamentRepository();
+            await tournamentRepo.updateTournamentPlayerPoints(tournament_id);
+        }
+        reply.status(201).send({
+            success: true,
+            data: newMatch,
+            message: 'Match created successfully'
+        });
+    } catch (error) {
+        reply.status(500).send({
+            success: false,
+            error: 'Failed to create match',
+            message: error instanceof Error ? error.message : 'Unknown error'
+        });
     }
-
-		reply.status(201).send({
-			success: true,
-			data: newMatch,
-			message: 'Match created successfully'
-		});
-	} catch (error) {
-		reply.status(500).send({
-			success: false,
-			error: 'Failed to create match',
-			message: error instanceof Error ? error.message : 'Unknown error'
-		});
-	}
 }
 
 export async function generateAllRoundRobinMatches(request: FastifyRequest, reply: FastifyReply) {
@@ -490,14 +494,17 @@ export async function updateMatch(request: FastifyRequest, reply: FastifyReply) 
             player1_score: updateData.player1_score,
             player2_score: updateData.player2_score
         });
-
         if (!updatedMatch) {
             return reply.status(404).send({
                 success: false,
                 error: 'Match not found'
             });
         }
-
+        // Recalculate tournament points if this is a tournament match
+        if (updatedMatch.tournament_id) {
+            const tournamentRepo = new TournamentRepository();
+            await tournamentRepo.updateTournamentPlayerPoints(updatedMatch.tournament_id);
+        }
         reply.send({
             success: true,
             data: updatedMatch,

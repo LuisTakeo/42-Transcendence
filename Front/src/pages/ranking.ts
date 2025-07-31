@@ -21,6 +21,7 @@ function renderRows(): string {
         <td class="px-3 py-2 md:px-6 md:py-4 text-sm md:text-2xl">${u.username}</td>
         <td class="px-3 py-2 md:px-6 md:py-4 text-sm md:text-2xl">${u.totalMatches}</td>
         <td class="px-3 py-2 md:px-6 md:py-4 text-sm md:text-2xl">${u.wins}</td>
+        <td class="px-3 py-2 md:px-6 md:py-4 text-sm md:text-2xl">${u.points ?? '-'}</td>
 		<td class="px-3 py-2 md:px-6 md:py-4 text-sm md:text-2xl">
 			<button class="profile-btn" data-user-id="${u.id}" title="Go to user profile"><img src="../../assets/arrow.png" alt="go to user profile" class="w-6 h-6 sm:w-8 sm:h-8"/></button>
     	</td>
@@ -83,7 +84,7 @@ export default async function RankingPage(): Promise<void> {
 
         if (buttonElement.classList.contains('profile-btn')) {
           usersService.navigateToProfile(userIdNum);
-        } 
+        }
       }
     });
   }
@@ -107,6 +108,7 @@ async function loadRanking(): Promise<void> {
                 <th class="px-3 py-2 md:px-6 md:py-3 text-sm md:text-2xl uppercase">User</th>
                 <th class="px-3 py-2 md:px-6 md:py-3 text-sm md:text-2xl uppercase">Matches</th>
                 <th class="px-3 py-2 md:px-6 md:py-3 text-sm md:text-2xl uppercase">Wins</th>
+                <th class="px-3 py-2 md:px-6 md:py-3 text-sm md:text-2xl uppercase">Points</th>
 				<th class="px-3 py-2 md:px-6 md:py-3 text-sm md:text-2xl uppercase">Profile</th>
               </tr>
             </thead>
