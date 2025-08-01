@@ -12,6 +12,7 @@ export interface RankingUser {
   wins: number;
   winRate: number;
   points?: number;
+}
 
 const RESERVED_USER_IDS = [4, 5];
 
@@ -42,7 +43,6 @@ export class RankingService extends BaseApiService {
           winRate: 0
         };
         const points = (stats.wins * 3);
-
         return {
           position: 0, // Will be set after sorting
           id: user.id,
