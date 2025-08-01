@@ -143,6 +143,7 @@ export default async function gamePage(options: GamePageOptions): Promise<void> 
             options.tournamentId || undefined,
             handleScoreUpdate
         );
+        createMatchDB(game);
         game.run();
     } else if (options.gameType === GameType.LOCAL_VS_AI) {
         // Set initial labels for CPU
@@ -158,6 +159,7 @@ export default async function gamePage(options: GamePageOptions): Promise<void> 
             options.tournamentId,
             handleScoreUpdate // Pass callback
         );
+        createMatchDB(game);
         game.run();
     } else if (options.gameType === GameType.REMOTE) {
         // Show a modal to enter only the local user's alias
@@ -232,4 +234,42 @@ export default async function gamePage(options: GamePageOptions): Promise<void> 
         if (sidebar) sidebar.style.display = '';
         if (app) app.style.marginLeft = '80px';
     }, { once: true });
+};
+
+
+/**
+ * Create match in the database
+ */
+async function createMatchDB(game: any): Promise<void> {
+    if (!game || game.matchSaved || !game.matchData) return;
+    game.matchSaved = true;
+    try {
+        const matchData = {
+            ...game.matchData,
+            player1_score: 0,
+            player2_score: 0,
+            winner_id: null,
+            roomId: game._remoteController?.getRoomId?.()
+        };
+        console.log('[debug] Creating match with data:', matchData);
+        const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/matches`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+                'ngrok-skip-browser-warning': 'true'
+            },
+            body: JSON.stringify(matchData)
+        });
+        if (response.ok) {
+            const result = await response.json();
+            game.matchData.id = result.data.id;
+            console.log('[debug] Match created successfully:', game.matchData.id);
+        } else {
+            console.error('[debug] Failed to create match:', response.status);
+        }
+    } catch (error) {
+        game.matchSaved = false;
+        console.error('[Match Create] Error creating match:', error);
+    }
 }

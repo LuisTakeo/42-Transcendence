@@ -213,85 +213,13 @@ class MainGame {
     }
 
     /**
-     * TODO: only for remote. unify to create method and remove this
-     */
-
-    private async saveMatchToDatabase(): Promise<void> {
-        if (!this.matchData) return;
-
-        try {
-            if (!this.matchData.player1_id) {
-                return;
-            }
-
-            // Use correct reserved user ID for player2_id if missing
-            let player2_id = this.matchData.player2_id;
-            let player2_alias = this.matchData.player2_alias;
-            if (!player2_id) {
-                if (this.gameType === GameType.LOCAL_TWO_PLAYERS) {
-                    player2_id = 5;
-                    // player2_alias remains as entered by user
-                } else if (this.gameType === GameType.LOCAL_VS_AI) {
-                    player2_id = 4;
-                    player2_alias = "CPU";
-                } else {
-                    player2_id = 0; // fallback, should never happen for remote
-                }
-            }
-
-            const winnerId = this.score.player1 >= this.maxScore ?
-                this.matchData.player1_id : player2_id;
-
-            // Make sure tournament_id is properly handled - convert to number or null
-            const tournament_id = this.matchData.tournament_id ? Number(this.matchData.tournament_id) : null;
-
-            const matchData = {
-                player1_id: this.matchData.player1_id,
-                player2_id: player2_id,
-                player1_alias: this.matchData.player1_alias,
-                player2_alias: this.matchData.player2_alias,
-                winner_id: winnerId,
-                player1_score: this.score.player1,
-                player2_score: this.score.player2,
-                tournament_id: tournament_id
-            };
-
-            const authToken = localStorage.getItem('authToken');
-
-            if (this.gameType === GameType.REMOTE) {
-                console.log('[debug] Saving remote match to DB:', matchData);
-            }
-
-            // Log the exact JSON being sent
-            const jsonBody = JSON.stringify(matchData);
-
-            const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/matches`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
-                    'ngrok-skip-browser-warning': 'true'
-                },
-                body: jsonBody
-            });
-
-            if (!response.ok) {
-                const errorText = await response.text();
-                console.error('[debug] Failed to save match:', response.status, errorText);
-            }
-        } catch (error) {
-            console.error('[Match Save] Error saving match:', error);
-        }
-    }
-
-    /**
      * Create match in the database
      */
-    private async createMatchDB(): Promise<void> {
+    private async createMatch(): Promise<void> {
         // Don't save if already saved or no match data
         if (this.matchSaved || !this.matchData) return;
 
-        // TODO: Add logic for remote games
+         this.matchSaved = true;
 
         try {
             // Set initial scores
@@ -315,12 +243,12 @@ class MainGame {
 
             if (response.ok) {
                 const result = await response.json();
-                this.matchSaved = true;
                 this.matchData.id = result.data.id;
             } else {
                 console.error('[debug] Failed to create match:', response.status);
             }
         } catch (error) {
+            this.matchSaved = false;
             console.error('[Match Create] Error creating match:', error);
         }
     }
@@ -519,11 +447,6 @@ class MainGame {
     public run(): void {
         this.initializeScene();
 
-        // Create match in database when game starts
-        if (this.gameType !== GameType.REMOTE) {
-            this.createMatchDB();
-        };
-
         if (this.gameType === GameType.REMOTE)
             this.engine.runRenderLoop(this.updateRemote.bind(this));
         else
@@ -676,7 +599,7 @@ class MainGame {
                 this.matchData.player2_alias = data.right.alias;
             }
             if (this.playerSide === "left") {
-              this.createMatchDB();
+              this.createMatch();
             }
           }
       });
