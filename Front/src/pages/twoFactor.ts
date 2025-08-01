@@ -58,12 +58,6 @@ export function initializeTwoFactor() {
       });
     }
   });
-
-  // Remove the old confirm button logic since we're using the modal now
-  confirmBtn.addEventListener('click', async () => {
-    // This is now handled by the modal
-    console.log('Confirm button clicked - this should be handled by the modal');
-  });
 }
 
 async function enable2FA(code: string): Promise<void> {
