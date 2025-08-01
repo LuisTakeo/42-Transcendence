@@ -251,7 +251,6 @@ async function createMatchDB(game: any): Promise<void> {
             winner_id: null,
             roomId: game._remoteController?.getRoomId?.()
         };
-        console.log('[debug] Creating match with data:', matchData);
         const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/matches`, {
             method: 'POST',
             headers: {
@@ -264,7 +263,6 @@ async function createMatchDB(game: any): Promise<void> {
         if (response.ok) {
             const result = await response.json();
             game.matchData.id = result.data.id;
-            console.log('[debug] Match created successfully:', game.matchData.id);
         } else {
             console.error('[debug] Failed to create match:', response.status);
         }

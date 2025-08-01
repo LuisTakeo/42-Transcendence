@@ -376,7 +376,6 @@ class MainGame {
                 break;
 
             case GameType.REMOTE:
-                console.log("Iniciando jogo remoto...");
                 let realUserId = localStorage.getItem('currentUserId');
                 if (!realUserId) {
                     // Try to get from JWT token if available
@@ -465,7 +464,6 @@ class MainGame {
         }
 
         if (!this._remoteController) {
-            console.log('RemoteController não inicializado');
             return;
         }
         const state = this._remoteController.getGameState();
@@ -644,7 +642,6 @@ class MainGame {
     private async handleRemoteVictory(winner: string, finalScore: any, reason: string): Promise<void> {
         // Verificar se o jogo já terminou para evitar múltiplas mensagens
         if (this.gameEnded) {
-            console.log('Jogo já terminou, ignorando nova mensagem de vitória');
             return;
         }
 
@@ -752,9 +749,6 @@ class MainGame {
         this.scene.render();
         // Parar o loop de renderização
         this.engine.stopRenderLoop();
-
-        // Log para debug
-        console.log(`Jogo finalizado - Vencedor: ${winner}, Seu lado: ${this.playerSide}, Motivo: ${reason}`);
     }
 
     private isFinished(): boolean {
