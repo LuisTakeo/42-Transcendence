@@ -13,7 +13,7 @@ COPY package*.json ./
 
 RUN npm install && \
     apt-get update && \
-    apt-get install -y httpie && \
+    apt-get install -y httpie sqlite3 && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
