@@ -12,7 +12,7 @@ http://localhost:3142/users
 ### 1. Get All Users (with Pagination)
 **GET** `/users`
 
-Returns a paginated list of all users (passwords excluded for security).
+Returns a paginated list of all users.
 
 **Query Parameters:**
 - `page` (optional): Page number (default: 1, minimum: 1)
@@ -432,7 +432,6 @@ CREATE TABLE users (
 
 ## Security Notes
 
-- Passwords are never returned in API responses
 - All input is validated and sanitized
 - SQL injection protection through parameterized queries
 - Username and email uniqueness is enforced

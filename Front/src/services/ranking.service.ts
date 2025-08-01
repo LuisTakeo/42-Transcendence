@@ -51,7 +51,7 @@ export class RankingService extends BaseApiService {
           totalMatches: stats.totalMatches,
           wins: stats.wins,
           winRate: stats.winRate,
-          points
+          points: points
         };
       });
 
