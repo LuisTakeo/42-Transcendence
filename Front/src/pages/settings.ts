@@ -31,12 +31,12 @@ export default async function SettingsPage(): Promise<void> {
 
 	// Now render the settings page with the loaded user data
 	app.innerHTML = `
-	<main class="flex min-h-screen p-10">
-	  <div class="flex w-full gap-8">
+	<main class="min-h-screen p-4 md:p-10">
+	  <div class="flex flex-col lg:flex-row w-full gap-4 md:gap-8">
 
 		<!-- Caixa 1 -->
-		<div class="w-full md:flex-1 bg-[#1E1B4B] rounded-[5px] p-6">
-		  <div class="w-36 h-36 rounded-full overflow-hidden mt-6 mb-2 mx-auto relative group">
+		<div class="w-full lg:flex-1 bg-[#1E1B4B] rounded-[5px] p-4 md:p-6">
+		  <div class="w-36 h-36 rounded-full overflow-hidden mt-4 md:mt-6 mb-2 mx-auto relative group">
 			<div id="profile-pic-container" class="w-full h-full">
 				${user.avatar_url
 					? `<img src="${user.avatar_url}" alt="${user.name}" class="object-cover w-full h-full" onerror="console.error('Avatar load failed:', '${user.avatar_url}'); this.style.display='none'; this.nextElementSibling.style.display='flex';">
@@ -53,7 +53,7 @@ export default async function SettingsPage(): Promise<void> {
 		  </div>
 
 	  <div class="w-full mb-2 px-2 md:px-6">
-		<label class="block text-lg mb-1">Name</label>
+		<label class="block text-base md:text-lg mb-1">Name</label>
 		<div class="flex items-center gap-2">
 		  <input id="nameInput" type="text" value="${user.name}"
 			class="w-full px-4 py-2 rounded-[5px] bg-[#383568] text-white placeholder-white focus:outline-none focus:ring-2 focus:ring-purple-500"
@@ -65,23 +65,23 @@ export default async function SettingsPage(): Promise<void> {
 		</div>
 	  </div>
 
-		  <div class="w-full mb-2 p-6">
-    <label class="block text-lg mb-1">Username</label>
-    <div class="flex items-center gap-2">
-      <input id="usernameInput" type="text" value="${user.username || ''}"
-        class="w-full px-4 py-2 rounded-[5px] bg-[#383568] text-white placeholder-white focus:outline-none focus:ring-2 focus:ring-purple-500"
-        disabled data-original-value="${user.username || ''}" />
-      <button data-id="usernameInput"
-        class="edit-btn w-10 h-10 p-1 bg-[#4A4580] rounded-[5px] hover:bg-[#5C5599] transition flex items-center justify-center">
-        <img src="../../assets/lapis.png" alt="Editar" class="w-6 h-6" />
-      </button>
-    </div>
-    <div id="username-error" class="text-red-400 text-sm mt-1 hidden"></div>
-  </div>
+	    <div class="w-full mb-2 p-2 md:p-6">
+			<label class="block text-base md:text-lg mb-1">Username</label>
+			<div class="flex items-center gap-2">
+			<input id="usernameInput" type="text" value="${user.username || ''}"
+				class="w-full px-4 py-2 rounded-[5px] bg-[#383568] text-white placeholder-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+				disabled data-original-value="${user.username || ''}" />
+			<button data-id="usernameInput"
+				class="edit-btn w-10 h-10 p-1 bg-[#4A4580] rounded-[5px] hover:bg-[#5C5599] transition flex items-center justify-center">
+				<img src="../../assets/lapis.png" alt="Editar" class="w-6 h-6" />
+			</button>
+			</div>
+			<div id="username-error" class="text-red-400 text-sm mt-1 hidden"></div>
+		</div>
 
-	  <div id="two-factor-section" class="align-left w-full max-w-md mt-6 rounded-xl space-y-4">
-		<h2 class="text-2xl font-bold mt-2 text-white">Security</h2>
-		<div id="2fa-status" class="mt-4 mb-4 text-lg text-gray-300">
+	  <div id="two-factor-section" class="w-full max-w-md md:p-6 space-y-4 px-2 md:px-6">
+		<h2 class="text-xl md:text-2xl font-bold mt-2 text-white">Security</h2>
+		<div id="2fa-status" class="mt-4 mb-4 text-base md:text-lg text-gray-300">
 		  Two-factor authentication is not enabled.
 		</div>
 		<button id="activate-2fa-btn"
@@ -89,7 +89,7 @@ export default async function SettingsPage(): Promise<void> {
 		  Enable two-factor authentication
 		</button>
 		<div id="2fa-input-section" class="mt-4 hidden">
-		  <label for="2fa-code" class="block mb-2 text-lg">Enter the code you received:</label>
+		  <label for="2fa-code" class="block mb-2 text-base md:text-lg">Enter the code you received:</label>
 		  <input
 			type="text"
 			id="2fa-code"
@@ -105,8 +105,8 @@ export default async function SettingsPage(): Promise<void> {
 	</div>
 
 		<!-- Caixa 2 -->
-		<div class="w-full md:flex-1 bg-[#1E1B4B] rounded-[5px] p-6">
-		  <h1 class="text-4xl md:text-5xl text-white font-bold text-center mb-6">Friends</h1>
+		<div class="w-full lg:flex-1 bg-[#1E1B4B] rounded-[5px] p-4 md:p-6">
+		  <h1 class="text-3xl md:text-4xl lg:text-5xl text-white font-bold text-center mb-4 md:mb-6">Friends</h1>
 
 		  <div id="friends-container" class="space-y-2">
 			<div class="text-center text-white text-xl">
@@ -120,20 +120,20 @@ export default async function SettingsPage(): Promise<void> {
 	</main>
 
 	<!-- Avatar Selection Modal -->
-	<div id="avatar-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
-		<div class="bg-[#1E1B4B] rounded-lg p-8 max-w-2xl w-full mx-4 max-h-[80vh] overflow-y-auto">
-			<div class="flex justify-between items-center mb-6">
-				<h2 class="text-3xl font-bold text-white">Choose Your Avatar</h2>
+	<div id="avatar-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden p-4">
+		<div class="bg-[#1E1B4B] rounded-lg p-4 md:p-8 max-w-2xl w-full mx-4 max-h-[80vh] overflow-y-auto">
+			<div class="flex justify-between items-center mb-4 md:mb-6">
+				<h2 class="text-2xl md:text-3xl font-bold text-white">Choose Your Avatar</h2>
 				<button id="close-modal" class="text-white hover:text-gray-300 text-2xl font-bold">
 					&times;
 				</button>
 			</div>
 
-			<div id="avatar-grid" class="grid grid-cols-4 gap-4">
+			<div id="avatar-grid" class="grid grid-cols-3 md:grid-cols-4 gap-3 md:gap-4">
 				<!-- Avatars will be loaded here -->
 			</div>
 
-			<div class="flex flex-col md:flex-row justify-center mt-6 gap-2">
+			<div class="flex flex-col md:flex-row justify-center mt-4 md:mt-6 gap-2">
 <button id="avatar-upload-btn" class="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 transition duration-200 text-sm view-profile-btn mr-2" type="button">
 	Upload Photo
 </button>
@@ -157,7 +157,7 @@ export default async function SettingsPage(): Promise<void> {
   }
   update2FAStatus(is2FAEnabled);
 
-	// Inicializa as funcionalidades após renderizar o HTML
+	// Inicializa as funcionalidades apÃ³s renderizar o HTML
 	requestAnimationFrame(() => {
 		initializeEditField();
 		initializeTwoFactor();
@@ -506,7 +506,7 @@ async function fetchAvatarsFromBackend(): Promise<void> {
 		avatarGrid.innerHTML = avatarOptions.map((avatarName: string, index: number) => `
 			<div class="flex flex-col items-center">
 				<button
-					class="avatar-option w-16 h-16 rounded-full overflow-hidden border-2 border-transparent hover:border-purple-500 transition-all duration-200 hover:scale-110"
+					class="avatar-option w-12 h-12 md:w-16 md:h-16 rounded-full overflow-hidden border-2 border-transparent hover:border-purple-500 transition-all duration-200 hover:scale-110"
 					data-avatar="${avatarName}"
 					title="Avatar ${index + 1}"
 				>
@@ -601,3 +601,4 @@ async function saveAvatarUrl(avatarName: string): Promise<void> {
 		showErrorMessage('Failed to save avatar. Please try again.');
 	}
 }
+

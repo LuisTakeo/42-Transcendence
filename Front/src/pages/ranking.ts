@@ -35,6 +35,7 @@ function renderRows(tournamentId?: number | null): string {
         <td class="px-3 py-2 md:px-6 md:py-4 text-sm md:text-2xl">${u.username}</td>
         <td class="px-3 py-2 md:px-6 md:py-4 text-sm md:text-2xl">${u.totalMatches || 0}</td>
         <td class="px-3 py-2 md:px-6 md:py-4 text-sm md:text-2xl">${u.wins || 0}</td>
+        <td class="px-3 py-2 md:px-6 md:py-4 text-sm md:text-2xl">${u.points ?? '-'}</td>
         <td class="px-3 py-2 md:px-6 md:py-4 text-sm md:text-2xl">
           <button class="profile-btn" data-user-id="${u.id || u.username}" title="Go to user profile"><img src="../../assets/arrow.png" alt="go to user profile" class="w-6 h-6 sm:w-8 sm:h-8"/></button>
         </td>
@@ -79,7 +80,7 @@ export default async function RankingPage(): Promise<void> {
       ` : ''}
       <h1 class="text-5xl font-bold mb-6 text-center">${titleText}</h1>
       ${tournamentId ? `<p class="text-center text-gray-300 mb-4">Tournament ID: ${tournamentId}</p>` : ''}
-      <div class="w-full max-w-3xl mx-auto mt-10">
+      <div class="w-full max-w-4xl mx-auto mt-10">
         <div id="ranking-content">
           <div class="text-center text-white text-xl">
             <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500 mx-auto mb-4"></div>
@@ -181,6 +182,7 @@ async function loadRanking(tournamentId: number | null): Promise<void> {
                 <th class="px-3 py-2 md:px-6 md:py-3 text-sm md:text-2xl uppercase">User</th>
                 <th class="px-3 py-2 md:px-6 md:py-3 text-sm md:text-2xl uppercase">Matches</th>
                 <th class="px-3 py-2 md:px-6 md:py-3 text-sm md:text-2xl uppercase">Wins</th>
+                ${!tournamentId ? '<th class="px-3 py-2 md:px-6 md:py-3 text-sm md:text-2xl uppercase">Points</th>' : ''}
                 ${tournamentId ? '<th class="px-3 py-2 md:px-6 md:py-3 text-sm md:text-2xl uppercase">Defeats</th>' : '<th class="px-3 py-2 md:px-6 md:py-3 text-sm md:text-2xl uppercase">Profile</th>'}
                 ${tournamentId ? '<th class="px-3 py-2 md:px-6 md:py-3 text-sm md:text-2xl uppercase">Points</th>' : ''}
               </tr>
