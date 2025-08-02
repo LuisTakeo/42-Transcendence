@@ -154,8 +154,8 @@ class MainGame {
         this.instructionsText = new TextBlock("instructionsText", "Use as setas para mover!");
 
         // Inicializa os elementos de GUI
-        this.initializeScoreBox();
-        this.initializeInstructionsBox();
+        // this.initializeScoreBox();
+        // this.initializeInstructionsBox();
     }
 
     /**
@@ -647,6 +647,11 @@ class MainGame {
 
         // Marcar que o jogo terminou
         this.gameEnded = true;
+
+        if (finalScore) {
+            this.score.player1 = finalScore.player1;
+            this.score.player2 = finalScore.player2;
+        }
 
         // Update the match to the database.
         if (this.matchData && this.matchData.id !== undefined && !this.matchUpdated) {

@@ -23,7 +23,7 @@ interface GameRoom {
     lastUpdateTime: number;
     gameLoop?: NodeJS.Timeout;
     status: 'waiting' | 'playing' | 'finished';
-    isFirstServe?: boolean;
+    ballActive: boolean; // Se a bola está ativa (se movendo)
 }
 
 // Maps principais
@@ -59,9 +59,21 @@ function handlePlayerMove(connection: WebSocket, data: any) {
     if (data.direction === 'up') {
         playerInputs.up = data.pressed !== false; // true por padrão, false se explicitamente definido
         playerInputs.down = false; // Não pode pressionar ambas ao mesmo tempo
+        // Ativar a bola no primeiro movimento
+        if (!room.ballActive && data.pressed !== false) {
+            room.ballActive = true;
+            room.gameState.ball.vx = Math.random() > 0.5 ? 0.65 : -0.65;
+            room.gameState.ball.vy = (Math.random() - 0.5) * 0.65;
+        }
     } else if (data.direction === 'down') {
         playerInputs.down = data.pressed !== false;
         playerInputs.up = false;
+        // Ativar a bola no primeiro movimento
+        if (!room.ballActive && data.pressed !== false) {
+            room.ballActive = true;
+            room.gameState.ball.vx = Math.random() > 0.5 ? 0.65 : -0.65;
+            room.gameState.ball.vy = (Math.random() - 0.5) * 0.65;
+        }
     } else if (data.direction === 'stop') {
         playerInputs.up = false;
         playerInputs.down = false;
@@ -98,9 +110,11 @@ function updateGameLogic(room: GameRoom) {
     const paddleWidth = 2.5;
     const paddleHeight = 15; // Corrigido para 15 como no frontend (depth)
 
-    // Atualizar posição da bola com deltaTime
-    ball.x += ball.vx * deltaTime * 60; // Normalizado para 60 FPS
-    ball.y += ball.vy * deltaTime * 60;
+    // Atualizar posição da bola com deltaTime (só se a bola estiver ativa)
+    if (room.ballActive) {
+        ball.x += ball.vx * deltaTime * 60; // Normalizado para 60 FPS
+        ball.y += ball.vy * deltaTime * 60;
+    }
 
     // Colisão com bordas superior e inferior (mesma lógica do frontend)
     const halfTableDepth = (tableDepth / 2) - 3;
@@ -115,6 +129,7 @@ function updateGameLogic(room: GameRoom) {
     const halfTableWidth = tableWidth / 2;
     if (ball.x > halfTableWidth) {
         // Player 1 marcou ponto
+        console.log("Player 1 marcou ponto");
         room.gameState.score.player1++;
         resetBall(room);
 
@@ -125,6 +140,7 @@ function updateGameLogic(room: GameRoom) {
         });
     } else if (ball.x < -halfTableWidth) {
         // Player 2 marcou ponto
+        console.log("Player 2 marcou ponto");
         room.gameState.score.player2++;
         resetBall(room);
 
@@ -177,9 +193,9 @@ function checkPaddleCollision(room: GameRoom) {
         ball.y >= player1.y - paddleHeight/2 &&
         ball.y <= player1.y + paddleHeight/2) {
 
-        if (room.isFirstServe) {
-            room.isFirstServe = false;
-        }
+        // if (room.isFirstServe) {
+        //     room.isFirstServe = false;
+        // }
         ball.vx *= -1; // Inverte velocidade X
 
         // Adicionar efeito baseado na posição de contato (mesma lógica do frontend)
@@ -208,16 +224,13 @@ function checkPaddleCollision(room: GameRoom) {
 }
 
 function resetBall(room: GameRoom) {
-    let speed = 0.65;
-    if (room.isFirstServe) {
-      speed = 0.4;
-    }
     room.gameState.ball = {
         x: 0,
         y: 0,
-        vx: Math.random() > 0.5 ? speed : -speed, // Velocidade inicial igual ao frontend
-        vy: (Math.random() - 0.5) * speed // Velocidade Y aleatória menor
+        vx: 0, // Bola parada até próximo movimento
+        vy: 0
     };
+    room.ballActive = false; // Desativar a bola novamente
 }
 
 
@@ -229,7 +242,7 @@ function createGameRoom(connection: WebSocket, userId?: string) {
         id: roomId,
         players: new Map([[playerSide, connection]]),
         gameState: {
-            ball: { x: 0, y: 0, vx: Math.random() > 0.5 ? 0.65 : -0.65, vy: (Math.random() - 0.5) * 0.65 },
+            ball: { x: 0, y: 0, vx: 0, vy: 0 }, // Bola parada inicialmente
             player1: { y: 0 }, // Jogador da esquerda
             player2: { y: 0 }, // Jogador da direita (ainda não conectado)
             score: { player1: 0, player2: 0 }
@@ -241,7 +254,8 @@ function createGameRoom(connection: WebSocket, userId?: string) {
         },
         // Inicializar controle de tempo para deltaTime
         lastUpdateTime: Date.now(),
-        status
+        status,
+        ballActive: false // Bola inativa até primeiro movimento
     };
     gameRooms.set(roomId, newRoom);
 
@@ -306,8 +320,7 @@ async function startGameLoop(roomId: string) {
     const room = gameRooms.get(roomId);
     if (!room) return;
 
-    room.isFirstServe = true;
-    await new Promise(resolve => setTimeout(resolve, 5500));
+    // room.isFirstServe = true;
 
     // Game loop específico para esta sala - 60 FPS como no frontend
     room.gameLoop = setInterval(() => {

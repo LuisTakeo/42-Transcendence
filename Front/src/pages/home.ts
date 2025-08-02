@@ -60,16 +60,6 @@ export async function initializeHomePage(): Promise<void> {
       window.dispatchEvent(new Event('popstate'));
     });
   }
-
-  // Add click handler for CPU button
-  const cpuBtn = document.getElementById('cpu-game-btn');
-  if (cpuBtn) {
-    cpuBtn.addEventListener('click', () => {
-      window.history.pushState({}, '', '/game/cpu');
-      window.dispatchEvent(new Event('popstate'));
-    });
-  }
-
   // Add click handler for Remote button
   const remoteBtn = document.getElementById('remote-game-btn');
   if (remoteBtn) {
