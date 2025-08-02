@@ -33,6 +33,7 @@ export interface TournamentRanking {
   victories: number;
   diff: number;
   made: number;
+  totalMatches: number; // Added property to track total matches
 }
 
 export class TournamentsService extends BaseApiService {
@@ -88,9 +89,87 @@ export class TournamentsService extends BaseApiService {
     return this.request<SimpleResponse<(Tournament & { user_role: 'owner' | 'player' })[]>>(`/tournaments/user/${userId}`);
   }
 
-  // Get final ranking
-  async getFinalRanking(tournamentId: number): Promise<SimpleResponse<TournamentRanking[]>> {
-    return this.request<SimpleResponse<TournamentRanking[]>>(`/tournaments/${tournamentId}/final-ranking`);
+  // Get final ranking by calculating from tournament data
+  async getFinalRanking(tournamentId: number): Promise<SimpleResponse<TournamentRanking>> {
+    const tournamentResponse = await this.getTournamentById(tournamentId);
+
+    if (!tournamentResponse.success || !tournamentResponse.data) {
+      return { success: false, data: [], count: 0 };
+    }
+
+    const { matches } = tournamentResponse.data;
+
+    // Initialize ranking map
+    const rankingMap: Record<string, TournamentRanking> = {};
+
+    // Populate ranking map with players based on aliases in matches
+    matches.forEach(match => {
+      if (!rankingMap[match.player1_alias]) {
+        rankingMap[match.player1_alias] = {
+          tournament_id: tournamentId,
+          user_id: 0, // No user_id available, using 0 as placeholder
+          username: match.player1_alias,
+          name: match.player1_alias,
+          points: 0,
+          victories: 0,
+          diff: 0,
+          made: 0,
+          totalMatches: 0 // Initialize totalMatches
+        };
+      }
+
+      if (!rankingMap[match.player2_alias]) {
+        rankingMap[match.player2_alias] = {
+          tournament_id: tournamentId,
+          user_id: 0, // No user_id available, using 0 as placeholder
+          username: match.player2_alias,
+          name: match.player2_alias,
+          points: 0,
+          victories: 0,
+          diff: 0,
+          made: 0,
+          totalMatches: 0 // Initialize totalMatches
+        };
+      }
+    });
+    console.log("Matches:");
+    console.log(matches);
+    console.log("Ranking:");
+    console.log(rankingMap);
+    // Process matches to calculate ranking
+    matches.forEach(match => {
+      const winner = match.winner_username === match.player1_alias ? rankingMap[match.player1_alias]
+      : rankingMap[match.player2_alias];
+      const player1 = rankingMap[match.player1_alias];
+      const player2 = rankingMap[match.player2_alias];
+      console.log(winner, player1, player2);
+      if (winner) {
+        winner.victories += 1;
+        winner.points += 3; // Assign 3 points per victory
+      }
+
+
+      if (player1) {
+        player1.made += match.player1_score;
+        player1.totalMatches = (player1.totalMatches || 0) + 1;
+        player1.diff += match.player1_score - match.player2_score;
+      }
+
+      if (player2) {
+        player2.made += match.player2_score;
+        player2.totalMatches = (player2.totalMatches || 0) + 1;
+        player2.diff += match.player2_score - match.player1_score;
+      }
+    });
+
+    // Convert ranking map to array and sort by points, victories, and diff
+    const ranking = Object.values(rankingMap).sort((a, b) => {
+      if (b.points !== a.points) return b.points - a.points;
+      if (b.victories !== a.victories) return b.victories - a.victories;
+      return b.diff - a.diff;
+    });
+    console.log(ranking);
+    return { success: true, data: ranking, count: ranking.length };
   }
 }
 

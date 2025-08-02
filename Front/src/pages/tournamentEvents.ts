@@ -14,7 +14,7 @@ export function setupTournamentEvents() {
 	const matchesList = document.getElementById("matches-list") as HTMLUListElement;
 
 	// Create finish tournament button
-	const finishBtn = setupFinishTournamentButton(startTournamentBtn.parentElement || document.body);
+	// const finishBtn = setupFinishTournamentButton(startTournamentBtn.parentElement || document.body);
 
 	// Function to disable tournament control buttons
 	const disableTournamentControls = () => {
@@ -30,7 +30,6 @@ export function setupTournamentEvents() {
 		startTournamentBtn.disabled = true;
 		startTournamentBtn.textContent = `Tournament ${savedTournamentId} in progress ...`;
 		startTournamentBtn.classList.add('opacity-50', 'cursor-not-allowed');
-		finishBtn.style.display = "block";
 		disableTournamentControls();
 	}
 
@@ -407,7 +406,7 @@ function loadTournamentState(playerList: HTMLUListElement, matchesList: HTMLULis
 }
 
 // Clear tournament state
-function clearTournamentState() {
+export function clearTournamentState() {
 	localStorage.removeItem('tournamentState');
 }
 
